@@ -3,7 +3,11 @@ import tempfile
 from functools import lru_cache
 from pathlib import Path
 
+from typing import Any
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import make_url
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -27,7 +31,6 @@ def _get_default_database_url() -> str:
     return f"sqlite:///{BASE_DIR / 'data' / 'netsecure.db'}"
 
 
-
 class Settings(BaseSettings):
     app_name: str = "NetSecure AI"
     app_version: str = "0.1.0"
@@ -42,6 +45,29 @@ class Settings(BaseSettings):
     )
     gemini_api_key: str | None = None
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def validate_and_normalize_database_url(cls, v: Any) -> str:
+        if v is None:
+            return _get_default_database_url()
+        if isinstance(v, str):
+            val = v.strip()
+            if not val:
+                return _get_default_database_url()
+            # Normalize legacy postgres:// to postgresql://
+            if val.startswith("postgres://"):
+                val = "postgresql://" + val[len("postgres://"):]
+            try:
+                make_url(val)
+            except Exception as exc:
+                raise ValueError(
+                    f"Could not parse SQLAlchemy DATABASE_URL from '{v}'. "
+                    "Expected a valid database URL, e.g.: "
+                    "'sqlite:////tmp/netsecure.db' or 'postgresql://user:password@host:5432/dbname'."
+                ) from exc
+            return val
+        return str(v)
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
         env_file_encoding="utf-8",
@@ -52,4 +78,5 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
 

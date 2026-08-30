@@ -123,6 +123,7 @@ def _ensure_unknown_command_columns() -> None:
 
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
-    _ensure_finding_columns()
-    _ensure_learned_mapping_columns()
-    _ensure_unknown_command_columns()
+    if engine.dialect.name == "sqlite":
+        _ensure_finding_columns()
+        _ensure_learned_mapping_columns()
+        _ensure_unknown_command_columns()
