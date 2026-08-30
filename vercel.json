@@ -1,4 +1,5 @@
 {
+  "framework": "vite",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
@@ -14,6 +15,10 @@
     {
       "source": "/api",
       "destination": "/api/index.py"
+    },
+    {
+      "source": "/((?!api/|api$).*)",
+      "destination": "/index.html"
     }
   ]
 }
