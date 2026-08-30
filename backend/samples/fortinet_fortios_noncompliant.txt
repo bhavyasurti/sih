@@ -1,0 +1,33 @@
+config system global
+set hostname FGT-EDGE
+set admintimeout 30
+end
+
+config system interface
+edit port1
+set ip 192.168.1.1 255.255.255.0
+set allowaccess ping http https ssh telnet
+next
+end
+
+config firewall policy
+edit 1
+set srcintf port1
+set dstintf port1
+set srcaddr all
+set dstaddr all
+set action accept
+set schedule always
+set service ALL
+set logtraffic all
+next
+end
+
+config system admin
+edit admin
+set password ENC
+next
+end
+
+config system ntp
+end

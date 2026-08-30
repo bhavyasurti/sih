@@ -1,0 +1,24 @@
+! Cisco Router Non-Compliant Example
+hostname CORE-RTR-01
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+line vty 0 4
+ transport input telnet
+ login local
+!
+ip http server
+ip http secure-server
+ip ssh version 1
+!
+interface GigabitEthernet0/0
+ description internet-facing
+ ip address 203.0.113.10 255.255.255.0
+!
+access-list 101 permit tcp any any eq 23
+access-list 101 permit tcp any any eq 80
+!
+no logging buffered

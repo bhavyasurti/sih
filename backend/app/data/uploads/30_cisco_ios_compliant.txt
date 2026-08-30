@@ -1,0 +1,27 @@
+! Cisco Router Compliant Example
+hostname CORE-RTR-01
+!
+version 15.4
+service timestamps debug datetime msec
+service timestamps log datetime msec
+logging buffered 4096
+logging host 10.10.10.10
+!
+line vty 0 4
+ transport input ssh
+ login local
+ exec-timeout 5 0
+!
+no ip http server
+ip http secure-server
+ip ssh version 2
+!
+ntp server 10.20.30.40
+!
+interface GigabitEthernet0/0
+ description internal-router
+ ip address 10.0.0.10 255.255.255.0
+!
+access-list 101 deny tcp any any eq 23
+access-list 101 permit tcp any any eq 443
+!

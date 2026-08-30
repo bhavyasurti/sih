@@ -1,0 +1,10 @@
+set deviceconfig system hostname PA-CORE
+set deviceconfig system service disable-telnet yes
+set deviceconfig system service disable-http yes
+set deviceconfig system service disable-ssh no
+set deviceconfig system ssh version 2
+set deviceconfig system ntp server 10.10.10.10
+set deviceconfig system logging server 10.10.10.20
+set network interface ethernet ethernet1/1 layer3
+set network interface ethernet ethernet1/1 ip 192.168.1.2/24
+set rulebase security rules "deny-ssh" from "any" to "any" source any destination any service ssh action deny
