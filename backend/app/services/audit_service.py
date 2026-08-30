@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 from sqlalchemy.orm import Session
 
+from app.core.config import get_data_dir
 from app.db.audit_repository import AuditRepository
 from app.services.parsers.fortios_parser import parse_fortios_config
 from app.services.parsers.ios_parser import parse_ios_config
@@ -12,8 +13,11 @@ from app.services.parsers.normalizer import normalize_security_data
 from app.services.parsers.panos_parser import parse_panos_config
 from app.services.parsers.vendor_detector import detect_vendor
 
-UPLOAD_DIR = Path(__file__).resolve().parents[2] / "data" / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+def _get_upload_dir() -> Path:
+    upload_dir = get_data_dir() / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    return upload_dir
 
 
 class AuditService:
@@ -22,9 +26,10 @@ class AuditService:
         self.repository = AuditRepository(db)
 
     def analyze_audit_file(self, audit_id: int, filename: str) -> Dict[str, Any]:
-        file_path = UPLOAD_DIR / filename
+        file_path = _get_upload_dir() / filename
         if not file_path.exists():
             raise FileNotFoundError(f"Uploaded file not found: {filename}")
+
 
         config_text = file_path.read_text(encoding="utf-8", errors="ignore")
         detection = detect_vendor(config_text)

@@ -15,9 +15,18 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+_db_initialized = False
+
+
 def get_db():
+    global _db_initialized
+    if not _db_initialized:
+        from app.db.init_db import init_db
+        init_db()
+        _db_initialized = True
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+

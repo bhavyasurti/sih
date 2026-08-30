@@ -39,8 +39,8 @@ class LearningEngine:
             self.db = db_session
             return
 
-        db_dir = Path(__file__).resolve().parents[2] / 'data'
-        db_dir.mkdir(parents=True, exist_ok=True)
+        from app.core.config import get_data_dir
+        db_dir = get_data_dir()
         db_path = db_dir / f'training_{uuid.uuid4().hex}.db'
         test_engine = create_engine(f'sqlite:///{db_path}', connect_args={"check_same_thread": False})
         Base.metadata.create_all(bind=test_engine)

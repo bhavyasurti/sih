@@ -1,3 +1,5 @@
+import os
+import tempfile
 from functools import lru_cache
 from pathlib import Path
 
@@ -7,12 +9,31 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 
+def get_data_dir() -> Path:
+    """Return the writable data directory (uses temp directory on Vercel/serverless environments)."""
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        tmp_dir = Path(tempfile.gettempdir()) / "netsecure_data"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        return tmp_dir
+    local_dir = BASE_DIR / "data"
+    local_dir.mkdir(parents=True, exist_ok=True)
+    return local_dir
+
+
+def _get_default_database_url() -> str:
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        db_path = (Path(tempfile.gettempdir()) / "netsecure.db").resolve().as_posix()
+        return f"sqlite:///{db_path}"
+    return f"sqlite:///{BASE_DIR / 'data' / 'netsecure.db'}"
+
+
+
 class Settings(BaseSettings):
     app_name: str = "NetSecure AI"
     app_version: str = "0.1.0"
     environment: str = "development"
     debug: bool = True
-    database_url: str = f"sqlite:///{BASE_DIR / 'data' / 'netsecure.db'}"
+    database_url: str = _get_default_database_url()
     allowed_origins: str = (
         "http://localhost:5173,"
         "http://localhost:5174,"
@@ -31,3 +52,4 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+

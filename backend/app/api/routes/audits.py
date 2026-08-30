@@ -19,7 +19,26 @@ from app.services.parsers.normalizer import normalize_security_data
 from app.services.parsers.panos_parser import parse_panos_config
 from app.services.parsers.vendor_detector import detect_vendor
 
+from app.core.config import get_data_dir
+
 router = APIRouter(prefix="/api/audits", tags=["audits"])
+
+UPLOAD_DIR = None
+
+
+def _get_upload_dir() -> Path:
+    if UPLOAD_DIR is not None:
+        upload_dir = Path(UPLOAD_DIR)
+    else:
+        upload_dir = get_data_dir() / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    return upload_dir
+
+
+def _get_reports_dir() -> Path:
+    reports_dir = get_data_dir() / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    return reports_dir
 
 
 
@@ -33,8 +52,6 @@ class AnalysisOptions(BaseModel):
 
 
 MAX_FILE_SIZE = 2 * 1024 * 1024
-UPLOAD_DIR = Path(__file__).resolve().parents[2] / "data" / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/upload")
@@ -54,9 +71,10 @@ async def upload_audit_file(file: UploadFile = File(...), db: Session = Depends(
     repository = AuditRepository(db)
     audit = repository.create_audit_record(title=safe_name)
 
-    safe_path = UPLOAD_DIR / f"{audit.id}_{safe_name}"
+    safe_path = _get_upload_dir() / f"{audit.id}_{safe_name}"
     with open(safe_path, "wb") as fh:
         fh.write(content)
+
 
     return {
         "audit_id": audit.id,
@@ -100,9 +118,10 @@ async def analyze_audit(audit_id: int, options: AnalysisOptions | None = None, d
     if audit is None:
         raise HTTPException(status_code=404, detail="Audit not found")
 
+    upload_dir = _get_upload_dir()
     candidate_files = [
-        UPLOAD_DIR / audit.title,
-        UPLOAD_DIR / f"{audit.id}_{audit.title}",
+        upload_dir / audit.title,
+        upload_dir / f"{audit.id}_{audit.title}",
     ]
     audit_file = next((path for path in candidate_files if path.exists()), None)
     if audit_file is None:
@@ -195,9 +214,10 @@ async def evaluate_compliance(audit_id: int, request: ComplianceRequest, db: Ses
     if audit is None:
         raise HTTPException(status_code=404, detail="Audit not found")
 
+    upload_dir = _get_upload_dir()
     candidate_files = [
-        UPLOAD_DIR / audit.title,
-        UPLOAD_DIR / f"{audit.id}_{audit.title}",
+        upload_dir / audit.title,
+        upload_dir / f"{audit.id}_{audit.title}",
     ]
     audit_file = next((path for path in candidate_files if path.exists()), None)
     if audit_file is None:
@@ -264,9 +284,10 @@ async def get_audit_report(audit_id: int, db: Session = Depends(get_db)):
     if audit is None:
         raise HTTPException(status_code=404, detail="Audit not found")
 
+    upload_dir = _get_upload_dir()
     candidate_files = [
-        UPLOAD_DIR / audit.title,
-        UPLOAD_DIR / f"{audit.id}_{audit.title}",
+        upload_dir / audit.title,
+        upload_dir / f"{audit.id}_{audit.title}",
     ]
     audit_file = next((path for path in candidate_files if path.exists()), None)
 
@@ -357,8 +378,7 @@ async def get_audit_report(audit_id: int, db: Session = Depends(get_db)):
 
     pdf_bytes = generate_compliance_pdf(audit_data, compliance_data, findings)
 
-    reports_dir = Path(__file__).resolve().parents[2] / "data" / "reports"
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    reports_dir = _get_reports_dir()
     report_filename = f"compliance_report_audit_{audit_id}.pdf"
     report_path = reports_dir / report_filename
     with open(report_path, "wb") as fh:
