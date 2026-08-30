@@ -5,19 +5,42 @@ __pycache__/
 *.pyd
 .venv/
 venv/
+.pytest_cache/
+.pytest_tmp/
+
+# Environment and Secrets
 .env
-.venv/
+.env.*
+!.env.example
+*.local
 
-# SQLite database
+# Databases and SQLite
+*.db
+*.sqlite
+*.sqlite3
 backend/data/*.db
+backend/app/data/
 
-# Node
+# Local uploads and generated files
+backend/data/uploads/
+backend/data/reports/
+data/uploads/
+data/reports/
+
+# Node and Frontend
 node_modules/
+frontend/node_modules/
 dist/
+frontend/dist/
 
-# VS Code
+# Vercel
+.vercel/
+
+# VS Code & Editors
 .vscode/
+.idea/
 
 # OS files
 .DS_Store
 Thumbs.db
+
