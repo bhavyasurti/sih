@@ -45,9 +45,24 @@ class Settings(BaseSettings):
     )
     gemini_api_key: str | None = None
 
+    @field_validator("app_name", mode="before")
+    @classmethod
+    def validate_app_name(cls, v: Any) -> str:
+        if v is None or not str(v).strip():
+            return "NetSecure AI"
+        return str(v).strip()
+
+    @field_validator("app_version", mode="before")
+    @classmethod
+    def validate_app_version(cls, v: Any) -> str:
+        if v is None or not str(v).strip():
+            return "0.1.0"
+        return str(v).strip()
+
     @field_validator("database_url", mode="before")
     @classmethod
     def validate_and_normalize_database_url(cls, v: Any) -> str:
+
         if v is None:
             return _get_default_database_url()
         if isinstance(v, str):

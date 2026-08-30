@@ -10,11 +10,14 @@ from app.db.init_db import init_db
 
 settings = get_settings()
 
+app_version = (settings.app_version or "").strip() or "0.1.0"
+
 app = FastAPI(
     title="NetSecure AI",
-    version=settings.app_version,
+    version=app_version,
     description="AI-Driven Multi-Vendor Network Security Compliance Auditor",
 )
+
 
 origins = [
     origin.strip()
