@@ -73,22 +73,22 @@ export function Header({
   const currentMeta = pageTitles[currentPage]
 
   return (
-    <header className="h-16 flex-shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-slate-800 bg-[#0c101b] min-w-0">
+    <header className="h-16 flex-shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-surface-border bg-surface-primary min-w-0">
       {/* Breadcrumb & Title */}
       <div className="flex items-center gap-3 min-w-0 flex-1">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="md:hidden p-1.5 -ml-1.5 rounded hover:bg-slate-800/80 text-slate-300 transition-colors"
+            className="md:hidden p-1.5 -ml-1.5 rounded hover:bg-surface-hover text-text-secondary transition-colors"
             aria-label="Open mobile menu"
           >
             <Menu size={20} />
           </button>
         )}
-        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium min-w-0 truncate">
+        <div className="flex items-center gap-1.5 text-xs text-text-secondary font-medium min-w-0 truncate">
           <span className="hidden sm:inline truncate">{currentMeta.section}</span>
-          <ChevronRight size={12} className="hidden sm:block text-slate-400 flex-shrink-0" />
-          <span className="text-slate-200 font-semibold truncate">{currentMeta.title}</span>
+          <ChevronRight size={12} className="hidden sm:block text-text-secondary flex-shrink-0" />
+          <span className="text-text-primary font-semibold truncate">{currentMeta.title}</span>
         </div>
       </div>
 
@@ -99,15 +99,15 @@ export function Header({
           <button
             onClick={() => onDownloadReport && onDownloadReport(activeAuditId)}
             disabled={isDownloadingReport}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-secondary hover:bg-surface-hover border border-surface-border text-text-primary text-xs font-semibold transition-colors disabled:opacity-50"
             title="Download PDF report for current audit"
           >
             {isDownloadingReport ? (
-              <Loader2 size={13} className="animate-spin text-sky-400" />
+              <Loader2 size={13} className="animate-spin text-brand-bright" />
             ) : (
-              <Download size={13} className="text-sky-400" />
+              <Download size={13} className="text-brand-bright" />
             )}
-            <span>{isDownloadingReport ? 'Generating PDF...' : 'Download PDF Report'}</span>
+            <span className="hidden sm:inline">{isDownloadingReport ? 'Generating...' : 'Download PDF'}</span>
           </button>
         )}
 
@@ -115,10 +115,10 @@ export function Header({
         {currentPage !== 'audit' && (
           <button
             onClick={() => onNavigate('audit')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-slate-950 font-semibold text-xs transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-brand-primary hover:bg-brand-bright text-white font-semibold text-xs transition-colors shadow-sm"
           >
             <Plus size={14} className="stroke-[2.5]" />
-            <span>New Audit</span>
+            <span className="hidden sm:inline">New Audit</span>
           </button>
         )}
       </div>

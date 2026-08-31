@@ -5,6 +5,8 @@ export default {
     extend: {
       colors: {
         brand: {
+          primary: '#1683D8',
+          bright: '#38BDF8',
           50: '#f0f9ff',
           100: '#e0f2fe',
           400: '#38bdf8',
@@ -13,12 +15,20 @@ export default {
           700: '#0369a1',
         },
         surface: {
-          base: '#0b0f17',
-          panel: '#0f172a',
-          card: '#131b2e',
-          subtle: '#1e293b',
-          border: '#334155',
-          hover: '#1e293b',
+          primary: '#05070B',
+          secondary: '#080D14',
+          panel: '#0D1420',
+          border: '#1C2A3A',
+          hover: '#131e2e',
+        },
+        text: {
+          primary: '#F5F7FA',
+          secondary: '#9AA8B8',
+        },
+        status: {
+          critical: '#EF4444',
+          darkRed: '#7F1D1D',
+          success: '#22C55E',
         }
       },
       fontFamily: {

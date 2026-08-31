@@ -154,31 +154,31 @@ function VendorBadge({ vendor }: { vendor?: string | null }) {
   const v = (vendor || 'unknown').toLowerCase()
   if (v.includes('cisco')) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-950/80 text-blue-300 border border-blue-800/70 font-mono">
-        <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-brand-primary/20 text-brand-bright border border-brand-primary/30 font-mono">
+        <span className="h-1.5 w-1.5 rounded-full bg-brand-bright" />
         Cisco IOS
       </span>
     )
   }
   if (v.includes('forti')) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-red-950/80 text-red-300 border border-red-800/70 font-mono">
-        <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-status-darkRed/30 text-status-critical border border-status-critical/30 font-mono">
+        <span className="h-1.5 w-1.5 rounded-full bg-status-critical" />
         Fortinet FortiOS
       </span>
     )
   }
   if (v.includes('palo') || v.includes('pan')) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-orange-950/80 text-orange-300 border border-orange-800/70 font-mono">
-        <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-500 border border-amber-500/30 font-mono">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
         Palo Alto PAN-OS
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700 font-mono">
-      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-secondary text-text-secondary border border-surface-border font-mono">
+      <span className="h-1.5 w-1.5 rounded-full bg-text-secondary" />
       {vendor || 'Unknown'}
     </span>
   )
@@ -188,7 +188,7 @@ function RiskBadge({ risk }: { risk?: string | null }) {
   const r = (risk || 'low').toLowerCase()
   if (r.includes('critical')) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/90 text-rose-300 border border-rose-800 uppercase tracking-wider">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-status-darkRed/40 text-status-critical border border-status-critical/40 uppercase tracking-wider">
         <AlertOctagon size={11} className="stroke-[2.5]" />
         Critical Risk
       </span>
@@ -196,7 +196,7 @@ function RiskBadge({ risk }: { risk?: string | null }) {
   }
   if (r.includes('high')) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/80 uppercase tracking-wider">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-status-darkRed/20 text-status-critical border border-status-critical/30 uppercase tracking-wider">
         <AlertTriangle size={11} className="stroke-[2.5]" />
         High Risk
       </span>
@@ -204,14 +204,14 @@ function RiskBadge({ risk }: { risk?: string | null }) {
   }
   if (r.includes('medium')) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/80 uppercase tracking-wider">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30 uppercase tracking-wider">
         <Info size={11} className="stroke-[2.5]" />
         Medium Risk
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 uppercase tracking-wider">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-status-success/10 text-status-success border border-status-success/30 uppercase tracking-wider">
       <CheckCircle2 size={11} className="stroke-[2.5]" />
       Low Risk
     </span>
@@ -222,20 +222,20 @@ function StatusPill({ status }: { status: string }) {
   const s = status.toUpperCase()
   if (s === 'PASS' || s === 'COMPLIANT') {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 font-mono">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-status-success/10 text-status-success border border-status-success/30 font-mono">
         PASS
       </span>
     )
   }
   if (s === 'FAIL' || s === 'NON-COMPLIANT') {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/60 font-mono">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-status-darkRed/20 text-status-critical border border-status-critical/30 font-mono">
         FAIL
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/60 font-mono">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30 font-mono">
       {s || 'UNKNOWN'}
     </span>
   )
@@ -245,27 +245,27 @@ function SeverityBadge({ severity }: { severity: string }) {
   const s = severity.toUpperCase()
   if (s === 'CRITICAL') {
     return (
-      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/90 text-rose-300 border border-rose-800 uppercase tracking-wider">
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-status-darkRed/40 text-status-critical border border-status-critical/40 uppercase tracking-wider">
         CRITICAL
       </span>
     )
   }
   if (s === 'HIGH') {
     return (
-      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950/90 text-amber-300 border border-amber-800 uppercase tracking-wider">
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-status-darkRed/20 text-status-critical border border-status-critical/30 uppercase tracking-wider">
         HIGH
       </span>
     )
   }
   if (s === 'MEDIUM') {
     return (
-      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-950/90 text-yellow-300 border border-yellow-800 uppercase tracking-wider">
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30 uppercase tracking-wider">
         MEDIUM
       </span>
     )
   }
   return (
-    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 uppercase tracking-wider">
+    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-surface-secondary text-text-secondary border border-surface-border uppercase tracking-wider">
       LOW
     </span>
   )
@@ -329,26 +329,26 @@ function DashboardPage({
   return (
     <div className="space-y-6">
       {/* Dashboard Top Header Bar with Contextual Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-1 border-b border-slate-800/80">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-1 border-b border-surface-border">
         <div>
-          <h1 className="text-lg font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <ShieldCheck size={18} className="text-sky-400" />
+          <h1 className="text-lg font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
+            <ShieldCheck size={18} className="text-brand-bright" />
             Security Compliance Dashboard
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-text-secondary mt-0.5">
             Fleet-wide multi-vendor network security posture and rule telemetry
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300">
-            <Calendar size={13} className="text-slate-400" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-panel border border-surface-border text-xs font-mono text-text-secondary">
+            <Calendar size={13} className="text-text-secondary" />
             <span>Active Baseline: CIS v1.0 &bull; NIST r5</span>
           </div>
 
           <button
             onClick={() => onNavigate('audit')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-brand-primary hover:bg-brand-bright text-white font-bold text-xs transition-colors shadow-sm"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>New Audit</span>
@@ -359,97 +359,97 @@ function DashboardPage({
       {/* KPI Stats Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Fleet Compliance */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               Fleet Compliance
             </span>
-            <ShieldCheck size={16} className="text-sky-400" />
+            <ShieldCheck size={16} className="text-brand-bright" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-slate-100 font-mono">
+            <span className="text-2xl font-extrabold tracking-tight text-text-primary font-mono">
               {avgScore !== null ? `${avgScore}%` : 'N/A'}
             </span>
             <RiskBadge risk={overallRisk} />
           </div>
-          <div className="mt-2 text-xs text-slate-400">
+          <div className="mt-2 text-xs text-text-secondary">
             Average posture across {completedAudits.length} evaluated configurations
           </div>
         </div>
 
         {/* Audited Configurations */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               Audited Configurations
             </span>
-            <FileCode2 size={16} className="text-slate-400" />
+            <FileCode2 size={16} className="text-text-secondary" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-slate-100 font-mono">
+            <span className="text-2xl font-extrabold tracking-tight text-text-primary font-mono">
               {audits.length}
             </span>
-            <span className="text-xs text-slate-400 font-medium">total audited devices</span>
+            <span className="text-xs text-text-secondary font-medium">total audited devices</span>
           </div>
-          <div className="mt-2 text-xs text-slate-400">
+          <div className="mt-2 text-xs text-text-secondary">
             Multi-vendor network infrastructure
           </div>
         </div>
 
         {/* Active Learned Rules */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               Active Learned Rules
             </span>
-            <GraduationCap size={16} className="text-emerald-400" />
+            <GraduationCap size={16} className="text-status-success" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-emerald-300 font-mono">
+            <span className="text-2xl font-extrabold tracking-tight text-status-success font-mono">
               {learnedCount}
             </span>
-            <span className="text-[11px] font-semibold text-emerald-400/90 font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/60">
+            <span className="text-[11px] font-semibold text-status-success font-mono px-1.5 py-0.5 rounded bg-status-success/10 border border-status-success/30">
               SQLite Active
             </span>
           </div>
-          <div className="mt-2 text-xs text-slate-400">
+          <div className="mt-2 text-xs text-text-secondary">
             Persistent adaptive parser knowledge
           </div>
         </div>
 
         {/* Unresolved Commands */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-4">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
               Unresolved Commands
             </span>
             <AlertTriangle
               size={16}
-              className={unresolvedCount > 0 ? 'text-amber-400' : 'text-slate-400'}
+              className={unresolvedCount > 0 ? 'text-amber-500' : 'text-text-secondary'}
             />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span
               className={`text-2xl font-extrabold tracking-tight font-mono ${
-                unresolvedCount > 0 ? 'text-amber-300' : 'text-slate-200'
+                unresolvedCount > 0 ? 'text-amber-500' : 'text-text-secondary'
               }`}
             >
               {unresolvedCount}
             </span>
             {unresolvedCount > 0 ? (
-              <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/60">
+              <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/30">
                 Needs Review
               </span>
             ) : (
-              <span className="text-xs text-slate-400">All syntax mapped</span>
+              <span className="text-xs text-text-secondary">All syntax mapped</span>
             )}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Awaiting machine-teaching</span>
+            <span className="text-text-secondary">Awaiting machine-teaching</span>
             {unresolvedCount > 0 && (
               <button
                 onClick={() => onNavigate('training')}
-                className="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-0.5"
+                className="text-brand-bright hover:text-brand-primary font-semibold flex items-center gap-0.5"
               >
                 Review &rarr;
               </button>
@@ -471,50 +471,50 @@ function DashboardPage({
         </div>
 
         {/* Right: Security Posture Distribution Breakdown (1 Col) */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5 flex flex-col justify-between">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Activity size={14} className="text-sky-400" />
+            <div className="flex items-center justify-between pb-3 border-b border-surface-border">
+              <span className="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
+                <Activity size={14} className="text-brand-bright" />
                 Fleet Posture Breakdown
               </span>
-              <span className="font-mono text-xs text-sky-400">
+              <span className="font-mono text-xs text-brand-bright">
                 {avgScore !== null ? `${avgScore}%` : 'Evaluating'}
               </span>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="p-3 rounded bg-slate-950/90 border border-slate-800">
-                <span className="text-[10px] uppercase font-bold text-rose-400 block">Critical Risk</span>
-                <span className="text-lg font-bold font-mono text-rose-300 mt-1 block">
+              <div className="p-3 rounded bg-surface-secondary border border-surface-border">
+                <span className="text-[10px] uppercase font-bold text-status-critical block">Critical Risk</span>
+                <span className="text-lg font-bold font-mono text-status-critical mt-1 block">
                   {audits.filter((a) => a.compliance_score !== null && a.compliance_score < 40).length}
                 </span>
-                <span className="text-[10px] text-slate-400">&lt;40% compliance</span>
+                <span className="text-[10px] text-text-secondary">&lt;40% compliance</span>
               </div>
 
-              <div className="p-3 rounded bg-slate-950/90 border border-slate-800">
-                <span className="text-[10px] uppercase font-bold text-amber-400 block">High/Medium Risk</span>
-                <span className="text-lg font-bold font-mono text-amber-300 mt-1 block">
+              <div className="p-3 rounded bg-surface-secondary border border-surface-border">
+                <span className="text-[10px] uppercase font-bold text-amber-500 block">High/Medium Risk</span>
+                <span className="text-lg font-bold font-mono text-amber-500 mt-1 block">
                   {audits.filter((a) => a.compliance_score !== null && a.compliance_score >= 40 && a.compliance_score < 80).length}
                 </span>
-                <span className="text-[10px] text-slate-400">40-79% compliance</span>
+                <span className="text-[10px] text-text-secondary">40-79% compliance</span>
               </div>
 
-              <div className="p-3 rounded bg-slate-950/90 border border-slate-800 col-span-2">
-                <span className="text-[10px] uppercase font-bold text-emerald-400 block">Passing / Compliant</span>
+              <div className="p-3 rounded bg-surface-secondary border border-surface-border col-span-2">
+                <span className="text-[10px] uppercase font-bold text-status-success block">Passing / Compliant</span>
                 <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-lg font-bold font-mono text-emerald-300">
+                  <span className="text-lg font-bold font-mono text-status-success">
                     {audits.filter((a) => a.compliance_score !== null && a.compliance_score >= 80).length}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">&ge;80% baseline</span>
+                  <span className="text-[10px] text-text-secondary font-mono">&ge;80% baseline</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Deterministic Engine:</span>
-            <span className="text-emerald-400 font-mono font-bold">ARMED & AUTHORITATIVE</span>
+          <div className="mt-4 pt-3 border-t border-surface-border flex items-center justify-between text-xs">
+            <span className="text-text-secondary">Deterministic Engine:</span>
+            <span className="text-status-success font-mono font-bold">ARMED & AUTHORITATIVE</span>
           </div>
         </div>
       </div>
@@ -522,19 +522,19 @@ function DashboardPage({
       {/* Bottom Section: Recent Audits & Multi-Vendor Engine Specs */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Recent Audits Table (2 Cols) */}
-        <div className="lg:col-span-2 rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="lg:col-span-2 rounded-lg border border-surface-border bg-surface-panel p-5">
+          <div className="flex items-center justify-between pb-4 border-b border-surface-border">
             <div>
-              <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
                 Recent Configuration Audits
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-text-secondary mt-0.5">
                 Evaluated security baselines across enterprise network devices
               </p>
             </div>
             <button
               onClick={() => onNavigate('audit')}
-              className="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1"
+              className="text-xs text-brand-bright hover:text-brand-primary font-semibold flex items-center gap-1"
             >
               View All Audits &rarr;
             </button>
@@ -542,12 +542,12 @@ function DashboardPage({
 
           <div className="mt-4 overflow-x-auto">
             {audits.length === 0 ? (
-              <div className="py-12 text-center text-slate-400">
+              <div className="py-12 text-center text-text-secondary">
                 <FileCode2 size={28} className="mx-auto mb-2 opacity-50" />
                 <p className="text-xs font-medium">No configuration audits recorded yet.</p>
                 <button
                   onClick={() => onNavigate('audit')}
-                  className="mt-3 text-xs text-sky-400 hover:underline font-semibold"
+                  className="mt-3 text-xs text-brand-bright hover:underline font-semibold"
                 >
                   Upload your first network config &rarr;
                 </button>
@@ -555,7 +555,7 @@ function DashboardPage({
             ) : (
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-surface-border text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
                     <th className="pb-2.5 font-medium">ID</th>
                     <th className="pb-2.5 font-medium">Configuration</th>
                     <th className="pb-2.5 font-medium">Framework</th>
@@ -564,17 +564,17 @@ function DashboardPage({
                     <th className="pb-2.5 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-surface-border">
                   {audits.slice(0, 6).map((audit) => {
                     const score = audit.compliance_score
                     return (
-                      <tr key={audit.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 font-mono text-slate-400">#{audit.id}</td>
+                      <tr key={audit.id} className="hover:bg-surface-secondary transition-colors">
+                        <td className="py-3 font-mono text-text-secondary">#{audit.id}</td>
                         <td className="py-3">
-                          <div className="font-semibold text-slate-200">{audit.title}</div>
+                          <div className="font-semibold text-text-primary">{audit.title}</div>
                         </td>
                         <td className="py-3">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-surface-secondary border border-surface-border text-text-primary font-mono text-[10px]">
                             {audit.framework || 'CIS'}
                           </span>
                         </td>
@@ -586,30 +586,30 @@ function DashboardPage({
                             <span
                               className={`font-mono font-bold ${
                                 score >= 80
-                                  ? 'text-emerald-400'
+                                  ? 'text-status-success'
                                   : score >= 50
-                                  ? 'text-amber-400'
-                                  : 'text-rose-400'
+                                  ? 'text-amber-500'
+                                  : 'text-status-critical'
                               }`}
                             >
                               {Math.round(score)}%
                             </span>
                           ) : (
-                            <span className="text-slate-400 font-mono">—</span>
+                            <span className="text-text-secondary font-mono">—</span>
                           )}
                         </td>
                         <td className="py-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => onViewAudit(audit.id, audit.framework)}
-                              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-medium transition-colors"
+                              className="px-2.5 py-1 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-text-primary text-[11px] font-medium transition-colors"
                             >
                               View
                             </button>
                             <button
                               onClick={() => onDownloadReport(audit.id)}
                               disabled={isDownloading}
-                              className="p-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-sky-400 transition-colors disabled:opacity-50"
+                              className="p-1 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-brand-bright transition-colors disabled:opacity-50"
                               title="Download PDF Report"
                             >
                               <Download size={13} />
@@ -628,38 +628,38 @@ function DashboardPage({
         {/* Right: Multi-Vendor Parsing Engines & Rule Precedence (1 Col) */}
         <div className="space-y-4">
           {/* Multi-Vendor Parsing Engine Card */}
-          <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Server size={14} className="text-sky-400" />
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
+              <Server size={14} className="text-brand-bright" />
               Multi-Vendor Parsing Engines
             </h3>
             <div className="mt-3 space-y-2.5 text-xs">
-              <div className="flex items-center justify-between p-2 rounded bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center justify-between p-2 rounded bg-surface-secondary border border-surface-border">
                 <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-                  <span className="font-medium text-slate-200">Cisco IOS / IOS-XE</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-bright" />
+                  <span className="font-medium text-text-primary">Cisco IOS / IOS-XE</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/60">
+                <span className="text-[10px] font-mono text-status-success bg-status-success/10 px-1.5 py-0.5 rounded border border-status-success/30">
                   Deterministic v2.4
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-2 rounded bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center justify-between p-2 rounded bg-surface-secondary border border-surface-border">
                 <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                  <span className="font-medium text-slate-200">Fortinet FortiOS</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-status-critical" />
+                  <span className="font-medium text-text-primary">Fortinet FortiOS</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/60">
+                <span className="text-[10px] font-mono text-status-success bg-status-success/10 px-1.5 py-0.5 rounded border border-status-success/30">
                   Deterministic v2.4
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-2 rounded bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center justify-between p-2 rounded bg-surface-secondary border border-surface-border">
                 <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                  <span className="font-medium text-slate-200">Palo Alto PAN-OS</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  <span className="font-medium text-text-primary">Palo Alto PAN-OS</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/60">
+                <span className="text-[10px] font-mono text-status-success bg-status-success/10 px-1.5 py-0.5 rounded border border-status-success/30">
                   Deterministic v2.4
                 </span>
               </div>
@@ -667,25 +667,25 @@ function DashboardPage({
           </div>
 
           {/* Engine Precedence Architecture */}
-          <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Layers size={14} className="text-emerald-400" />
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
+              <Layers size={14} className="text-status-success" />
               Rule Precedence Hierarchy
             </h3>
             <div className="mt-3 space-y-1.5 text-[11px] font-mono">
-              <div className="flex items-center gap-2 p-1.5 rounded bg-emerald-950/30 text-emerald-300 border border-emerald-800/40">
+              <div className="flex items-center gap-2 p-1.5 rounded bg-status-success/10 text-status-success border border-status-success/30">
                 <span className="font-bold">1.</span>
                 <span>Deterministic Parser (Authoritative)</span>
               </div>
-              <div className="flex items-center gap-2 p-1.5 rounded bg-sky-950/30 text-sky-300 border border-sky-800/40">
+              <div className="flex items-center gap-2 p-1.5 rounded bg-brand-primary/10 text-brand-bright border border-brand-primary/30">
                 <span className="font-bold">2.</span>
                 <span>Learned Mappings (SQLite DB)</span>
               </div>
-              <div className="flex items-center gap-2 p-1.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
+              <div className="flex items-center gap-2 p-1.5 rounded bg-surface-secondary text-text-primary border border-surface-border">
                 <span className="font-bold">3.</span>
                 <span>AI Normalization (Gemini Suggestion)</span>
               </div>
-              <div className="flex items-center gap-2 p-1.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
+              <div className="flex items-center gap-2 p-1.5 rounded bg-surface-secondary text-text-secondary border border-surface-border">
                 <span className="font-bold">4.</span>
                 <span>Unresolved Unknown Syntax</span>
               </div>
@@ -755,26 +755,26 @@ function AuditPage({
   return (
     <div className="space-y-6">
       {/* Top Section: Audit Ingestion Console */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
           <div>
-            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              <FileCode2 size={16} className="text-sky-400" />
+            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
+              <FileCode2 size={16} className="text-brand-bright" />
               Ingest Configuration for Compliance Audit
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Upload or paste running configurations to evaluate against CIS / NIST benchmarks
             </p>
           </div>
 
           {/* Mode Switcher */}
-          <div className="flex rounded bg-slate-900 p-1 border border-slate-800">
+          <div className="flex rounded bg-surface-secondary p-1 border border-surface-border">
             <button
               onClick={() => setInputMode('upload')}
               className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
                 inputMode === 'upload'
-                  ? 'bg-slate-800 text-sky-400 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-surface-border text-brand-bright shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               File Upload
@@ -783,8 +783,8 @@ function AuditPage({
               onClick={() => setInputMode('paste')}
               className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
                 inputMode === 'paste'
-                  ? 'bg-slate-800 text-sky-400 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-surface-border text-brand-bright shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               Raw CLI Editor
@@ -793,7 +793,7 @@ function AuditPage({
         </div>
 
         {error && (
-          <div className="mt-4 p-3 rounded bg-rose-950/70 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2">
+          <div className="mt-4 p-3 rounded bg-status-critical/10 border border-status-critical/30 text-status-critical text-xs flex items-center gap-2">
             <AlertOctagon size={14} className="flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -813,36 +813,36 @@ function AuditPage({
                 />
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-700 hover:border-sky-500/60 bg-slate-950/60 hover:bg-slate-900/60 rounded-lg p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px]"
+                  className="border-2 border-dashed border-surface-border hover:border-brand-primary bg-surface-primary hover:bg-surface-secondary rounded-lg p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px]"
                 >
-                  <Upload size={28} className="text-slate-400 mb-2 stroke-[1.8]" />
-                  <div className="text-xs font-semibold text-slate-200">
+                  <Upload size={28} className="text-text-secondary mb-2 stroke-[1.8]" />
+                  <div className="text-xs font-semibold text-text-primary">
                     {uploadedFile ? uploadedFile.name : 'Click to upload configuration file'}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-1">
+                  <div className="text-[11px] text-text-secondary mt-1">
                     Supports Cisco IOS (.cfg), FortiOS (.conf), PAN-OS (.txt), text configs up to 2MB
                   </div>
                   {uploadedFile && (
-                    <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-800 text-sky-300 text-xs font-mono border border-slate-700">
+                    <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded bg-surface-secondary text-brand-bright text-xs font-mono border border-surface-border">
                       <span>{(uploadedFile.size / 1024).toFixed(1)} KB</span>
-                      <span className="text-slate-400">&bull;</span>
-                      <span className="text-emerald-400">Ready to audit</span>
+                      <span className="text-text-secondary">&bull;</span>
+                      <span className="text-status-success">Ready to audit</span>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
                   Paste Configuration Text
                 </label>
                 <textarea
                   value={configText}
                   onChange={(e) => setConfigText(e.target.value)}
                   placeholder="! Paste running-config or device configuration here...&#10;hostname CORE-RTR-01&#10;ip ssh version 2&#10;line vty 0 4&#10; transport input ssh"
-                  className="w-full h-56 rounded-lg bg-slate-950 border border-slate-800 p-3 font-mono text-xs text-slate-200 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 placeholder:text-slate-400 resize-y"
+                  className="w-full h-56 rounded-lg bg-surface-secondary border border-surface-border p-3 font-mono text-xs text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary placeholder:text-text-secondary resize-y"
                 />
-                <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1">
+                <div className="flex items-center justify-between text-[11px] text-text-secondary mt-1">
                   <span>Lines: {configText ? configText.split('\n').length : 0}</span>
                   <span>Characters: {configText.length}</span>
                 </div>
@@ -851,10 +851,10 @@ function AuditPage({
           </div>
 
           {/* Right Area (1 Col): Audit Parameters */}
-          <div className="space-y-4 rounded-lg bg-slate-900/90 border border-slate-800 p-4">
+          <div className="space-y-4 rounded-lg bg-surface-panel border border-surface-border p-4">
             {/* Vendor Selection */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">
                 Target Vendor Architecture
               </label>
               <div className="grid grid-cols-2 gap-1.5">
@@ -870,8 +870,8 @@ function AuditPage({
                     onClick={() => setSelectedVendor(opt.id)}
                     className={`px-2.5 py-1.5 rounded text-xs font-medium border text-left transition-colors ${
                       selectedVendor === opt.id
-                        ? 'bg-sky-950/80 border-sky-500/80 text-sky-300 font-semibold'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-brand-primary/10 border-brand-primary/50 text-brand-bright font-semibold'
+                        : 'bg-surface-secondary border-surface-border text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     {opt.label}
@@ -882,7 +882,7 @@ function AuditPage({
 
             {/* Framework Selection */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">
                 Compliance Framework
               </label>
               <div className="grid grid-cols-2 gap-1.5">
@@ -896,8 +896,8 @@ function AuditPage({
                     onClick={() => setSelectedFramework(opt.id)}
                     className={`px-2.5 py-1.5 rounded text-xs font-medium border text-left transition-colors ${
                       selectedFramework === opt.id
-                        ? 'bg-sky-950/80 border-sky-500/80 text-sky-300 font-semibold'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-brand-primary/10 border-brand-primary/50 text-brand-bright font-semibold'
+                        : 'bg-surface-secondary border-surface-border text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     {opt.label}
@@ -907,19 +907,19 @@ function AuditPage({
             </div>
 
             {/* AI Normalization Option */}
-            <div className="pt-2 border-t border-slate-800">
+            <div className="pt-2 border-t border-surface-border">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={aiEnabled}
                   onChange={(e) => setAiEnabled(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-slate-700 bg-slate-950 text-sky-600 focus:ring-0"
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-surface-border bg-surface-primary text-brand-primary focus:ring-0"
                 />
                 <div>
-                  <div className="text-xs font-semibold text-slate-200">
+                  <div className="text-xs font-semibold text-text-primary">
                     AI-Assisted Normalization (Gemini)
                   </div>
-                  <div className="text-[10px] text-slate-400">
+                  <div className="text-[10px] text-text-secondary">
                     Suggest normalized security parameters for unparsed commands. Deterministic engine remains authoritative.
                   </div>
                 </div>
@@ -932,7 +932,7 @@ function AuditPage({
                 type="button"
                 onClick={onAnalyze}
                 disabled={isAnalyzing || (!configText.trim() && !uploadedFile)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-slate-950 font-bold text-xs transition-colors shadow-sm"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-brand-primary hover:bg-brand-bright disabled:opacity-50 text-white font-bold text-xs transition-colors shadow-sm"
               >
                 {isAnalyzing ? (
                   <>
@@ -952,8 +952,8 @@ function AuditPage({
 
         {/* Analysis Progress Tracker */}
         {isAnalyzing && (
-          <div className="mt-6 pt-5 border-t border-slate-800">
-            <div className="text-xs font-semibold uppercase tracking-wider text-sky-400 mb-3 flex items-center gap-2">
+          <div className="mt-6 pt-5 border-t border-surface-border">
+            <div className="text-xs font-semibold uppercase tracking-wider text-brand-bright mb-3 flex items-center gap-2">
               <Activity size={14} className="animate-pulse" />
               Audit Execution Pipeline
             </div>
@@ -961,10 +961,10 @@ function AuditPage({
               {progressStages.map((stage, idx) => (
                 <div
                   key={stage.label}
-                  className="p-2 rounded bg-slate-950 border border-slate-800 text-center"
+                  className="p-2 rounded bg-surface-secondary border border-surface-border text-center"
                 >
-                  <div className="text-[10px] font-mono text-slate-400">Stage {idx + 1}</div>
-                  <div className="text-[11px] font-semibold text-slate-200 mt-0.5 truncate">
+                  <div className="text-[10px] font-mono text-text-secondary">Stage {idx + 1}</div>
+                  <div className="text-[11px] font-semibold text-text-primary mt-0.5 truncate">
                     {stage.label}
                   </div>
                 </div>
@@ -975,13 +975,13 @@ function AuditPage({
       </div>
 
       {/* Bottom Section: Audit History Archive */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
           <div>
-            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
               Audits History Archive
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Historical network configuration audits and evaluated findings
             </p>
           </div>
@@ -990,14 +990,14 @@ function AuditPage({
             <div className="relative">
               <Search
                 size={13}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary"
               />
               <input
                 type="text"
                 placeholder="Filter audits..."
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className="pl-8 pr-3 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none w-48"
+                className="pl-8 pr-3 py-1 rounded bg-surface-secondary border border-surface-border text-xs text-text-primary placeholder:text-text-secondary focus:border-brand-primary focus:outline-none w-48"
               />
             </div>
           </div>
@@ -1005,13 +1005,13 @@ function AuditPage({
 
         <div className="mt-4 overflow-x-auto">
           {filteredAudits.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 text-xs">
+            <div className="py-8 text-center text-text-secondary text-xs">
               No matching audit records found.
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-surface-border text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
                   <th className="pb-2.5 font-medium">Audit ID</th>
                   <th className="pb-2.5 font-medium">Configuration File</th>
                   <th className="pb-2.5 font-medium">Framework</th>
@@ -1020,15 +1020,15 @@ function AuditPage({
                   <th className="pb-2.5 font-medium text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-surface-border">
                 {filteredAudits.map((audit) => {
                   const score = audit.compliance_score
                   return (
-                    <tr key={audit.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 font-mono text-slate-400">#{audit.id}</td>
-                      <td className="py-3 font-semibold text-slate-200">{audit.title}</td>
+                    <tr key={audit.id} className="hover:bg-surface-secondary transition-colors">
+                      <td className="py-3 font-mono text-text-secondary">#{audit.id}</td>
+                      <td className="py-3 font-semibold text-text-primary">{audit.title}</td>
                       <td className="py-3">
-                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-surface-secondary border border-surface-border text-text-primary font-mono text-[10px]">
                           {audit.framework || 'CIS'}
                         </span>
                       </td>
@@ -1040,30 +1040,30 @@ function AuditPage({
                           <span
                             className={`font-mono font-bold ${
                               score >= 80
-                                ? 'text-emerald-400'
+                                ? 'text-status-success'
                                 : score >= 50
-                                ? 'text-amber-400'
-                                : 'text-rose-400'
+                                ? 'text-amber-500'
+                                : 'text-status-critical'
                             }`}
                           >
                             {Math.round(score)}%
                           </span>
                         ) : (
-                          <span className="text-slate-400 font-mono">—</span>
+                          <span className="text-text-secondary font-mono">—</span>
                         )}
                       </td>
                       <td className="py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => onViewAudit(audit.id, audit.framework)}
-                            className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-medium transition-colors"
+                            className="px-2.5 py-1 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-text-primary text-[11px] font-medium transition-colors"
                           >
                             View Results
                           </button>
                           <button
                             onClick={() => onDownloadReport(audit.id)}
                             disabled={isDownloading}
-                            className="p-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-sky-400 transition-colors disabled:opacity-50"
+                            className="p-1 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-brand-bright transition-colors disabled:opacity-50"
                             title="Download PDF Report"
                           >
                             <Download size={13} />
@@ -1104,15 +1104,15 @@ function ResultsPage({
 
   if (!result) {
     return (
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-12 text-center">
-        <FileCode2 size={36} className="mx-auto text-slate-400 mb-3" />
-        <h2 className="text-base font-bold text-slate-200">No Active Audit Results</h2>
-        <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-12 text-center">
+        <FileCode2 size={36} className="mx-auto text-text-secondary mb-3" />
+        <h2 className="text-base font-bold text-text-primary">No Active Audit Results</h2>
+        <p className="text-xs text-text-secondary mt-1 max-w-sm mx-auto">
           Please run a new configuration audit or select a past audit from the archive.
         </p>
         <button
           onClick={() => onNavigate('audit')}
-          className="mt-4 px-4 py-2 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs transition-colors"
+          className="mt-4 px-4 py-2 rounded bg-brand-primary hover:bg-brand-bright text-white font-bold text-xs transition-colors"
         >
           Go to Configuration Audits
         </button>
@@ -1157,35 +1157,35 @@ function ResultsPage({
   return (
     <div className="space-y-6">
       {/* Device Overview Banner */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-surface-border">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-sky-400 bg-sky-950/70 border border-sky-800/60 px-1.5 py-0.5 rounded">
+              <span className="font-mono text-xs text-brand-bright bg-brand-primary/10 border border-brand-primary/30 px-1.5 py-0.5 rounded">
                 AUDIT #{result.audit_id}
               </span>
               <VendorBadge vendor={result.vendor || result.device.vendor} />
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 border border-slate-700 text-slate-300">
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-surface-secondary border border-surface-border text-text-primary">
                 {result.framework || 'CIS'}
               </span>
             </div>
-            <h1 className="text-xl font-bold text-slate-100 mt-2 flex items-center gap-2">
+            <h1 className="text-xl font-bold text-text-primary mt-2 flex items-center gap-2">
               <span>{result.device.hostname || 'Network Device (Hostname Undetected)'}</span>
             </h1>
-            <div className="mt-1 flex flex-wrap gap-4 text-xs text-slate-400 font-mono">
-              <span>Model: <strong className="text-slate-200">{result.device.model || 'Standard Device'}</strong></span>
-              <span>OS Version: <strong className="text-slate-200">{result.device.os_version || 'Detected'}</strong></span>
-              <span>Detection Confidence: <strong className="text-sky-300">{Math.round(result.vendor_confidence * 100)}%</strong></span>
+            <div className="mt-1 flex flex-wrap gap-4 text-xs text-text-secondary font-mono">
+              <span>Model: <strong className="text-text-primary">{result.device.model || 'Standard Device'}</strong></span>
+              <span>OS Version: <strong className="text-text-primary">{result.device.os_version || 'Detected'}</strong></span>
+              <span>Detection Confidence: <strong className="text-brand-bright">{Math.round(result.vendor_confidence * 100)}%</strong></span>
             </div>
           </div>
 
           {/* Compliance Score Block */}
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
                 Compliance Score
               </div>
-              <div className="text-3xl font-extrabold font-mono text-sky-300">
+              <div className="text-3xl font-extrabold font-mono text-brand-bright">
                 {score}%
               </div>
               <div className="mt-0.5">
@@ -1196,7 +1196,7 @@ function ResultsPage({
             <button
               onClick={() => onDownloadReport(result.audit_id)}
               disabled={isDownloading}
-              className="flex items-center gap-2 px-4 py-2 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs transition-colors shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded bg-brand-primary hover:bg-brand-bright text-white font-bold text-xs transition-colors shadow-sm disabled:opacity-50"
             >
               {isDownloading ? (
                 <Loader2 size={15} className="animate-spin" />
@@ -1210,45 +1210,45 @@ function ResultsPage({
 
         {/* Metric Summary Strip */}
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7 text-xs">
-          <div className="p-2.5 rounded bg-slate-950/70 border border-slate-800">
-            <div className="text-[10px] font-semibold uppercase text-slate-400">Total Controls</div>
-            <div className="mt-1 text-lg font-bold font-mono text-slate-200">
+          <div className="p-2.5 rounded bg-surface-secondary border border-surface-border">
+            <div className="text-[10px] font-semibold uppercase text-text-secondary">Total Controls</div>
+            <div className="mt-1 text-lg font-bold font-mono text-text-primary">
               {result.total_controls || findings.length}
             </div>
           </div>
-          <div className="p-2.5 rounded bg-emerald-950/40 border border-emerald-800/40">
-            <div className="text-[10px] font-semibold uppercase text-emerald-400">Passed</div>
-            <div className="mt-1 text-lg font-bold font-mono text-emerald-300">
+          <div className="p-2.5 rounded bg-status-success/10 border border-status-success/30">
+            <div className="text-[10px] font-semibold uppercase text-status-success">Passed</div>
+            <div className="mt-1 text-lg font-bold font-mono text-status-success">
               {summary.passed ?? 0}
             </div>
           </div>
-          <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800/40">
-            <div className="text-[10px] font-semibold uppercase text-rose-400">Failed</div>
-            <div className="mt-1 text-lg font-bold font-mono text-rose-300">
+          <div className="p-2.5 rounded bg-status-critical/10 border border-status-critical/30">
+            <div className="text-[10px] font-semibold uppercase text-status-critical">Failed</div>
+            <div className="mt-1 text-lg font-bold font-mono text-status-critical">
               {summary.failed ?? 0}
             </div>
           </div>
-          <div className="p-2.5 rounded bg-amber-950/40 border border-amber-800/40">
-            <div className="text-[10px] font-semibold uppercase text-amber-400">Unknown</div>
-            <div className="mt-1 text-lg font-bold font-mono text-amber-300">
+          <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/30">
+            <div className="text-[10px] font-semibold uppercase text-amber-500">Unknown</div>
+            <div className="mt-1 text-lg font-bold font-mono text-amber-500">
               {summary.unknown ?? 0}
             </div>
           </div>
-          <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800/40">
-            <div className="text-[10px] font-semibold uppercase text-rose-400">Critical</div>
-            <div className="mt-1 text-lg font-bold font-mono text-rose-300">
+          <div className="p-2.5 rounded bg-status-critical/10 border border-status-critical/30">
+            <div className="text-[10px] font-semibold uppercase text-status-critical">Critical</div>
+            <div className="mt-1 text-lg font-bold font-mono text-status-critical">
               {summary.critical ?? 0}
             </div>
           </div>
-          <div className="p-2.5 rounded bg-amber-950/40 border border-amber-800/40">
-            <div className="text-[10px] font-semibold uppercase text-amber-400">High</div>
-            <div className="mt-1 text-lg font-bold font-mono text-amber-300">
+          <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/30">
+            <div className="text-[10px] font-semibold uppercase text-amber-500">High</div>
+            <div className="mt-1 text-lg font-bold font-mono text-amber-500">
               {summary.high ?? 0}
             </div>
           </div>
-          <div className="p-2.5 rounded bg-yellow-950/40 border border-yellow-800/40">
-            <div className="text-[10px] font-semibold uppercase text-yellow-400">Medium</div>
-            <div className="mt-1 text-lg font-bold font-mono text-yellow-300">
+          <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/30">
+            <div className="text-[10px] font-semibold uppercase text-amber-500">Medium</div>
+            <div className="mt-1 text-lg font-bold font-mono text-amber-500">
               {summary.medium ?? 0}
             </div>
           </div>
@@ -1256,13 +1256,13 @@ function ResultsPage({
       </div>
 
       {/* Tabs Row */}
-      <div className="flex border-b border-slate-800">
+      <div className="flex border-b border-surface-border">
         <button
           onClick={() => setActiveTab('findings')}
           className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'findings'
-              ? 'border-sky-500 text-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-brand-primary text-brand-bright'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           Control Findings & Remediation ({findings.length})
@@ -1271,8 +1271,8 @@ function ResultsPage({
           onClick={() => setActiveTab('parameters')}
           className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'parameters'
-              ? 'border-sky-500 text-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-brand-primary text-brand-bright'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           Normalized Parameters ({securityEntries.length})
@@ -1281,8 +1281,8 @@ function ResultsPage({
           onClick={() => setActiveTab('telemetry')}
           className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'telemetry'
-              ? 'border-sky-500 text-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-brand-primary text-brand-bright'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           Parser & AI Telemetry ({unknownCommands.length} Unknowns)
@@ -1293,10 +1293,10 @@ function ResultsPage({
       {activeTab === 'findings' && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-slate-800 bg-[#0f172a]">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-surface-border bg-surface-panel">
             {/* Status Filter Buttons */}
             <div className="flex items-center gap-1">
-              <span className="text-[11px] font-semibold uppercase text-slate-400 mr-1.5">
+              <span className="text-[11px] font-semibold uppercase text-text-secondary mr-1.5">
                 Status:
               </span>
               {(['ALL', 'FAIL', 'PASS', 'UNKNOWN'] as const).map((st) => (
@@ -1305,8 +1305,8 @@ function ResultsPage({
                   onClick={() => setStatusFilter(st)}
                   className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
                     statusFilter === st
-                      ? 'bg-sky-600 text-slate-950 font-bold'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      ? 'bg-brand-primary text-white font-bold'
+                      : 'bg-surface-secondary text-text-secondary hover:text-text-primary border border-surface-border'
                   }`}
                 >
                   {st}
@@ -1316,7 +1316,7 @@ function ResultsPage({
 
             {/* Severity Filter */}
             <div className="flex items-center gap-1">
-              <span className="text-[11px] font-semibold uppercase text-slate-400 mr-1.5">
+              <span className="text-[11px] font-semibold uppercase text-text-secondary mr-1.5">
                 Severity:
               </span>
               {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const).map((sv) => (
@@ -1325,8 +1325,8 @@ function ResultsPage({
                   onClick={() => setSeverityFilter(sv)}
                   className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
                     severityFilter === sv
-                      ? 'bg-slate-700 text-slate-100'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      ? 'bg-surface-border text-text-primary'
+                      : 'bg-surface-secondary text-text-secondary hover:text-text-primary border border-surface-border'
                   }`}
                 >
                   {sv}
@@ -1336,13 +1336,13 @@ function ResultsPage({
 
             {/* Search Input */}
             <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
                 type="text"
                 placeholder="Search controls..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none w-44"
+                className="pl-8 pr-3 py-1 rounded bg-black/50 border border-surface-border text-xs text-text-primary placeholder:text-text-secondary focus:border-brand-primary focus:outline-none w-44"
               />
             </div>
           </div>
@@ -1350,7 +1350,7 @@ function ResultsPage({
           {/* Findings Technical List */}
           <div className="space-y-3">
             {filteredFindings.length === 0 ? (
-              <div className="p-8 rounded-lg border border-slate-800 bg-[#0f172a] text-center text-slate-400 text-xs">
+              <div className="p-8 rounded-lg border border-surface-border bg-surface-panel text-center text-text-secondary text-xs">
                 No compliance findings matching current filter criteria.
               </div>
             ) : (
@@ -1361,21 +1361,21 @@ function ResultsPage({
                 return (
                   <div
                     key={finding.control_id}
-                    className={`rounded-lg border p-4 bg-[#0f172a] transition-all ${
+                    className={`rounded-lg border p-4 bg-surface-panel transition-all ${
                       isFail
-                        ? 'border-rose-900/60 shadow-sm'
+                        ? 'border-status-critical/60 shadow-sm'
                         : finding.status === 'PASS'
-                        ? 'border-slate-800'
-                        : 'border-amber-900/60'
+                        ? 'border-surface-border'
+                        : 'border-amber-500/60'
                     }`}
                   >
                     {/* Finding Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800/80">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-surface-border/80">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-1.5 py-0.5 rounded">
+                        <span className="font-mono text-xs font-bold text-brand-bright bg-brand-primary/10 border border-brand-primary/30 px-1.5 py-0.5 rounded">
                           {finding.control_id}
                         </span>
-                        <h3 className="text-sm font-bold text-slate-100">{finding.title}</h3>
+                        <h3 className="text-sm font-bold text-text-primary">{finding.title}</h3>
                       </div>
                       <div className="flex items-center gap-2">
                         <SeverityBadge severity={finding.severity} />
@@ -1384,22 +1384,22 @@ function ResultsPage({
                     </div>
 
                     {/* Metadata Matrix */}
-                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 text-xs bg-slate-950/60 p-2.5 rounded border border-slate-800/60">
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 text-xs bg-surface-secondary/50 p-2.5 rounded border border-surface-border/50">
                       <div>
-                        <span className="text-slate-400 text-[11px] block">Expected State:</span>
-                        <span className="font-mono text-slate-200 font-medium">
+                        <span className="text-text-secondary text-[11px] block">Expected State:</span>
+                        <span className="font-mono text-text-primary font-medium">
                           {String(finding.expected ?? 'Configured')}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[11px] block">Observed State:</span>
-                        <span className={`font-mono font-medium ${isFail ? 'text-rose-400' : 'text-slate-200'}`}>
+                        <span className="text-text-secondary text-[11px] block">Observed State:</span>
+                        <span className={`font-mono font-medium ${isFail ? 'text-status-critical' : 'text-text-primary'}`}>
                           {String(finding.actual ?? 'Not observed')}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[11px] block">Evidence:</span>
-                        <span className="font-mono text-slate-300 truncate block" title={finding.evidence}>
+                        <span className="text-text-secondary text-[11px] block">Evidence:</span>
+                        <span className="font-mono text-text-primary truncate block" title={finding.evidence}>
                           {finding.evidence || 'No direct evidence'}
                         </span>
                       </div>
@@ -1407,20 +1407,20 @@ function ResultsPage({
 
                     {/* Deterministic Remediation CLI Box */}
                     {hasRemediation && finding.remediation && (
-                      <div className="mt-3 rounded border border-slate-800 bg-[#090d16] p-3">
-                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/60">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <div className="mt-3 rounded border border-surface-border bg-black/20 p-3">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-surface-border/60">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-status-success flex items-center gap-1.5">
                             <Terminal size={13} />
                             Deterministic CLI Remediation ({finding.vendor || result.vendor})
                           </span>
                           <button
                             onClick={() => handleCopy(finding.control_id, finding.remediation!)}
-                            className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-semibold transition-colors border border-slate-700"
+                            className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-secondary hover:bg-surface-border text-text-primary text-[10px] font-semibold transition-colors border border-surface-border"
                           >
                             {copiedId === finding.control_id ? (
                               <>
-                                <Check size={11} className="text-emerald-400" />
-                                <span className="text-emerald-400">Copied!</span>
+                                <Check size={11} className="text-status-success" />
+                                <span className="text-status-success">Copied!</span>
                               </>
                             ) : (
                               <>
@@ -1430,7 +1430,7 @@ function ResultsPage({
                             )}
                           </button>
                         </div>
-                        <pre className="mt-2 font-mono text-xs text-emerald-300 whitespace-pre-wrap overflow-x-auto leading-relaxed bg-slate-950/80 p-2.5 rounded border border-slate-800/80">
+                        <pre className="mt-2 font-mono text-xs text-status-success whitespace-pre-wrap overflow-x-auto leading-relaxed bg-black/40 p-2.5 rounded border border-surface-border/80">
                           {finding.remediation}
                         </pre>
                       </div>
@@ -1445,17 +1445,17 @@ function ResultsPage({
 
       {/* Tab 2: Normalized Security Parameters */}
       {activeTab === 'parameters' && (
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-          <div className="pb-3 border-b border-slate-800 flex items-center justify-between">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+          <div className="pb-3 border-b border-surface-border flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
                 Normalized Security Model
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-text-secondary mt-0.5">
                 Vendor-agnostic parameter mappings extracted by the deterministic parser
               </p>
             </div>
-            <span className="text-xs font-mono text-sky-400 bg-sky-950/60 px-2 py-1 rounded border border-sky-800/60">
+            <span className="text-xs font-mono text-brand-bright bg-brand-primary/10 px-2 py-1 rounded border border-brand-primary/30">
               {securityEntries.length} Parameters
             </span>
           </div>
@@ -1463,14 +1463,14 @@ function ResultsPage({
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-surface-border text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
                   <th className="pb-2.5 font-medium">Security Parameter</th>
                   <th className="pb-2.5 font-medium">Type</th>
                   <th className="pb-2.5 font-medium">Observed Value</th>
                   <th className="pb-2.5 font-medium text-right">Parameter Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className="divide-y divide-surface-border font-mono">
                 {securityEntries.map(([key, val]) => {
                   const valType = typeof val
                   const isNull = val === null || val === undefined
@@ -1483,20 +1483,20 @@ function ResultsPage({
                     : 'DETECTED'
 
                   return (
-                    <tr key={key} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-2.5 font-semibold text-slate-200">{key}</td>
-                      <td className="py-2.5 text-slate-400">{valType}</td>
-                      <td className="py-2.5 text-sky-300">{String(val ?? 'null')}</td>
+                    <tr key={key} className="hover:bg-surface-secondary/40 transition-colors">
+                      <td className="py-2.5 font-semibold text-text-primary">{key}</td>
+                      <td className="py-2.5 text-text-secondary">{valType}</td>
+                      <td className="py-2.5 text-brand-bright">{String(val ?? 'null')}</td>
                       <td className="py-2.5 text-right">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             status === 'CONFIGURED'
-                              ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/60'
+                              ? 'bg-status-success/10 text-status-success border border-status-success/30'
                               : status === 'DISABLED'
-                              ? 'bg-rose-950 text-rose-300 border border-rose-800/60'
+                              ? 'bg-status-critical/10 text-status-critical border border-status-critical/30'
                               : status === 'DETECTED'
-                              ? 'bg-sky-950 text-sky-300 border border-sky-800/60'
-                              : 'bg-slate-800 text-slate-400 border border-slate-700'
+                              ? 'bg-brand-primary/10 text-brand-bright border border-brand-primary/30'
+                              : 'bg-surface-secondary text-text-secondary border border-surface-border'
                           }`}
                         >
                           {status}
@@ -1515,45 +1515,45 @@ function ResultsPage({
       {activeTab === 'telemetry' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="p-4 rounded-lg border border-slate-800 bg-[#0f172a]">
-              <div className="text-[10px] font-bold uppercase text-slate-400">AI Provider</div>
-              <div className="mt-2 text-base font-bold text-slate-100 font-mono">
+            <div className="p-4 rounded-lg border border-surface-border bg-surface-panel">
+              <div className="text-[10px] font-bold uppercase text-text-secondary">AI Provider</div>
+              <div className="mt-2 text-base font-bold text-text-primary font-mono">
                 {aiStatus.provider || 'Google GenAI (Gemini)'}
               </div>
             </div>
-            <div className="p-4 rounded-lg border border-slate-800 bg-[#0f172a]">
-              <div className="text-[10px] font-bold uppercase text-slate-400">AI Engine Status</div>
-              <div className="mt-2 text-base font-bold text-sky-400 font-mono">
+            <div className="p-4 rounded-lg border border-surface-border bg-surface-panel">
+              <div className="text-[10px] font-bold uppercase text-text-secondary">AI Engine Status</div>
+              <div className="mt-2 text-base font-bold text-brand-bright font-mono">
                 {aiStatus.status}
               </div>
             </div>
-            <div className="p-4 rounded-lg border border-slate-800 bg-[#0f172a]">
-              <div className="text-[10px] font-bold uppercase text-slate-400">Fallback Engaged</div>
-              <div className="mt-2 text-base font-bold font-mono text-slate-200">
+            <div className="p-4 rounded-lg border border-surface-border bg-surface-panel">
+              <div className="text-[10px] font-bold uppercase text-text-secondary">Fallback Engaged</div>
+              <div className="mt-2 text-base font-bold font-mono text-text-primary">
                 {aiStatus.fallback_used ? 'Yes (Deterministic)' : 'No'}
               </div>
             </div>
-            <div className="p-4 rounded-lg border border-slate-800 bg-[#0f172a]">
-              <div className="text-[10px] font-bold uppercase text-slate-400">Detection Confidence</div>
-              <div className="mt-2 text-base font-bold font-mono text-emerald-400">
+            <div className="p-4 rounded-lg border border-surface-border bg-surface-panel">
+              <div className="text-[10px] font-bold uppercase text-text-secondary">Detection Confidence</div>
+              <div className="mt-2 text-base font-bold font-mono text-status-success">
                 {Math.round(result.vendor_confidence * 100)}%
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-            <div className="pb-3 border-b border-slate-800 flex items-center justify-between">
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+            <div className="pb-3 border-b border-surface-border flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+                <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
                   Unresolved Command Lines
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-text-secondary mt-0.5">
                   Commands that were isolated for review and machine-teaching
                 </p>
               </div>
               <button
                 onClick={() => onNavigate('training')}
-                className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1"
+                className="text-xs font-semibold text-brand-primary hover:text-brand-bright flex items-center gap-1"
               >
                 Go to Training Center &rarr;
               </button>
@@ -1561,17 +1561,17 @@ function ResultsPage({
 
             <div className="mt-4 space-y-2">
               {unknownCommands.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-400">
+                <div className="p-6 text-center text-xs text-text-secondary">
                   No unknown commands isolated from this audit. All lines were parsed deterministically.
                 </div>
               ) : (
                 unknownCommands.map((cmd, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-2.5 rounded bg-slate-950 border border-slate-800 text-xs font-mono"
+                    className="flex items-center justify-between p-2.5 rounded bg-surface-secondary border border-surface-border text-xs font-mono"
                   >
-                    <span className="text-slate-300 truncate mr-4">{cmd.command}</span>
-                    <span className="text-[10px] text-slate-400 flex-shrink-0">
+                    <span className="text-text-primary truncate mr-4">{cmd.command}</span>
+                    <span className="text-[10px] text-text-secondary flex-shrink-0">
                       Line {cmd.line_number || 'N/A'}
                     </span>
                   </div>
@@ -1674,17 +1674,17 @@ function TrainingPage() {
   return (
     <div className="space-y-6">
       {/* Top Architecture Banner */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-surface-border">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-status-success">
               <GraduationCap size={16} />
               Adaptive Knowledge Architecture
             </div>
-            <h1 className="text-lg font-bold text-slate-100 mt-1">
+            <h1 className="text-lg font-bold text-text-primary mt-1">
               Deterministic & Learned Rule Registry
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Review unknown syntax, train new parameter extractors, and manage active rule mappings persisted in SQLite
             </p>
           </div>
@@ -1692,7 +1692,7 @@ function TrainingPage() {
           <button
             onClick={loadData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-text-primary text-xs font-semibold transition-colors"
           >
             <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
             <span>Refresh</span>
@@ -1700,43 +1700,43 @@ function TrainingPage() {
         </div>
 
         {/* Precedence Banner */}
-        <div className="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs font-mono">
-          <span className="text-slate-400">Resolution Priority:</span>
+        <div className="mt-4 p-3 rounded bg-surface-secondary border border-surface-border flex items-center justify-between text-xs font-mono">
+          <span className="text-text-secondary">Resolution Priority:</span>
           <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-emerald-400 font-bold">1. Deterministic Parser</span>
-            <span className="text-slate-400">&rarr;</span>
-            <span className="text-sky-300 font-bold">2. Learned Mappings</span>
-            <span className="text-slate-400">&rarr;</span>
-            <span className="text-slate-300">3. AI Suggestion</span>
-            <span className="text-slate-400">&rarr;</span>
-            <span className="text-slate-400">4. Unknown</span>
+            <span className="text-status-success font-bold">1. Deterministic Parser</span>
+            <span className="text-text-secondary">&rarr;</span>
+            <span className="text-brand-bright font-bold">2. Learned Mappings</span>
+            <span className="text-text-secondary">&rarr;</span>
+            <span className="text-text-primary">3. AI Suggestion</span>
+            <span className="text-text-secondary">&rarr;</span>
+            <span className="text-text-secondary">4. Unknown</span>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 rounded bg-rose-950/70 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2">
+        <div className="p-3 rounded bg-status-critical/10 border border-status-critical/30 text-status-critical text-xs flex items-center gap-2">
           <AlertOctagon size={14} className="flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Tabs Row */}
-      <div className="flex border-b border-slate-800">
+      <div className="flex border-b border-surface-border">
         <button
           onClick={() => setActiveTab('unknown')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'unknown'
-              ? 'border-sky-500 text-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-brand-primary text-brand-bright'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           <span>Unresolved Commands</span>
           <span
             className={`px-1.5 py-0.2 rounded-full text-[10px] ${
               unknownCommands.length > 0
-                ? 'bg-amber-950 text-amber-300 border border-amber-800/60 font-bold'
-                : 'bg-slate-800 text-slate-400'
+                ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 font-bold'
+                : 'bg-surface-secondary text-text-secondary'
             }`}
           >
             {unknownCommands.length}
@@ -1746,12 +1746,12 @@ function TrainingPage() {
           onClick={() => setActiveTab('mappings')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'mappings'
-              ? 'border-sky-500 text-sky-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-brand-primary text-brand-bright'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           <span>Learned Mappings Catalog</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300">
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-surface-secondary text-text-primary">
             {learnedMappings.length}
           </span>
         </button>
@@ -1759,24 +1759,24 @@ function TrainingPage() {
 
       {/* Tab 1: Unresolved Commands */}
       {activeTab === 'unknown' && (
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
             <div>
-              <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
                 Unresolved Command Syntax
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-text-secondary mt-0.5">
                 Commands detected during configuration parsing that require administrative machine-teaching
               </p>
             </div>
             <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
                 type="text"
                 placeholder="Filter commands..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none w-48"
+                className="pl-8 pr-3 py-1 rounded bg-black/50 border border-surface-border text-xs text-text-primary placeholder:text-text-secondary focus:border-brand-primary focus:outline-none w-48"
               />
             </div>
           </div>
@@ -1784,39 +1784,39 @@ function TrainingPage() {
           <div className="mt-4 space-y-3">
             {isLoading ? (
               <div className="py-12 flex justify-center">
-                <Loader2 size={24} className="animate-spin text-sky-400" />
+                <Loader2 size={24} className="animate-spin text-brand-bright" />
               </div>
             ) : filteredUnknown.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
-                <CheckCircle2 size={32} className="mx-auto text-emerald-400 mb-2" />
-                <div className="font-semibold text-slate-200">All Syntax Resolved</div>
-                <p className="text-slate-400 mt-0.5">No pending unknown commands require machine-teaching.</p>
+              <div className="py-12 text-center text-text-secondary text-xs">
+                <CheckCircle2 size={32} className="mx-auto text-status-success mb-2" />
+                <div className="font-semibold text-text-primary">All Syntax Resolved</div>
+                <p className="text-text-secondary mt-0.5">No pending unknown commands require machine-teaching.</p>
               </div>
             ) : (
               filteredUnknown.map((cmd, idx) => (
                 <div
                   key={idx}
-                  className="rounded-lg border border-slate-800 bg-[#0b0f17] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:border-slate-700 transition-colors"
+                  className="rounded-lg border border-surface-border bg-surface-panel p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:border-brand-primary/50 transition-colors"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <VendorBadge vendor={cmd.vendor} />
-                      <span className="text-[11px] font-mono text-slate-400">
+                      <span className="text-[11px] font-mono text-text-secondary">
                         Audit #{cmd.audit_id || 'N/A'} &bull; Line {cmd.line_number || 'N/A'}
                       </span>
                     </div>
 
-                    <pre className="font-mono text-xs font-semibold text-emerald-300 bg-slate-950 p-2 rounded border border-slate-800 overflow-x-auto">
+                    <pre className="font-mono text-xs font-semibold text-status-success bg-black/50 p-2 rounded border border-surface-border overflow-x-auto">
                       {cmd.command}
                     </pre>
 
                     {cmd.ai_suggestion && (
-                      <div className="text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
+                      <div className="text-[11px] text-text-secondary flex items-center gap-1.5 font-mono">
                         <span>AI Suggestion:</span>
-                        <strong className="text-sky-300">{cmd.ai_suggestion.parameter}</strong>
+                        <strong className="text-brand-bright">{cmd.ai_suggestion.parameter}</strong>
                         <span>&rarr;</span>
-                        <strong className="text-emerald-300">{String(cmd.ai_suggestion.value)}</strong>
-                        <span className="text-slate-400 text-[10px]">
+                        <strong className="text-status-success">{String(cmd.ai_suggestion.value)}</strong>
+                        <span className="text-text-secondary text-[10px]">
                           ({Math.round(cmd.ai_suggestion.confidence * 100)}% confidence)
                         </span>
                       </div>
@@ -1825,7 +1825,7 @@ function TrainingPage() {
 
                   <button
                     onClick={() => setReviewModal({ command: cmd, suggestion: cmd.ai_suggestion })}
-                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs transition-colors whitespace-nowrap flex-shrink-0"
+                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded bg-brand-primary hover:bg-brand-bright text-white font-bold text-xs transition-colors whitespace-nowrap flex-shrink-0"
                   >
                     <GraduationCap size={14} />
                     <span>Review & Teach</span>
@@ -1839,24 +1839,24 @@ function TrainingPage() {
 
       {/* Tab 2: Learned Mappings Catalog */}
       {activeTab === 'mappings' && (
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
             <div>
-              <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
                 Learned Rule Catalog (SQLite)
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-text-secondary mt-0.5">
                 Active mappings taught to the engine that take precedence over AI suggestions
               </p>
             </div>
             <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
                 type="text"
                 placeholder="Filter mappings..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none w-48"
+                className="pl-8 pr-3 py-1 rounded bg-black/50 border border-surface-border text-xs text-text-primary placeholder:text-text-secondary focus:border-brand-primary focus:outline-none w-48"
               />
             </div>
           </div>
@@ -1864,41 +1864,41 @@ function TrainingPage() {
           <div className="mt-4 space-y-3">
             {isLoading ? (
               <div className="py-12 flex justify-center">
-                <Loader2 size={24} className="animate-spin text-sky-400" />
+                <Loader2 size={24} className="animate-spin text-brand-bright" />
               </div>
             ) : filteredMappings.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs">
+              <div className="py-12 text-center text-text-secondary text-xs">
                 No learned mappings recorded yet. Teach unresolved commands to populate the rules engine.
               </div>
             ) : (
               filteredMappings.map((m) => (
                 <div
                   key={m.id}
-                  className="rounded-lg border border-slate-800 bg-[#0b0f17] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:border-slate-700 transition-colors"
+                  className="rounded-lg border border-surface-border bg-surface-panel p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:border-brand-primary/50 transition-colors"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <pre className="font-mono text-xs font-semibold text-slate-200 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                      <pre className="font-mono text-xs font-semibold text-text-primary bg-black/50 px-2.5 py-1 rounded border border-surface-border">
                         {m.command_pattern}
                       </pre>
-                      <span className="text-slate-400 text-xs">&rarr;</span>
-                      <span className="font-mono text-xs font-bold text-sky-400 bg-sky-950/70 border border-sky-800/60 px-2.5 py-1 rounded">
+                      <span className="text-text-secondary text-xs">&rarr;</span>
+                      <span className="font-mono text-xs font-bold text-brand-bright bg-brand-primary/10 border border-brand-primary/30 px-2.5 py-1 rounded">
                         {m.normalized_parameter}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
+                    <div className="flex items-center gap-3 text-xs text-text-secondary font-mono">
                       <VendorBadge vendor={m.vendor} />
-                      <span>Type: <strong className="text-slate-300">{m.value_type}</strong></span>
-                      <span>Confidence: <strong className="text-emerald-400">{Math.round(m.confidence * 100)}%</strong></span>
+                      <span>Type: <strong className="text-text-primary">{m.value_type}</strong></span>
+                      <span>Confidence: <strong className="text-status-success">{Math.round(m.confidence * 100)}%</strong></span>
                       {m.enabled ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-status-success">
+                          <span className="h-1.5 w-1.5 rounded-full bg-status-success" />
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-text-secondary">
+                          <span className="h-1.5 w-1.5 rounded-full bg-text-secondary" />
                           Disabled
                         </span>
                       )}
@@ -1908,7 +1908,7 @@ function TrainingPage() {
                   {m.enabled && (
                     <button
                       onClick={() => handleDisableMapping(m.id)}
-                      className="px-3 py-1.5 rounded bg-slate-800 hover:bg-rose-950/70 hover:text-rose-300 border border-slate-700 text-slate-300 text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0"
+                      className="px-3 py-1.5 rounded bg-surface-secondary hover:bg-status-critical/20 hover:text-status-critical border border-surface-border text-text-primary text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0"
                     >
                       Disable Rule
                     </button>
@@ -1976,16 +1976,16 @@ function ReviewMappingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
-      <div className="w-full max-w-lg rounded-lg border border-slate-800 bg-[#0f172a] p-5 shadow-2xl">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <GraduationCap size={16} className="text-sky-400" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="w-full max-w-lg rounded-lg border border-surface-border bg-surface-panel p-5 shadow-2xl">
+        <div className="flex items-center justify-between pb-3 border-b border-surface-border">
+          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
+            <GraduationCap size={16} className="text-brand-bright" />
             Review & Teach Command Syntax
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
           >
             <X size={16} />
           </button>
@@ -1993,23 +1993,23 @@ function ReviewMappingModal({
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
               Raw Command Syntax
             </label>
-            <pre className="p-2.5 rounded bg-slate-950 border border-slate-800 font-mono text-emerald-300 text-xs overflow-x-auto">
+            <pre className="p-2.5 rounded bg-black/50 border border-surface-border font-mono text-status-success text-xs overflow-x-auto">
               {data.command.command}
             </pre>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
                 Target Vendor
               </label>
               <select
                 value={vendor}
                 onChange={(e) => setVendor(e.target.value)}
-                className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-slate-200 font-mono text-xs focus:border-sky-500 focus:outline-none"
+                className="w-full rounded bg-black/50 border border-surface-border p-2 text-text-primary font-mono text-xs focus:border-brand-primary focus:outline-none"
               >
                 <option value="cisco">Cisco IOS</option>
                 <option value="fortinet">Fortinet FortiOS</option>
@@ -2018,13 +2018,13 @@ function ReviewMappingModal({
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
                 Value Type
               </label>
               <select
                 value={valueType}
                 onChange={(e) => setValueType(e.target.value)}
-                className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-slate-200 font-mono text-xs focus:border-sky-500 focus:outline-none"
+                className="w-full rounded bg-black/50 border border-surface-border p-2 text-text-primary font-mono text-xs focus:border-brand-primary focus:outline-none"
               >
                 {VALUE_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -2036,13 +2036,13 @@ function ReviewMappingModal({
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
               Normalized Security Parameter
             </label>
             <select
               value={parameter}
               onChange={(e) => setParameter(e.target.value)}
-              className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-slate-200 font-mono text-xs focus:border-sky-500 focus:outline-none"
+              className="w-full rounded bg-black/50 border border-surface-border p-2 text-text-primary font-mono text-xs focus:border-brand-primary focus:outline-none"
             >
               {SUPPORTED_PARAMETERS.map((p) => (
                 <option key={p} value={p}>
@@ -2053,7 +2053,7 @@ function ReviewMappingModal({
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
               Extracted Value
             </label>
             <input
@@ -2062,12 +2062,12 @@ function ReviewMappingModal({
               onChange={(e) => setValue(e.target.value)}
               placeholder="e.g. 2, true, false, 5"
               required
-              className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-slate-200 font-mono text-xs focus:border-sky-500 focus:outline-none placeholder:text-slate-400"
+              className="w-full rounded bg-black/50 border border-surface-border p-2 text-text-primary font-mono text-xs focus:border-brand-primary focus:outline-none placeholder:text-text-secondary"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-1">
               Description Note (Optional)
             </label>
             <input
@@ -2075,22 +2075,22 @@ function ReviewMappingModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g. Standard enterprise SSH version parameter"
-              className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-slate-200 text-xs focus:border-sky-500 focus:outline-none placeholder:text-slate-400"
+              className="w-full rounded bg-black/50 border border-surface-border p-2 text-text-primary text-xs focus:border-brand-primary focus:outline-none placeholder:text-text-secondary"
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-surface-border flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors"
+              className="px-3 py-1.5 rounded bg-surface-secondary hover:bg-surface-border text-text-primary font-semibold text-xs transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-brand-primary hover:bg-brand-bright text-white font-bold text-xs transition-colors disabled:opacity-50"
             >
               {isSaving ? <Loader2 size={13} className="animate-spin" /> : <SaveIcon size={13} />}
               <span>Save & Enable Rule</span>
@@ -2163,29 +2163,29 @@ function ReportsPage({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
           <div>
-            <h1 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              <FileText size={16} className="text-sky-400" />
+            <h1 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
+              <FileText size={16} className="text-brand-primary" />
               Compliance Reports Archive
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Export formal PDF audit documentation generated via the local ReportLab reporting engine
             </p>
           </div>
 
           <button
             onClick={onRefresh}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-border/50 hover:bg-surface-border border border-surface-border text-text-primary text-xs font-semibold transition-colors"
           >
             <RefreshCw size={13} />
             <span>Refresh Archive</span>
           </button>
         </div>
 
-        <div className="mt-4 p-3 rounded bg-slate-950 border border-slate-800/80 text-xs text-slate-400 flex items-center gap-2">
-          <Info size={14} className="text-sky-400 flex-shrink-0" />
+        <div className="mt-4 p-3 rounded bg-surface-primary border border-surface-border/80 text-xs text-text-secondary flex items-center gap-2">
+          <Info size={14} className="text-brand-primary flex-shrink-0" />
           <span>
             Reports contain formal executive summaries, compliance matrices, evaluated control evidence, and deterministic multi-vendor remediation command playbooks.
           </span>
@@ -2193,40 +2193,40 @@ function ReportsPage({
       </div>
 
       {/* Reports Table (Document Management Interface) */}
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
           <div>
-            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
               Generated Audit Documents ({filteredAudits.length})
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Click Download PDF to export instant reports for compliance reporting
             </p>
           </div>
 
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search reports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1 rounded bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none w-52"
+              className="pl-8 pr-3 py-1.5 rounded bg-surface-primary border border-surface-border text-xs text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:ring-1 focus:ring-brand-primary focus:outline-none w-52 transition-all"
             />
           </div>
         </div>
 
         <div className="mt-4 overflow-x-auto">
           {filteredAudits.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-xs">
-              <FileText size={32} className="mx-auto text-slate-400 mb-2 opacity-50" />
-              <div className="font-semibold text-slate-200">No Reports Available</div>
-              <p className="text-slate-400 mt-0.5">Run a configuration audit to generate compliance reports.</p>
+            <div className="py-12 text-center text-text-secondary text-xs">
+              <FileText size={32} className="mx-auto text-text-muted mb-2 opacity-50" />
+              <div className="font-semibold text-text-primary">No Reports Available</div>
+              <p className="text-text-secondary mt-0.5">Run a configuration audit to generate compliance reports.</p>
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-surface-border text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
                   <th className="pb-2.5 font-medium">Audit ID</th>
                   <th className="pb-2.5 font-medium">Document / Configuration</th>
                   <th className="pb-2.5 font-medium">Framework</th>
@@ -2235,22 +2235,22 @@ function ReportsPage({
                   <th className="pb-2.5 font-medium text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className="divide-y divide-surface-border/60 font-mono">
                 {filteredAudits.map((audit) => {
                   const score = audit.compliance_score
                   const isCurDownloading = downloadingId === audit.id
 
                   return (
-                    <tr key={audit.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 text-slate-400">#{audit.id}</td>
-                      <td className="py-3 font-semibold text-slate-200">
+                    <tr key={audit.id} className="hover:bg-surface-border/20 transition-colors">
+                      <td className="py-3 text-text-secondary">#{audit.id}</td>
+                      <td className="py-3 font-semibold text-text-primary">
                         <div className="flex items-center gap-2">
-                          <FileText size={14} className="text-sky-400 flex-shrink-0" />
+                          <FileText size={14} className="text-brand-primary flex-shrink-0" />
                           <span>{audit.title}</span>
                         </div>
                       </td>
                       <td className="py-3">
-                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-surface-border border border-surface-border/50 text-text-secondary text-[10px]">
                           {audit.framework || 'CIS'}
                         </span>
                       </td>
@@ -2271,21 +2271,21 @@ function ReportsPage({
                             {Math.round(score)}%
                           </span>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-text-muted">—</span>
                         )}
                       </td>
                       <td className="py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => onViewAudit(audit.id, audit.framework)}
-                            className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-sans font-medium transition-colors"
+                            className="px-2.5 py-1 rounded bg-surface-border/50 hover:bg-surface-border border border-surface-border text-text-primary text-[11px] font-sans font-medium transition-colors"
                           >
                             View
                           </button>
                           <button
                             onClick={() => handleDownload(audit.id)}
                             disabled={isCurDownloading}
-                            className="flex items-center gap-1.5 px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-sans font-bold text-[11px] transition-colors disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 py-1 rounded bg-brand-primary hover:bg-brand-secondary text-white font-sans font-bold text-[11px] transition-colors disabled:opacity-50"
                           >
                             {isCurDownloading ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -2320,21 +2320,21 @@ function SettingsPage({
 }) {
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+      <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
+        <div className="flex items-center justify-between pb-4 border-b border-surface-border">
           <div>
-            <h1 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              <Settings size={16} className="text-sky-400" />
+            <h1 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
+              <Settings size={16} className="text-brand-primary" />
               System Settings & Architecture Diagnostics
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               Authoritative rule baselines, database connectivity, and engine telemetry
             </p>
           </div>
 
           <button
             onClick={onRefreshHealth}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-border/50 hover:bg-surface-border border border-surface-border text-text-primary text-xs font-semibold transition-colors"
           >
             <RefreshCw size={13} />
             <span>Check Connectivity</span>
@@ -2342,9 +2342,9 @@ function SettingsPage({
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="p-3.5 rounded bg-slate-950 border border-slate-800">
-            <div className="text-[10px] font-bold uppercase text-slate-400">Backend API</div>
-            <div className="mt-1 flex items-center gap-2 text-xs font-mono font-bold text-slate-200">
+          <div className="p-3.5 rounded bg-surface-primary border border-surface-border">
+            <div className="text-[10px] font-bold uppercase text-text-secondary">Backend API</div>
+            <div className="mt-1 flex items-center gap-2 text-xs font-mono font-bold text-text-primary">
               <span
                 className={`h-2 w-2 rounded-full ${
                   backendStatus === 'online' ? 'bg-emerald-400' : 'bg-rose-500'
@@ -2354,23 +2354,23 @@ function SettingsPage({
             </div>
           </div>
 
-          <div className="p-3.5 rounded bg-slate-950 border border-slate-800">
-            <div className="text-[10px] font-bold uppercase text-slate-400">Database</div>
+          <div className="p-3.5 rounded bg-surface-primary border border-surface-border">
+            <div className="text-[10px] font-bold uppercase text-text-secondary">Database</div>
             <div className="mt-1 text-xs font-mono font-bold text-emerald-400">
               SQLite (netsecure.db)
             </div>
           </div>
 
-          <div className="p-3.5 rounded bg-slate-950 border border-slate-800">
-            <div className="text-[10px] font-bold uppercase text-slate-400">PDF Engine</div>
-            <div className="mt-1 text-xs font-mono font-bold text-sky-400">
+          <div className="p-3.5 rounded bg-surface-primary border border-surface-border">
+            <div className="text-[10px] font-bold uppercase text-text-secondary">PDF Engine</div>
+            <div className="mt-1 text-xs font-mono font-bold text-brand-primary">
               ReportLab v4.1+ (Local)
             </div>
           </div>
 
-          <div className="p-3.5 rounded bg-slate-950 border border-slate-800">
-            <div className="text-[10px] font-bold uppercase text-slate-400">AI Integration</div>
-            <div className="mt-1 text-xs font-mono font-bold text-slate-200">
+          <div className="p-3.5 rounded bg-surface-primary border border-surface-border">
+            <div className="text-[10px] font-bold uppercase text-text-secondary">AI Integration</div>
+            <div className="mt-1 text-xs font-mono font-bold text-text-primary">
               Google GenAI (Gemini)
             </div>
           </div>
@@ -2379,16 +2379,16 @@ function SettingsPage({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Compliance Baselines */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider pb-3 border-b border-slate-800 flex items-center gap-2">
-            <Shield size={15} className="text-sky-400" />
+        <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider pb-3 border-b border-surface-border flex items-center gap-2">
+            <Shield size={15} className="text-brand-primary" />
             Compliance Framework Baselines
           </h2>
           <div className="mt-4 space-y-2.5 text-xs">
-            <div className="p-3 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div className="p-3 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
               <div>
-                <div className="font-semibold text-slate-200">CIS Network Benchmark v1.0</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
+                <div className="font-semibold text-text-primary">CIS Network Benchmark v1.0</div>
+                <div className="text-[11px] text-text-secondary mt-0.5">
                   SSH v2, Telnet disablement, HTTP/HTTPS security, NTP synchronization, session timeouts
                 </div>
               </div>
@@ -2397,10 +2397,10 @@ function SettingsPage({
               </span>
             </div>
 
-            <div className="p-3 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div className="p-3 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
               <div>
-                <div className="font-semibold text-slate-200">NIST SP 800-53 Rev. 5</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
+                <div className="font-semibold text-text-primary">NIST SP 800-53 Rev. 5</div>
+                <div className="text-[11px] text-text-secondary mt-0.5">
                   AC-2/AC-17 (Access Control), SC-8 (Transmission Confidentiality), AU-2/AU-12 (Audit & Accountability)
                 </div>
               </div>
@@ -2412,30 +2412,30 @@ function SettingsPage({
         </div>
 
         {/* API Telemetry & Endpoints */}
-        <div className="rounded-lg border border-slate-800 bg-[#0f172a] p-5">
-          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider pb-3 border-b border-slate-800 flex items-center gap-2">
+        <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider pb-3 border-b border-surface-border flex items-center gap-2">
             <Server size={15} className="text-emerald-400" />
             Active Service Endpoints
           </h2>
           <div className="mt-4 space-y-2 text-xs font-mono">
-            <div className="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-300">GET /api/health</span>
+            <div className="p-2.5 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
+              <span className="text-text-secondary">GET /api/health</span>
               <span className="text-emerald-400 text-[11px]">200 OK</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-300">POST /api/audits/upload</span>
-              <span className="text-sky-300 text-[11px]">Ready</span>
+            <div className="p-2.5 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
+              <span className="text-text-secondary">POST /api/audits/upload</span>
+              <span className="text-brand-secondary text-[11px]">Ready</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-300">POST /api/audits/{'{id}'}/analyze</span>
-              <span className="text-sky-300 text-[11px]">Ready</span>
+            <div className="p-2.5 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
+              <span className="text-text-secondary">POST /api/audits/{'{id}'}/analyze</span>
+              <span className="text-brand-secondary text-[11px]">Ready</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-300">POST /api/audits/{'{id}'}/compliance</span>
-              <span className="text-sky-300 text-[11px]">Ready</span>
+            <div className="p-2.5 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
+              <span className="text-text-secondary">POST /api/audits/{'{id}'}/compliance</span>
+              <span className="text-brand-secondary text-[11px]">Ready</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-300">GET /api/audits/{'{id}'}/report</span>
+            <div className="p-2.5 rounded bg-surface-primary border border-surface-border flex items-center justify-between">
+              <span className="text-text-secondary">GET /api/audits/{'{id}'}/report</span>
               <span className="text-emerald-400 text-[11px]">PDF v4.1</span>
             </div>
           </div>
@@ -2597,7 +2597,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#080c14] text-slate-100 font-sans antialiased">
+    <div className="flex h-screen w-screen overflow-hidden bg-surface-primary text-text-primary font-sans antialiased">
       {/* Persistent Left Enterprise Sidebar */}
       <Sidebar
         currentPage={currentPage}
@@ -2625,7 +2625,7 @@ export default function App() {
         />
 
         {/* Scrollable Page Body */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#080c14]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-surface-primary">
           {currentPage === 'dashboard' && (
             <DashboardPage
               audits={auditsList}
