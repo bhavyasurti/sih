@@ -4,21 +4,21 @@ interface Node3D {
   id: string
   label: string
   sublabel: string
-  type: 'cisco' | 'fortinet' | 'paloalto' | 'server' | 'cloud' | 'gateway' | 'remote'
-  baseAngle: number
-  radius: number
-  heightOffset: number
-  speed: number
-  color: string
-  bgColor: string
-  // Dynamic 3D coordinates
+  type: 'cisco' | 'fortinet' | 'paloalto' | 'server' | 'cloud' | 'gateway' | 'remote' | 'compliance' | 'report' | 'finding'
   x: number
   y: number
   z: number
+  baseX: number
+  baseY: number
+  baseZ: number
+  speed: number
+  color: string
+  bgColor: string
   screenX: number
   screenY: number
   scale: number
   alpha: number
+  status?: 'ok' | 'alert' | 'remediated'
 }
 
 interface Particle {
@@ -37,11 +37,10 @@ export function Hero3DVisual() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [activeStoryStage, setActiveStoryStage] = useState(1)
 
-  // Floating panel visibility & active stage simulation
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveStoryStage((prev) => (prev % 7) + 1)
-    }, 4500)
+    }, 4000)
     return () => clearInterval(interval)
   }, [])
 
@@ -56,7 +55,7 @@ export function Hero3DVisual() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { alpha: false }) // Optimize for solid bg
     if (!ctx) return
 
     let animationFrameId: number
@@ -75,157 +74,38 @@ export function Hero3DVisual() {
     resize()
     window.addEventListener('resize', resize)
 
-    // Realistic Enterprise Network Topology Nodes with 3D Depth
+    // Expanded 3D scene covering a wide area. 
+    // Left side: Network devices. Center: Analysis. Right: Compliance/Reports.
     const nodes: Node3D[] = [
-      {
-        id: 'cisco-core',
-        label: 'Cisco IOS-XE',
-        sublabel: 'Core Router &bull; 10.10.1.1',
-        type: 'cisco',
-        baseAngle: 0.15,
-        radius: 195,
-        heightOffset: -35,
-        speed: 0.0018,
-        color: '#38bdf8',
-        bgColor: '#0c2238',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'fortinet-ngfw',
-        label: 'Fortinet FortiOS',
-        sublabel: 'Perimeter NGFW &bull; 10.20.0.1',
-        type: 'fortinet',
-        baseAngle: (Math.PI * 2) / 7 + 0.1,
-        radius: 210,
-        heightOffset: 30,
-        speed: 0.0018,
-        color: '#f87171',
-        bgColor: '#2a1216',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'paloalto-edge',
-        label: 'Palo Alto PAN-OS',
-        sublabel: 'Security Gateway &bull; 10.30.0.1',
-        type: 'paloalto',
-        baseAngle: (Math.PI * 4) / 7 + 0.2,
-        radius: 200,
-        heightOffset: -20,
-        speed: 0.0018,
-        color: '#fb923c',
-        bgColor: '#2a190e',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'cloud-vpc',
-        label: 'Cloud Infrastructure',
-        sublabel: 'AWS/Azure Transit Hub',
-        type: 'cloud',
-        baseAngle: (Math.PI * 6) / 7 + 0.05,
-        radius: 220,
-        heightOffset: 45,
-        speed: 0.0018,
-        color: '#a78bfa',
-        bgColor: '#1e1435',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'dc-servers',
-        label: 'Enterprise Data Center',
-        sublabel: 'Auth & Logging Cluster',
-        type: 'server',
-        baseAngle: (Math.PI * 8) / 7 + 0.15,
-        radius: 185,
-        heightOffset: -45,
-        speed: 0.0018,
-        color: '#34d399',
-        bgColor: '#0e291e',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'branch-remote',
-        label: 'Remote Branch Node',
-        sublabel: 'IPSec VPN Tunnel',
-        type: 'remote',
-        baseAngle: (Math.PI * 10) / 7 + 0.3,
-        radius: 215,
-        heightOffset: 15,
-        speed: 0.0018,
-        color: '#60a5fa',
-        bgColor: '#13233a',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'edge-gateway',
-        label: 'Perimeter Gateway',
-        sublabel: 'DMZ Ingress Point',
-        type: 'gateway',
-        baseAngle: (Math.PI * 12) / 7 + 0.25,
-        radius: 190,
-        heightOffset: -10,
-        speed: 0.0018,
-        color: '#fbbf24',
-        bgColor: '#2a220e',
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
+      // Left side: Sources
+      { id: 'cisco-core', label: 'Cisco IOS-XE', sublabel: 'Core', type: 'cisco', baseX: -400, baseY: -80, baseZ: 100, speed: 0.001, color: '#38bdf8', bgColor: '#0c2238', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'ok' },
+      { id: 'fortinet-edge', label: 'FortiOS NGFW', sublabel: 'Perimeter', type: 'fortinet', baseX: -350, baseY: 120, baseZ: -50, speed: 0.0015, color: '#f87171', bgColor: '#2a1216', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'alert' },
+      { id: 'paloalto-vpn', label: 'PAN-OS Gateway', sublabel: 'VPN', type: 'paloalto', baseX: -250, baseY: -200, baseZ: 200, speed: 0.0012, color: '#fb923c', bgColor: '#2a190e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'remediated' },
+      { id: 'aws-vpc', label: 'AWS Transit Gateway', sublabel: 'Cloud', type: 'cloud', baseX: -150, baseY: 220, baseZ: -150, speed: 0.0018, color: '#a78bfa', bgColor: '#1e1435', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'ok' },
+      { id: 'aruba-switch', label: 'Aruba CX', sublabel: 'Access', type: 'gateway', baseX: -500, baseY: 40, baseZ: 50, speed: 0.0014, color: '#34d399', bgColor: '#0e291e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'ok' },
+
+      // Center-ish top/bottom (Analysis context)
+      { id: 'policy-engine', label: 'Policy Engine', sublabel: 'Evaluating', type: 'server', baseX: 50, baseY: -250, baseZ: -200, speed: 0.002, color: '#60a5fa', bgColor: '#13233a', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
+      { id: 'remediation-bot', label: 'Auto-Remediation', sublabel: 'Fixing', type: 'server', baseX: 100, baseY: 250, baseZ: 100, speed: 0.002, color: '#34d399', bgColor: '#0e291e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
+
+      // Right side: Compliance & Output
+      { id: 'cis-benchmark', label: 'CIS Benchmark', sublabel: 'Framework', type: 'compliance', baseX: 250, baseY: -120, baseZ: 150, speed: 0.001, color: '#eab308', bgColor: '#2a220e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
+      { id: 'nist-800', label: 'NIST 800-53', sublabel: 'Framework', type: 'compliance', baseX: 300, baseY: 80, baseZ: -100, speed: 0.0015, color: '#fbbf24', bgColor: '#2a220e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
+      { id: 'iso-27001', label: 'ISO 27001', sublabel: 'Framework', type: 'compliance', baseX: 450, baseY: -40, baseZ: 50, speed: 0.0012, color: '#fbbf24', bgColor: '#2a220e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
+      { id: 'pdf-report', label: 'Audit-Ready Report', sublabel: 'PDF Export', type: 'report', baseX: 550, baseY: 150, baseZ: 200, speed: 0.001, color: '#ec4899', bgColor: '#2a1222', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
     ]
 
-    // Multi-color data particles communicating the visual storyline
-    const particles: Particle[] = [
-      { sourceIndex: 0, targetIndex: -1, progress: 0.08, speed: 0.0055, type: 'network', color: '#38bdf8' },
-      { sourceIndex: 1, targetIndex: -1, progress: 0.28, speed: 0.0062, type: 'finding', color: '#f87171' },
-      { sourceIndex: 2, targetIndex: -1, progress: 0.48, speed: 0.005, type: 'finding', color: '#fb923c' },
-      { sourceIndex: 3, targetIndex: -1, progress: 0.68, speed: 0.007, type: 'analysis', color: '#a78bfa' },
-      { sourceIndex: 4, targetIndex: -1, progress: 0.88, speed: 0.006, type: 'compliant', color: '#34d399' },
-      { sourceIndex: 5, targetIndex: -1, progress: 0.38, speed: 0.0052, type: 'network', color: '#60a5fa' },
-      { sourceIndex: 6, targetIndex: -1, progress: 0.58, speed: 0.0065, type: 'analysis', color: '#fbbf24' },
-      // Cross-node particle streams
-      { sourceIndex: 0, targetIndex: 4, progress: 0.22, speed: 0.0045, type: 'network', color: '#38bdf8' },
-      { sourceIndex: 1, targetIndex: 2, progress: 0.62, speed: 0.0055, type: 'finding', color: '#f87171' },
-      { sourceIndex: 3, targetIndex: 5, progress: 0.82, speed: 0.0048, type: 'compliant', color: '#34d399' },
-    ]
+    const particles: Particle[] = []
+    // Generate particles flowing from left -> center -> right
+    // Left to center
+    for (let i = 0; i < 5; i++) {
+      particles.push({ sourceIndex: i, targetIndex: -1, progress: Math.random(), speed: 0.003 + Math.random() * 0.003, type: 'network', color: nodes[i].color })
+      particles.push({ sourceIndex: i, targetIndex: -1, progress: Math.random(), speed: 0.003 + Math.random() * 0.003, type: 'analysis', color: '#60a5fa' })
+    }
+    // Center to right
+    for (let i = 7; i <= 10; i++) {
+      particles.push({ sourceIndex: -1, targetIndex: i, progress: Math.random(), speed: 0.003 + Math.random() * 0.003, type: 'compliant', color: nodes[i].color })
+    }
 
     const render = () => {
       const container = containerRef.current
@@ -236,59 +116,87 @@ export function Hero3DVisual() {
       const centerX = width / 2
       const centerY = height / 2
 
-      ctx.clearRect(0, 0, width, height)
+      // Solid background
+      ctx.fillStyle = '#03060a'
+      ctx.fillRect(0, 0, width, height)
 
       // Smooth mouse parallax easing
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.04
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.04
 
-      const tiltX = (mouseRef.current.y / height - 0.5) * 0.32 + 0.38 // 3D pitch
-      const tiltY = (mouseRef.current.x / width - 0.5) * 0.42 // 3D yaw
+      const tiltX = (mouseRef.current.y / height - 0.5) * 0.3 + 0.2 // Pitch
+      const tiltY = (mouseRef.current.x / width - 0.5) * 0.4 // Yaw
 
       if (!prefersReducedMotion) {
         time += 0.008
       }
 
-      const fov = 400
-      const cameraZ = 460
+      const fov = Math.max(600, width * 0.6)
+      const cameraZ = 800
 
-      // 1. Subtle 3D background coordinate concentric grid
+      // Core position is offset slightly to the right to accommodate text on the left
+      // But we dynamically adjust based on screen width. On mobile, center it.
+      const isMobile = width < 768
+      const coreBaseX = isMobile ? 0 : width * 0.15 
+      const coreScreenX = centerX + coreBaseX
+      const coreScreenY = centerY
+
+      // 1. Grid Background (Floor)
       ctx.save()
-      ctx.strokeStyle = '#1e293b50'
+      ctx.strokeStyle = '#1e293b40'
       ctx.lineWidth = 1
-      ctx.setLineDash([2, 5])
-
-      for (const r of [110, 190, 260]) {
+      for (let i = -800; i <= 800; i += 100) {
+        // Z lines
+        const lineNodes = [
+          { x: i, y: 300, z: -800 },
+          { x: i, y: 300, z: 800 }
+        ]
         ctx.beginPath()
-        for (let a = 0; a <= Math.PI * 2; a += 0.1) {
-          const rawX = Math.cos(a) * r
-          const rawZ = Math.sin(a) * r
-          const rawY = 25
-
-          const rx1 = rawX * Math.cos(tiltY) + rawZ * Math.sin(tiltY)
-          const rz1 = -rawX * Math.sin(tiltY) + rawZ * Math.cos(tiltY)
-          const ry1 = rawY * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
-          const rz2 = rawY * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
-
+        lineNodes.forEach((p, idx) => {
+          const rx1 = p.x * Math.cos(tiltY) + p.z * Math.sin(tiltY)
+          const rz1 = -p.x * Math.sin(tiltY) + p.z * Math.cos(tiltY)
+          const ry1 = p.y * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
+          const rz2 = p.y * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
           const scale = fov / (cameraZ + rz2)
-          const screenX = centerX + rx1 * scale
-          const screenY = centerY + ry1 * scale
-
-          if (a === 0) ctx.moveTo(screenX, screenY)
-          else ctx.lineTo(screenX, screenY)
-        }
-        ctx.closePath()
+          const sx = centerX + coreBaseX + rx1 * scale
+          const sy = centerY + ry1 * scale
+          if (idx === 0) ctx.moveTo(sx, sy)
+          else ctx.lineTo(sx, sy)
+        })
+        ctx.stroke()
+        
+        // X lines
+        const lineNodesX = [
+          { x: -800, y: 300, z: i },
+          { x: 800, y: 300, z: i }
+        ]
+        ctx.beginPath()
+        lineNodesX.forEach((p, idx) => {
+          const rx1 = p.x * Math.cos(tiltY) + p.z * Math.sin(tiltY)
+          const rz1 = -p.x * Math.sin(tiltY) + p.z * Math.cos(tiltY)
+          const ry1 = p.y * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
+          const rz2 = p.y * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
+          const scale = fov / (cameraZ + rz2)
+          const sx = centerX + coreBaseX + rx1 * scale
+          const sy = centerY + ry1 * scale
+          if (idx === 0) ctx.moveTo(sx, sy)
+          else ctx.lineTo(sx, sy)
+        })
         ctx.stroke()
       }
       ctx.restore()
 
-      // 2. Project 3D Network Nodes
+      // 2. Project 3D Nodes
       nodes.forEach((node) => {
-        const angle = node.baseAngle + (prefersReducedMotion ? 0 : time * node.speed * 8)
-        const rawX = Math.cos(angle) * node.radius
-        const rawZ = Math.sin(angle) * node.radius
-        const rawY = node.heightOffset + (prefersReducedMotion ? 0 : Math.sin(time * 1.5 + angle) * 6)
-
+        // Floating motion
+        const floatY = prefersReducedMotion ? 0 : Math.sin(time * 2 + node.baseX) * 20
+        const floatX = prefersReducedMotion ? 0 : Math.cos(time * 1.5 + node.baseZ) * 15
+        
+        const rawX = node.baseX + floatX
+        const rawY = node.baseY + floatY
+        const rawZ = node.baseZ
+        
+        // Apply rotation/tilt around the core
         const rx1 = rawX * Math.cos(tiltY) + rawZ * Math.sin(tiltY)
         const rz1 = -rawX * Math.sin(tiltY) + rawZ * Math.cos(tiltY)
         const ry1 = rawY * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
@@ -298,58 +206,57 @@ export function Hero3DVisual() {
         node.x = rx1
         node.y = ry1
         node.z = rz2
-        node.screenX = centerX + rx1 * scale
-        node.screenY = centerY + ry1 * scale
-        node.scale = Math.max(0.6, Math.min(1.4, scale * 1.05))
-        node.alpha = Math.max(0.3, Math.min(1, (rz2 + 300) / 480))
+        
+        // On mobile, scale everything down visually
+        const globalScale = isMobile ? 0.6 : 1
+        node.screenX = coreScreenX + rx1 * scale * globalScale
+        node.screenY = coreScreenY + ry1 * scale * globalScale
+        node.scale = Math.max(0.3, Math.min(2, scale * globalScale))
+        node.alpha = Math.max(0.1, Math.min(1, (rz2 + 600) / 1000))
       })
 
       const sortedNodes = [...nodes].sort((a, b) => b.z - a.z)
+      const centerScale = (fov / cameraZ) * (isMobile ? 0.6 : 1)
 
-      const coreScreenX = centerX
-      const coreScreenY = centerY
-      const centerScale = fov / cameraZ
-
-      // 3. Draw connection lines between nodes & central security engine
-      nodes.forEach((node, i) => {
+      // 3. Draw connection lines to central core
+      nodes.forEach((node) => {
         ctx.save()
-        // Subtle depth opacity
-        const lineAlpha = (node.alpha * 0.45).toFixed(2)
+        const lineAlpha = (node.alpha * 0.3).toFixed(2)
         ctx.strokeStyle = `${node.color}${Math.round(parseFloat(lineAlpha) * 255).toString(16).padStart(2, '0')}`
-        ctx.lineWidth = Math.max(1, 1.3 * node.scale)
+        ctx.lineWidth = Math.max(1, 1.5 * node.scale)
 
         const midX = (coreScreenX + node.screenX) / 2
-        const midY = (coreScreenY + node.screenY) / 2 - 16 * node.scale
+        const midY = (coreScreenY + node.screenY) / 2 - 40 * node.scale
 
         ctx.beginPath()
         ctx.moveTo(coreScreenX, coreScreenY)
         ctx.quadraticCurveTo(midX, midY, node.screenX, node.screenY)
         ctx.stroke()
-
-        // Cross connection to subsequent node
-        const nextNode = nodes[(i + 1) % nodes.length]
-        ctx.strokeStyle = '#22304930'
-        ctx.setLineDash([2, 4])
-        ctx.beginPath()
-        ctx.moveTo(node.screenX, node.screenY)
-        ctx.lineTo(nextNode.screenX, nextNode.screenY)
-        ctx.stroke()
-
         ctx.restore()
       })
 
-      // 4. Draw Traveling Data Particles along network arcs
+      // 4. Draw Particles
       particles.forEach((packet) => {
-        const sourceNode = nodes[packet.sourceIndex]
-        if (!sourceNode) return
+        let sourceX, sourceY, sourceScale, targetX, targetY
 
-        let targetX = coreScreenX
-        let targetY = coreScreenY
+        if (packet.sourceIndex === -1) {
+          sourceX = coreScreenX
+          sourceY = coreScreenY
+          sourceScale = centerScale
+        } else {
+          const n = nodes[packet.sourceIndex]
+          sourceX = n.screenX
+          sourceY = n.screenY
+          sourceScale = n.scale
+        }
 
-        if (packet.targetIndex >= 0 && nodes[packet.targetIndex]) {
-          const targetNode = nodes[packet.targetIndex]
-          targetX = targetNode.screenX
-          targetY = targetNode.screenY
+        if (packet.targetIndex === -1) {
+          targetX = coreScreenX
+          targetY = coreScreenY
+        } else {
+          const n = nodes[packet.targetIndex]
+          targetX = n.screenX
+          targetY = n.screenY
         }
 
         if (!prefersReducedMotion) {
@@ -358,117 +265,191 @@ export function Hero3DVisual() {
         }
 
         const t = packet.progress
-        const midX = (targetX + sourceNode.screenX) / 2
-        const midY = (targetY + sourceNode.screenY) / 2 - 16 * sourceNode.scale
+        const midX = (targetX + sourceX) / 2
+        const midY = (targetY + sourceY) / 2 - 40 * sourceScale
 
-        const px = (1 - t) * (1 - t) * sourceNode.screenX + 2 * (1 - t) * t * midX + t * t * targetX
-        const py = (1 - t) * (1 - t) * sourceNode.screenY + 2 * (1 - t) * t * midY + t * t * targetY
+        const px = (1 - t) * (1 - t) * sourceX + 2 * (1 - t) * t * midX + t * t * targetX
+        const py = (1 - t) * (1 - t) * sourceY + 2 * (1 - t) * t * midY + t * t * targetY
 
         ctx.save()
         ctx.fillStyle = packet.color
         ctx.shadowColor = packet.color
-        ctx.shadowBlur = 6
-
+        ctx.shadowBlur = 8
         ctx.beginPath()
-        ctx.arc(px, py, 2.4 * sourceNode.scale, 0, Math.PI * 2)
+        ctx.arc(px, py, 2.5 * Math.max(0.5, sourceScale), 0, Math.PI * 2)
         ctx.fill()
+        
+        // Trail
+        ctx.shadowBlur = 0
+        ctx.globalAlpha = 0.5
+        const t2 = Math.max(0, t - 0.05)
+        const px2 = (1 - t2) * (1 - t2) * sourceX + 2 * (1 - t2) * t2 * midX + t2 * t2 * targetX
+        const py2 = (1 - t2) * (1 - t2) * sourceY + 2 * (1 - t2) * t2 * midY + t2 * t2 * targetY
+        ctx.strokeStyle = packet.color
+        ctx.lineWidth = 2 * Math.max(0.5, sourceScale)
+        ctx.beginPath()
+        ctx.moveTo(px, py)
+        ctx.lineTo(px2, py2)
+        ctx.stroke()
+        
         ctx.restore()
       })
 
-      // 5. Draw 3D Network Nodes with Atmospheric Depth
+      // 5. Draw 3D Network Nodes
       sortedNodes.forEach((node) => {
         ctx.save()
         ctx.translate(node.screenX, node.screenY)
         ctx.globalAlpha = node.alpha
 
-        // Outer Node Ring
+        // Hexagon or circle based on type
         ctx.fillStyle = node.bgColor
         ctx.strokeStyle = node.color
-        ctx.lineWidth = 1.6
+        ctx.lineWidth = 1.5
 
-        ctx.beginPath()
-        ctx.arc(0, 0, 12 * node.scale, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.stroke()
+        if (node.type === 'compliance' || node.type === 'report') {
+          // Draw rect
+          ctx.beginPath()
+          ctx.rect(-16 * node.scale, -12 * node.scale, 32 * node.scale, 24 * node.scale)
+          ctx.fill()
+          ctx.stroke()
+        } else {
+          // Draw circle
+          ctx.beginPath()
+          ctx.arc(0, 0, 14 * node.scale, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.stroke()
+          
+          // Inner dot
+          ctx.fillStyle = node.color
+          ctx.beginPath()
+          ctx.arc(0, 0, 4 * node.scale, 0, Math.PI * 2)
+          ctx.fill()
+        }
 
-        // Inner Core Pip
-        ctx.fillStyle = node.color
-        ctx.beginPath()
-        ctx.arc(0, 0, 4.5 * node.scale, 0, Math.PI * 2)
-        ctx.fill()
+        // Status indicator
+        if (node.status === 'alert') {
+          ctx.fillStyle = '#ef4444' // red
+          ctx.shadowColor = '#ef4444'
+          ctx.shadowBlur = Math.sin(time * 10) * 10 + 10
+          ctx.beginPath()
+          ctx.arc(10 * node.scale, -10 * node.scale, 4 * node.scale, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.shadowBlur = 0
+        } else if (node.status === 'remediated') {
+          ctx.fillStyle = '#10b981' // green
+          ctx.beginPath()
+          ctx.arc(10 * node.scale, -10 * node.scale, 4 * node.scale, 0, Math.PI * 2)
+          ctx.fill()
+        }
 
-        // Node Label
+        // Floating config snippets
+        if (node.status === 'alert' && !prefersReducedMotion) {
+          ctx.font = `600 ${8 * node.scale}px "JetBrains Mono", monospace`
+          ctx.fillStyle = '#ef4444'
+          ctx.fillText("! TELNET PERMITTED", 16 * node.scale, -20 * node.scale)
+        } else if (node.status === 'remediated' && !prefersReducedMotion) {
+          ctx.font = `600 ${8 * node.scale}px "JetBrains Mono", monospace`
+          ctx.fillStyle = '#10b981'
+          ctx.fillText("✓ SSH v2 ENFORCED", 16 * node.scale, -20 * node.scale)
+        }
+
+        // Labels
         ctx.font = `600 ${Math.max(10, 11 * node.scale)}px "Inter", sans-serif`
-        ctx.fillStyle = '#f1f5f9'
+        ctx.fillStyle = '#f8fafc'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'top'
-        ctx.fillText(node.label, 0, 16 * node.scale)
+        ctx.fillText(node.label, 0, 18 * node.scale)
 
-        // Sublabel / IP
-        ctx.font = `500 ${Math.max(8, 8.5 * node.scale)}px "JetBrains Mono", monospace`
+        ctx.font = `500 ${Math.max(8, 9 * node.scale)}px "JetBrains Mono", monospace`
         ctx.fillStyle = node.color
-        ctx.fillText(node.sublabel.split('&bull;')[0].trim(), 0, 29 * node.scale)
+        ctx.fillText(node.sublabel, 0, 32 * node.scale)
 
         ctx.restore()
       })
 
-      // 6. Draw Central NetSecure AI Security Engine (Metallic Shield Core)
+      // 6. Central NetSecure AI Security Engine (The Core)
       ctx.save()
       ctx.translate(coreScreenX, coreScreenY)
 
-      const coreRot = prefersReducedMotion ? 0 : time * 0.35
-      const coreRadius = 36 * centerScale
+      const coreRot = prefersReducedMotion ? 0 : time * 0.4
+      const coreRadius = 45 * centerScale
 
-      // Outer rotating geometric frame
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)'
-      ctx.lineWidth = 1.4
+      // Glowing aura
+      const auraPulse = prefersReducedMotion ? 1 : (Math.sin(time * 3) + 1) / 2
+      ctx.fillStyle = `rgba(2, 132, 199, ${0.05 + auraPulse * 0.05})`
       ctx.beginPath()
-      for (let i = 0; i < 8; i++) {
-        const ang = coreRot + (i * Math.PI) / 4
-        const px = Math.cos(ang) * (coreRadius * 1.35)
-        const py = Math.sin(ang) * (coreRadius * 0.95)
+      ctx.arc(0, 0, coreRadius * 2.5, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Outer rotating geometric frame (ring 1)
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      for (let i = 0; i < 6; i++) {
+        const ang = coreRot + (i * Math.PI) / 3
+        const px = Math.cos(ang) * (coreRadius * 1.6)
+        const py = Math.sin(ang) * (coreRadius * 1.6)
         if (i === 0) ctx.moveTo(px, py)
         else ctx.lineTo(px, py)
       }
       ctx.closePath()
       ctx.stroke()
 
-      // Metallic/Dark Core Base Shield
-      ctx.fillStyle = '#081424'
-      ctx.strokeStyle = '#0284c7'
-      ctx.lineWidth = 2.4
+      // Rotating inner ring (opposite direction)
+      ctx.strokeStyle = 'rgba(14, 165, 233, 0.6)'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      for (let i = 0; i < 8; i++) {
+        const ang = -coreRot * 1.5 + (i * Math.PI) / 4
+        const px = Math.cos(ang) * (coreRadius * 1.3)
+        const py = Math.sin(ang) * (coreRadius * 1.3)
+        if (i === 0) ctx.moveTo(px, py)
+        else ctx.lineTo(px, py)
+      }
+      ctx.closePath()
+      ctx.stroke()
+
+      // Core Shield Base
+      ctx.fillStyle = '#0a1628'
+      ctx.strokeStyle = '#0ea5e9'
+      ctx.lineWidth = 2.5
+      ctx.shadowColor = '#0284c7'
+      ctx.shadowBlur = 15
 
       ctx.beginPath()
       ctx.moveTo(0, -coreRadius)
       ctx.lineTo(coreRadius * 0.85, -coreRadius * 0.4)
       ctx.lineTo(coreRadius * 0.7, coreRadius * 0.5)
-      ctx.lineTo(0, coreRadius * 1.08)
+      ctx.lineTo(0, coreRadius * 1.1)
       ctx.lineTo(-coreRadius * 0.7, coreRadius * 0.5)
       ctx.lineTo(-coreRadius * 0.85, -coreRadius * 0.4)
       ctx.closePath()
       ctx.fill()
       ctx.stroke()
+      ctx.shadowBlur = 0 // reset
 
       // Faceted metallic shine lines
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)'
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.3)'
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(0, -coreRadius)
-      ctx.lineTo(0, coreRadius * 1.08)
+      ctx.lineTo(0, coreRadius * 1.1)
       ctx.moveTo(-coreRadius * 0.85, -coreRadius * 0.4)
       ctx.lineTo(coreRadius * 0.85, -coreRadius * 0.4)
+      ctx.moveTo(-coreRadius * 0.7, coreRadius * 0.5)
+      ctx.lineTo(coreRadius * 0.7, coreRadius * 0.5)
       ctx.stroke()
 
-      // Abstract "N" / Shield Core Emblem
+      // Text inside core
       ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 11px "Inter", sans-serif'
+      ctx.font = `bold ${10 * centerScale}px "Inter", sans-serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText('NETSECURE', 0, -4)
+      ctx.fillText('NETSECURE', 0, -4 * centerScale)
 
-      ctx.font = 'bold 9px "JetBrains Mono", monospace'
+      ctx.font = `bold ${8 * centerScale}px "JetBrains Mono", monospace`
       ctx.fillStyle = '#38bdf8'
-      ctx.fillText('ENGINE v2.4', 0, 10)
+      ctx.fillText('ENGINE', 0, 10 * centerScale)
 
       ctx.restore()
 
@@ -502,183 +483,81 @@ export function Hero3DVisual() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full h-[540px] lg:h-[600px] rounded-lg border border-slate-800 bg-[#070b16] overflow-hidden select-none"
+      className="absolute inset-0 bg-[#03060a] overflow-hidden select-none"
     >
+      {/* Background Vignette & Grid Gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sky-900/10 via-[#03060a]/80 to-[#03060a] z-0 pointer-events-none" />
+
       {/* 3D Canvas Layer */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full cursor-crosshair block"
+        className="relative z-0 w-full h-full block"
         style={{ touchAction: 'none' }}
       />
 
-      {/* Top Left Floating Security Panel: Configuration Analysis */}
-      <div className="absolute top-4 left-4 z-20 w-48 sm:w-56 p-3 rounded-md bg-[#0a1120]/95 border border-slate-800 shadow-xl backdrop-blur-md transition-transform duration-300 pointer-events-none">
-        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-            Configuration Analysis
+      {/* FLOATING UI PANELS - Hidden on small screens to reduce clutter, visible on lg+ */}
+      {/* Top Right: Compliance Stream */}
+      <div className="hidden lg:block absolute top-8 right-8 z-10 w-64 p-4 rounded-lg bg-[#070e1a]/80 border border-slate-800/80 shadow-2xl backdrop-blur-md pointer-events-none">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-700/80">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300 font-mono flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live Compliance
           </span>
-          <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/80 px-1 py-0.2 rounded border border-emerald-800/60">
-            COMPLETE
-          </span>
+          <span className="text-[10px] font-mono text-emerald-400">100%</span>
         </div>
-        <div className="mt-2 space-y-1 font-mono text-[10px]">
-          <div className="flex items-center justify-between text-slate-300">
-            <span>SSH v2.0</span>
-            <span className="text-emerald-400">ENFORCED</span>
+        <div className="mt-3 space-y-2 font-mono text-[11px]">
+          <div className="flex items-center justify-between text-slate-400">
+            <span>CIS Benchmark</span>
+            <span className="text-emerald-400">PASSED</span>
           </div>
-          <div className="flex items-center justify-between text-slate-300">
-            <span>Logging Host</span>
-            <span className="text-emerald-400">ACTIVE</span>
+          <div className="flex items-center justify-between text-slate-400">
+            <span>NIST 800-53</span>
+            <span className="text-emerald-400">PASSED</span>
           </div>
-          <div className="flex items-center justify-between text-slate-300">
-            <span>Authentication</span>
-            <span className="text-sky-300">AAA / TACACS+</span>
-          </div>
-          <div className="flex items-center justify-between text-slate-300">
-            <span>Encryption</span>
-            <span className="text-emerald-400">AES-256</span>
-          </div>
-          <div className="flex items-center justify-between text-slate-300">
-            <span>Access Control</span>
-            <span className="text-emerald-400">RESTRICTED</span>
+          <div className="flex items-center justify-between text-slate-400">
+            <span>ISO 27001</span>
+            <span className="text-emerald-400">PASSED</span>
           </div>
         </div>
       </div>
 
-      {/* Top Right Floating Security Panel: Compliance Frameworks */}
-      <div className="absolute top-4 right-4 z-20 w-48 sm:w-52 p-3 rounded-md bg-[#0a1120]/95 border border-slate-800 shadow-xl backdrop-blur-md transition-transform duration-300 pointer-events-none">
-        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 font-mono">
-            Compliance
+      {/* Bottom Right: Deterministic Remediation Tracker */}
+      <div className="hidden lg:block absolute bottom-8 right-8 z-10 w-72 p-4 rounded-lg bg-[#070e1a]/80 border border-slate-800/80 shadow-2xl backdrop-blur-md pointer-events-none">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-700/80">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400 font-mono">
+            Remediation Stream
           </span>
-          <span className="text-[9px] font-mono text-sky-400">100% Evaluated</span>
+          <span className="text-[10px] font-mono text-sky-400">ACTIVE</span>
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[10px]">
-          <div className="p-1.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-            <span className="text-slate-300 font-bold">CIS</span>
-            <span className="text-emerald-400">✓</span>
+        <div className="mt-3 space-y-2 text-[10px] font-mono text-slate-400">
+          <div className="flex items-center gap-2">
+            <span className="text-sky-400">→</span>
+            <span>Parsing FortiOS v7.2 ruleset...</span>
           </div>
-          <div className="p-1.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-            <span className="text-slate-300 font-bold">NIST</span>
-            <span className="text-emerald-400">✓</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sky-400">→</span>
+            <span>Identifying policy overlap [ID: #4921]</span>
           </div>
-          <div className="p-1.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-            <span className="text-slate-300 font-bold">ISO 27001</span>
-            <span className="text-emerald-400">✓</span>
-          </div>
-          <div className="p-1.5 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
-            <span className="text-slate-300 font-bold">DISA STIG</span>
-            <span className="text-emerald-400">✓</span>
+          <div className="flex items-center gap-2 text-emerald-400 font-medium">
+            <span>✓</span>
+            <span>Generated deterministic fix for Router-A</span>
           </div>
         </div>
       </div>
 
-      {/* Bottom Left Floating Security Panel: Security Findings */}
-      <div className="absolute bottom-16 left-4 z-20 w-52 sm:w-60 p-3 rounded-md bg-[#0a1120]/95 border border-slate-800 shadow-xl backdrop-blur-md transition-transform duration-300 pointer-events-none">
-        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 font-mono">
-            Security Findings
-          </span>
-          <span className="text-[9px] font-mono text-rose-400 bg-rose-950/80 px-1 py-0.2 rounded border border-rose-800/60">
-            DEMO
-          </span>
+      {/* Bottom Center: System Status */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 hidden md:flex items-center gap-6 px-4 py-2 rounded-full bg-[#070e1a]/80 border border-slate-800/80 backdrop-blur-md font-mono text-[10px] text-slate-400 pointer-events-none">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span>Core Engine: Online</span>
         </div>
-        <div className="mt-2 grid grid-cols-3 gap-1 text-center font-mono text-[10px]">
-          <div className="p-1 rounded bg-rose-950/40 border border-rose-800/40">
-            <span className="text-[9px] text-rose-400 block font-sans">CRITICAL</span>
-            <span className="font-bold text-rose-300">02</span>
-          </div>
-          <div className="p-1 rounded bg-amber-950/40 border border-amber-800/40">
-            <span className="text-[9px] text-amber-400 block font-sans">HIGH</span>
-            <span className="font-bold text-amber-300">05</span>
-          </div>
-          <div className="p-1 rounded bg-yellow-950/40 border border-yellow-800/40">
-            <span className="text-[9px] text-yellow-400 block font-sans">MEDIUM</span>
-            <span className="font-bold text-yellow-300">12</span>
-          </div>
+        <div className="w-px h-3 bg-slate-700" />
+        <div className="flex items-center gap-2">
+          <span className="text-sky-400">Nodes: 1,492</span>
         </div>
-        <div className="mt-2 p-1.5 rounded bg-slate-950 border border-slate-800/80 text-[10px] font-mono text-amber-300 flex items-center justify-between">
-          <span>WEAK SSH CONFIG</span>
-          <span className="text-[9px] font-bold uppercase px-1 rounded bg-amber-950 text-amber-300">HIGH</span>
-        </div>
-      </div>
-
-      {/* Bottom Right Floating Security Panel: Deterministic Remediation */}
-      <div className="absolute bottom-16 right-4 z-20 w-52 sm:w-60 p-3 rounded-md bg-[#0a1120]/95 border border-slate-800 shadow-xl backdrop-blur-md transition-transform duration-300 pointer-events-none">
-        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 font-mono">
-            Deterministic Remediation
-          </span>
-        </div>
-        <div className="mt-2 space-y-1 text-[10px] font-mono text-slate-300">
-          <div className="flex items-center gap-1.5">
-            <span className="text-emerald-400">✓</span>
-            <span>Finding isolated</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-emerald-400">✓</span>
-            <span>Control evaluated</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-emerald-400">✓</span>
-            <span>Remediation validated</span>
-          </div>
-        </div>
-        <div className="mt-2 text-[10px] font-semibold text-emerald-400 bg-emerald-950/80 p-1.5 rounded border border-emerald-800/60 font-mono text-center">
-          ✓ Ready for implementation
-        </div>
-      </div>
-
-      {/* Middle Floating Panel: Compliance Report */}
-      <div className="hidden sm:block absolute top-1/2 -translate-y-1/2 right-4 z-20 w-48 p-3 rounded-md bg-[#0a1120]/95 border border-slate-800 shadow-xl backdrop-blur-md pointer-events-none">
-        <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 font-mono">
-            Compliance Report
-          </span>
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-1.5 font-mono text-[10px]">
-          <div>
-            <span className="text-slate-400 block text-[9px]">SCORE</span>
-            <span className="text-emerald-400 font-bold text-xs">91%</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[9px]">CONTROLS</span>
-            <span className="text-slate-200 font-bold text-xs">1,284</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[9px]">FINDINGS</span>
-            <span className="text-amber-400 font-bold text-xs">07</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[9px]">REMEDIATED</span>
-            <span className="text-sky-300 font-bold text-xs">87%</span>
-          </div>
-        </div>
-        <div className="mt-2 text-[9px] font-mono text-sky-400 text-center border-t border-slate-800/60 pt-1.5">
-          ● REPORT GENERATED
-        </div>
-      </div>
-
-      {/* Bottom Process Storyline Legend */}
-      <div className="absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between px-3 py-1.5 rounded bg-slate-950/90 border border-slate-800 text-[10px] font-mono text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <span className="text-slate-300 font-semibold">STAGE {activeStoryStage}/7:</span>
-          <span className="text-sky-300">
-            {activeStoryStage === 1 && 'Network Devices Activated'}
-            {activeStoryStage === 2 && 'Configuration Ingestion Stream'}
-            {activeStoryStage === 3 && 'Deterministic Security Analysis'}
-            {activeStoryStage === 4 && 'Compliance Framework Mapping'}
-            {activeStoryStage === 5 && 'Security Findings Isolation'}
-            {activeStoryStage === 6 && 'Deterministic Remediation Generation'}
-            {activeStoryStage === 7 && 'Audit-Ready Report Export'}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-slate-400 hidden md:inline">
-            Devices &rarr; Config &rarr; Analysis &rarr; Controls &rarr; Findings &rarr; Remediation &rarr; Report
-          </span>
-          <span className="text-emerald-400 font-bold">Live Visual Telemetry</span>
+        <div className="w-px h-3 bg-slate-700" />
+        <div className="flex items-center gap-2">
+          <span className="text-amber-400">Analysis: Active</span>
         </div>
       </div>
     </div>

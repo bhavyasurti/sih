@@ -135,68 +135,50 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </header>
 
       {/* 2. HERO SECTION (90–100vh) */}
-      <section className="relative min-h-[calc(100vh-4rem)] flex items-center overflow-hidden py-10 lg:py-16 border-b border-slate-800/80 bg-[#070b14]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
-            {/* Hero Left Content (5 Cols) */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Eyebrow */}
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono text-sky-400 font-semibold tracking-wider uppercase">
-                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-                <span>NETWORK SECURITY &bull; COMPLIANCE &bull; REMEDIATION</span>
-              </div>
+      <section className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-hidden border-b border-slate-800/80 bg-[#03060a]">
+        {/* Full-screen 3D Background */}
+        <div className="absolute inset-0 z-0">
+          <Hero3DVisual />
+        </div>
 
-              {/* Main Heading */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-100 leading-[1.15]">
-                Secure Every Network.<br />
-                <span className="text-slate-200">Prove Every Control.</span><br />
-                <span className="text-sky-400">Automate Compliance.</span>
-              </h1>
-
-              {/* Description */}
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
-                NetSecure AI analyzes heterogeneous network configurations, evaluates security controls against industry frameworks, identifies security gaps, and provides deterministic remediation guidance with auditable compliance reporting.
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => onNavigate('dashboard')}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs sm:text-sm transition-colors shadow-sm"
-                >
-                  <span>Explore Platform</span>
-                  <ArrowRight size={14} className="stroke-[2.5]" />
-                </button>
-
-                <button
-                  onClick={() => scrollToSection('how-it-works')}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-xs sm:text-sm transition-colors"
-                >
-                  <Play size={13} className="fill-current text-sky-400" />
-                  <span>See How It Works</span>
-                </button>
-              </div>
-
-              {/* Specification Footer */}
-              <div className="pt-4 border-t border-slate-800/80 flex flex-wrap gap-4 text-xs font-mono text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 size={13} className="text-emerald-400" />
-                  <span>Deterministic Rule Parsing</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 size={13} className="text-emerald-400" />
-                  <span>Multi-Vendor Architecture</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 size={13} className="text-emerald-400" />
-                  <span>Audit-Ready PDF Reports</span>
-                </div>
-              </div>
+        {/* Foreground Content */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-20 flex flex-col pointer-events-none">
+          <div className="md:w-1/2 lg:w-[45%] space-y-6 pointer-events-auto">
+            {/* Eyebrow */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900/60 backdrop-blur-sm border border-slate-800/80 text-[10px] sm:text-[11px] font-mono text-sky-400 font-semibold tracking-widest uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-400 animate-pulse" />
+              <span>DETERMINISTIC SECURITY</span>
             </div>
 
-            {/* Hero Right 3D Visual Centerpiece (7 Cols) */}
-            <div className="lg:col-span-7">
-              <Hero3DVisual />
+            {/* Main Heading */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-slate-100 leading-[1.05] drop-shadow-xl">
+              SECURE EVERY<br />NETWORK.<br />
+              <span className="text-slate-300">PROVE EVERY<br />CONTROL.</span><br />
+              <span className="text-sky-400">AUTOMATE<br />COMPLIANCE.</span>
+            </h1>
+
+            {/* Description */}
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md drop-shadow-md">
+              NetSecure AI analyzes heterogeneous network configurations, evaluates security controls against industry frameworks, identifies configuration gaps, and provides deterministic remediation guidance with audit-ready reporting.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="flex items-center gap-2 px-6 py-3 rounded bg-sky-600 hover:bg-sky-500 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(2,132,199,0.3)] hover:shadow-[0_0_30px_rgba(2,132,199,0.5)]"
+              >
+                <span>Explore Platform</span>
+                <ArrowRight size={14} className="stroke-[2.5]" />
+              </button>
+
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className="flex items-center gap-2 px-6 py-3 rounded bg-slate-900/80 hover:bg-slate-800/90 backdrop-blur-sm border border-slate-700/80 text-slate-200 font-semibold text-xs sm:text-sm transition-colors"
+              >
+                <Play size={13} className="fill-current text-sky-400" />
+                <span>See How It Works</span>
+              </button>
             </div>
           </div>
         </div>
