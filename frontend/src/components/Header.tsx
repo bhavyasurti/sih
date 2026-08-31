@@ -7,6 +7,7 @@ import {
   Loader2,
   ChevronRight,
   RefreshCw,
+  Menu,
 } from 'lucide-react'
 import { PageKey } from './Sidebar'
 
@@ -17,6 +18,7 @@ interface HeaderProps {
   activeAuditHostname?: string | null
   onDownloadReport?: (auditId: number) => void
   isDownloadingReport?: boolean
+  onMenuClick?: () => void
 }
 
 export function Header({
@@ -26,6 +28,7 @@ export function Header({
   activeAuditHostname,
   onDownloadReport,
   isDownloadingReport = false,
+  onMenuClick,
 }: HeaderProps) {
   const pageTitles: Record<PageKey, { section: string; title: string; desc: string }> = {
     home: {
@@ -70,18 +73,27 @@ export function Header({
   const currentMeta = pageTitles[currentPage]
 
   return (
-    <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-slate-800 bg-[#0c101b]">
+    <header className="h-16 flex-shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-slate-800 bg-[#0c101b] min-w-0">
       {/* Breadcrumb & Title */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-          <span>{currentMeta.section}</span>
-          <ChevronRight size={12} className="text-slate-400" />
-          <span className="text-slate-200 font-semibold">{currentMeta.title}</span>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {onMenuClick && (
+          <button
+            onClick={onMenuClick}
+            className="md:hidden p-1.5 -ml-1.5 rounded hover:bg-slate-800/80 text-slate-300 transition-colors"
+            aria-label="Open mobile menu"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium min-w-0 truncate">
+          <span className="hidden sm:inline truncate">{currentMeta.section}</span>
+          <ChevronRight size={12} className="hidden sm:block text-slate-400 flex-shrink-0" />
+          <span className="text-slate-200 font-semibold truncate">{currentMeta.title}</span>
         </div>
       </div>
 
       {/* Global Action Bar */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 flex-shrink-0 pl-2">
         {/* If an audit result is active and we are on results/reports page, show direct PDF Download */}
         {activeAuditId && (
           <button

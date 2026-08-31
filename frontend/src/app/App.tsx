@@ -2463,6 +2463,8 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isDownloadingReport, setIsDownloadingReport] = useState(false)
   const [error, setError] = useState<string>('')
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const progressStages = [
     { label: 'Upload Ingestion', active: isAnalyzing },
@@ -2603,6 +2605,10 @@ export default function App() {
         backendStatus={backendStatus}
         unresolvedCount={unresolvedCount}
         hasActiveAudit={Boolean(auditResult)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Workspace Area */}
@@ -2615,10 +2621,11 @@ export default function App() {
           activeAuditHostname={auditResult?.device?.hostname}
           onDownloadReport={handleDownloadReport}
           isDownloadingReport={isDownloadingReport}
+          onMenuClick={() => setIsMobileMenuOpen(true)}
         />
 
         {/* Scrollable Page Body */}
-        <main className="flex-1 overflow-y-auto p-6 bg-[#080c14]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#080c14]">
           {currentPage === 'dashboard' && (
             <DashboardPage
               audits={auditsList}
