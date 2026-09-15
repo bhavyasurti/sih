@@ -8,8 +8,9 @@ import {
   updateProfile,
   signInWithPopup
 } from 'firebase/auth';
-import { auth, googleProvider } from '../services/firebase';
+import { auth, googleProvider, isFirebaseConfigured } from '../services/firebase';
 import { API_BASE } from '../services/api';
+import { AlertCircle } from 'lucide-react';
 
 type User = {
   id: number;
@@ -33,6 +34,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  if (!isFirebaseConfigured) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface-primary p-6">
+        <div className="max-w-lg w-full bg-surface-secondary border border-border-default rounded-lg shadow-xl p-8 text-center space-y-4">
+          <AlertCircle className="w-12 h-12 text-brand-error mx-auto" />
+          <h2 className="text-2xl font-bold text-text-primary">Configuration Error</h2>
+          <p className="text-text-secondary text-sm">
+            Firebase is not configured. Please ensure your environment variables (VITE_FIREBASE_API_KEY, etc.) are correctly set in the deployment environment.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
