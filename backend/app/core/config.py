@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     firebase_credentials: str | None = None
     
     firebase_service_account_path: str | None = None
+    
+    # New environment-based Firebase Admin vars
+    firebase_project_id: str | None = None
+    firebase_client_email: str | None = None
+    firebase_private_key: str | None = None
+    google_cloud_project: str | None = None
 
     @field_validator("app_name", mode="before")
     @classmethod
