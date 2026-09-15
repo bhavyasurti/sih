@@ -207,19 +207,27 @@ export function Hero3DVisual() {
         node.y = ry1
         node.z = rz2
         
-        // On mobile, scale everything down visually
-        const globalScale = isMobile ? 0.6 : 1
-        node.screenX = coreScreenX + rx1 * scale * globalScale
+        // On mobile, scale everything down proportionally to screen width
+        const globalScale = isMobile ? (width / 600) : 1
+        // Compress X spread on mobile
+        const xSpread = isMobile ? rx1 * 0.6 : rx1
+        node.screenX = coreScreenX + xSpread * scale * globalScale
         node.screenY = coreScreenY + ry1 * scale * globalScale
         node.scale = Math.max(0.3, Math.min(2, scale * globalScale))
-        node.alpha = Math.max(0.1, Math.min(1, (rz2 + 600) / 1000))
+        
+        let targetAlpha = Math.max(0.1, Math.min(1, (rz2 + 600) / 1000))
+        if (isMobile && !['cisco-core', 'fortinet-edge', 'paloalto-vpn', 'cis-benchmark', 'nist-800'].includes(node.id)) {
+          targetAlpha = 0
+        }
+        node.alpha = targetAlpha
       })
 
       const sortedNodes = [...nodes].sort((a, b) => b.z - a.z)
-      const centerScale = (fov / cameraZ) * (isMobile ? 0.6 : 1)
+      const centerScale = (fov / cameraZ) * (isMobile ? (width / 900) : 1)
 
       // 3. Draw connection lines to central core
       nodes.forEach((node) => {
+        if (node.alpha <= 0) return
         ctx.save()
         const lineAlpha = (node.alpha * 0.3).toFixed(2)
         ctx.strokeStyle = `${node.color}${Math.round(parseFloat(lineAlpha) * 255).toString(16).padStart(2, '0')}`
@@ -245,6 +253,7 @@ export function Hero3DVisual() {
           sourceScale = centerScale
         } else {
           const n = nodes[packet.sourceIndex]
+          if (n.alpha <= 0) return
           sourceX = n.screenX
           sourceY = n.screenY
           sourceScale = n.scale
@@ -255,6 +264,7 @@ export function Hero3DVisual() {
           targetY = coreScreenY
         } else {
           const n = nodes[packet.targetIndex]
+          if (n.alpha <= 0) return
           targetX = n.screenX
           targetY = n.screenY
         }
@@ -297,6 +307,8 @@ export function Hero3DVisual() {
 
       // 5. Draw 3D Network Nodes
       sortedNodes.forEach((node) => {
+        if (node.alpha <= 0) return
+        
         ctx.save()
         ctx.translate(node.screenX, node.screenY)
         ctx.globalAlpha = node.alpha

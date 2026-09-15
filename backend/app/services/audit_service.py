@@ -11,6 +11,9 @@ from app.services.parsers.fortios_parser import parse_fortios_config
 from app.services.parsers.ios_parser import parse_ios_config
 from app.services.parsers.normalizer import normalize_security_data
 from app.services.parsers.panos_parser import parse_panos_config
+from app.services.parsers.juniper_parser import parse_juniper_config
+from app.services.parsers.aruba_parser import parse_aruba_config
+from app.services.parsers.checkpoint_parser import parse_checkpoint_config
 from app.services.parsers.vendor_detector import detect_vendor
 
 
@@ -39,6 +42,9 @@ class AuditService:
             "cisco": parse_ios_config,
             "fortinet": parse_fortios_config,
             "paloalto": parse_panos_config,
+            "juniper": parse_juniper_config,
+            "aruba": parse_aruba_config,
+            "checkpoint": parse_checkpoint_config,
         }
 
         parser = parser_map.get(vendor)

@@ -7,6 +7,15 @@ from app.main import app
 from app.services.reporting.report_generator import generate_compliance_pdf
 
 
+
+from app.db.models import User
+from app.api.routes.auth import get_current_user
+
+def override_get_current_user():
+    return User(id=1, name="Test User", email="test@example.com")
+
+app.dependency_overrides[get_current_user] = override_get_current_user
+
 client = TestClient(app)
 
 

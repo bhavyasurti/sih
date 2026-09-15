@@ -4,7 +4,7 @@ import { Shield, ShieldAlert, ShieldCheck, Activity, Wifi, Server, RefreshCw } f
 interface Node3D {
   id: string
   label: string
-  vendor: 'cisco' | 'fortinet' | 'paloalto' | 'core' | 'edge'
+  vendor: 'cisco' | 'fortinet' | 'paloalto' | 'juniper' | 'aruba' | 'checkpoint' | 'core' | 'edge'
   status: 'healthy' | 'warning' | 'critical'
   score?: number | null
   baseAngle: number
@@ -36,6 +36,9 @@ interface SecurityTopology3DProps {
     cisco: { count: number; score: number | null }
     fortinet: { count: number; score: number | null }
     paloalto: { count: number; score: number | null }
+    juniper?: { count: number; score: number | null }
+    aruba?: { count: number; score: number | null }
+    checkpoint?: { count: number; score: number | null }
   }
 }
 
@@ -73,6 +76,9 @@ export function SecurityTopology3D({
   const ciscoStatus = getStatusFromScore(vendorBreakdown?.cisco.score)
   const fortiStatus = getStatusFromScore(vendorBreakdown?.fortinet.score)
   const panStatus = getStatusFromScore(vendorBreakdown?.paloalto.score)
+  const junStatus = getStatusFromScore(vendorBreakdown?.juniper?.score)
+  const aruStatus = getStatusFromScore(vendorBreakdown?.aruba?.score)
+  const cpStatus = getStatusFromScore(vendorBreakdown?.checkpoint?.score)
   const overallStatus = getStatusFromScore(complianceScore)
 
   useEffect(() => {
@@ -155,6 +161,60 @@ export function SecurityTopology3D({
         alpha: 1,
       },
       {
+        id: 'juniper',
+        label: 'Juniper Junos Aggregation',
+        vendor: 'juniper',
+        status: junStatus,
+        score: vendorBreakdown?.juniper?.score ?? null,
+        baseAngle: (Math.PI * 1) / 3,
+        radius: 145,
+        heightOffset: 15,
+        speed: 0.0028,
+        x: 0,
+        y: 0,
+        z: 0,
+        screenX: 0,
+        screenY: 0,
+        scale: 1,
+        alpha: 1,
+      },
+      {
+        id: 'aruba',
+        label: 'Aruba AOS-CX Switch',
+        vendor: 'aruba',
+        status: aruStatus,
+        score: vendorBreakdown?.aruba?.score ?? null,
+        baseAngle: (Math.PI * 5) / 3,
+        radius: 125,
+        heightOffset: -25,
+        speed: 0.0032,
+        x: 0,
+        y: 0,
+        z: 0,
+        screenX: 0,
+        screenY: 0,
+        scale: 1,
+        alpha: 1,
+      },
+      {
+        id: 'checkpoint',
+        label: 'Check Point Gaia NGFW',
+        vendor: 'checkpoint',
+        status: cpStatus,
+        score: vendorBreakdown?.checkpoint?.score ?? null,
+        baseAngle: (Math.PI * 3) / 3,
+        radius: 155,
+        heightOffset: 5,
+        speed: 0.0029,
+        x: 0,
+        y: 0,
+        z: 0,
+        screenX: 0,
+        screenY: 0,
+        scale: 1,
+        alpha: 1,
+      },
+      {
         id: 'edge',
         label: 'Edge Access Node',
         vendor: 'edge',
@@ -195,6 +255,9 @@ export function SecurityTopology3D({
       { sourceId: 'cisco', progress: 0.1, speed: 0.008, status: ciscoStatus },
       { sourceId: 'fortinet', progress: 0.4, speed: 0.007, status: fortiStatus },
       { sourceId: 'paloalto', progress: 0.7, speed: 0.009, status: panStatus },
+      { sourceId: 'juniper', progress: 0.3, speed: 0.007, status: junStatus },
+      { sourceId: 'aruba', progress: 0.6, speed: 0.008, status: aruStatus },
+      { sourceId: 'checkpoint', progress: 0.8, speed: 0.006, status: cpStatus },
       { sourceId: 'edge', progress: 0.25, speed: 0.006, status: 'healthy' },
       { sourceId: 'core', progress: 0.85, speed: 0.007, status: 'healthy' },
     ]
@@ -458,7 +521,7 @@ export function SecurityTopology3D({
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [complianceScore, riskLevel, ciscoStatus, fortiStatus, panStatus, overallStatus, prefersReducedMotion])
+  }, [complianceScore, riskLevel, ciscoStatus, fortiStatus, panStatus, junStatus, aruStatus, cpStatus, overallStatus, prefersReducedMotion])
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return

@@ -13,6 +13,33 @@ from app.services.compliance.engine import evaluate
 from app.services.parsers.normalizer import normalize_security_data
 from app.services.parsers.vendor_detector import detect_vendor
 from app.services.parsers.fortios_parser import parse_fortios_config
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
+from app.db.models import User
 
 
 VALID_PARAMETERS = {
@@ -286,7 +313,7 @@ def test_extract_integer_value():
 
 def test_extract_boolean_value():
     engine = LearningEngine()
-    assert engine.extract_value('boolean', 'yes') is False
+    assert engine.extract_value('boolean', 'yes') is True
     assert engine.extract_value('boolean', 'no') is False
 
 
@@ -351,7 +378,7 @@ def test_explicit_mapping_resolves_matching_historical_unknowns_only():
     Session = sessionmaker(bind=engine)
     db = Session()
 
-    repository = AuditRepository(db)
+    repository = AuditRepository(db, user_id=1)
     learned_command = 'set management-access custom-timeout 450'
     unrelated_command = 'set management-access idle-banner enabled'
 
@@ -403,7 +430,7 @@ def test_analyze_unknown_command_persists_for_training_center(tmp_path, monkeypa
     Session = sessionmaker(bind=engine)
     db = Session()
 
-    repository = AuditRepository(db)
+    repository = AuditRepository(db, user_id=1)
     audit = repository.create_audit_record(title='training_test_unknown.txt')
 
     config_text = '''
@@ -422,13 +449,14 @@ def test_analyze_unknown_command_persists_for_training_center(tmp_path, monkeypa
             audit_id=audit.id,
             options=AnalysisOptions(ai_enabled=False),
             db=db,
+            current_user=User(id=1, name="test", email="test@test.com", password_hash="hash")
         )
     )
 
     assert response['unknown_commands']
     assert any(item.get('command') == 'set management-access custom-timeout 450' for item in response['unknown_commands'])
 
-    stored = asyncio.run(list_unknown_commands(db=db))
+    stored = asyncio.run(list_unknown_commands(db=db, current_user=User(id=1, name='test', email='test@test.com', password_hash='hash')))
     assert any(item.get('command') == 'set management-access custom-timeout 450' for item in stored)
 
     # Re-running analysis for the same audit should not duplicate the unresolved record unnecessarily.
@@ -437,9 +465,10 @@ def test_analyze_unknown_command_persists_for_training_center(tmp_path, monkeypa
             audit_id=audit.id,
             options=AnalysisOptions(ai_enabled=False),
             db=db,
+            current_user=User(id=1, name="test", email="test@test.com", password_hash="hash")
         )
     )
-    stored_2 = asyncio.run(list_unknown_commands(db=db))
+    stored_2 = asyncio.run(list_unknown_commands(db=db, current_user=User(id=1, name='test', email='test@test.com', password_hash='hash')))
     assert len(stored_2) == len(stored)
     assert any(item.get('command') == 'set management-access custom-timeout 450' for item in stored_2)
     assert not any(item.get('command') and item.get('command') == 'set management-access custom-timeout 450' and item.get('vendor') == 'unknown' for item in LearningEngine(db).list_mappings())
@@ -453,7 +482,7 @@ def test_active_learned_mapping_resolves_command_and_removes_from_unknown(tmp_pa
     Session = sessionmaker(bind=engine)
     db = Session()
 
-    repository = AuditRepository(db)
+    repository = AuditRepository(db, user_id=1)
     audit = repository.create_audit_record(title='training_test_unknown.txt')
 
     config_text = '''
@@ -483,6 +512,7 @@ def test_active_learned_mapping_resolves_command_and_removes_from_unknown(tmp_pa
             audit_id=audit.id,
             options=AnalysisOptions(ai_enabled=False),
             db=db,
+            current_user=User(id=1, name="test", email="test@test.com", password_hash="hash")
         )
     )
 
@@ -499,7 +529,7 @@ def test_disabled_mapping_does_not_resolve_unknown_command(tmp_path, monkeypatch
     Session = sessionmaker(bind=engine)
     db = Session()
 
-    repository = AuditRepository(db)
+    repository = AuditRepository(db, user_id=1)
     audit = repository.create_audit_record(title='training_test_unknown_disabled.txt')
 
     config_text = '''
@@ -528,6 +558,7 @@ def test_disabled_mapping_does_not_resolve_unknown_command(tmp_path, monkeypatch
             audit_id=audit.id,
             options=AnalysisOptions(ai_enabled=False),
             db=db,
+            current_user=User(id=1, name="test", email="test@test.com", password_hash="hash")
         )
     )
 
@@ -543,7 +574,7 @@ def test_deterministic_value_preserves_priority_over_learned_mapping(tmp_path, m
     Session = sessionmaker(bind=engine)
     db = Session()
 
-    repository = AuditRepository(db)
+    repository = AuditRepository(db, user_id=1)
     audit = repository.create_audit_record(title='training_test_deterministic_priority.txt')
 
     config_text = '''
@@ -571,6 +602,7 @@ def test_deterministic_value_preserves_priority_over_learned_mapping(tmp_path, m
             audit_id=audit.id,
             options=AnalysisOptions(ai_enabled=False),
             db=db,
+            current_user=User(id=1, name="test", email="test@test.com", password_hash="hash")
         )
     )
 
@@ -584,7 +616,7 @@ def test_unknown_command_does_not_create_mapping_but_explicit_admin_mapping_does
     Session = sessionmaker(bind=engine)
     db = Session()
 
-    repository = AuditRepository(db)
+    repository = AuditRepository(db, user_id=1)
     audit = repository.create_audit_record(title='custom_timeout_unknown.txt')
     command = {'command': 'set management-access custom-timeout 450', 'vendor': 'cisco', 'line_number': 6}
     repository.save_unknown_commands(audit_id=audit.id, device_id=None, commands=[command])

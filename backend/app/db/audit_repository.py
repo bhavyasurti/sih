@@ -9,21 +9,28 @@ from app.db.models import Audit, Device, Finding, LearnedMapping, Report, Unknow
 
 
 class AuditRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, user_id: Optional[int] = None):
         self.db = db
+        self.user_id = user_id
 
     def create_audit_record(self, title: str, framework: str = "CIS") -> Audit:
-        audit = Audit(title=title, framework=framework, status="uploaded")
+        audit = Audit(title=title, framework=framework, status="uploaded", user_id=self.user_id)
         self.db.add(audit)
         self.db.commit()
         self.db.refresh(audit)
         return audit
 
     def get_audit(self, audit_id: int) -> Optional[Audit]:
-        return self.db.query(Audit).filter(Audit.id == audit_id).first()
+        query = self.db.query(Audit).filter(Audit.id == audit_id)
+        if self.user_id is not None:
+            query = query.filter(Audit.user_id == self.user_id)
+        return query.first()
 
     def list_audits(self) -> List[Audit]:
-        return self.db.query(Audit).order_by(Audit.id.desc()).all()
+        query = self.db.query(Audit)
+        if self.user_id is not None:
+            query = query.filter(Audit.user_id == self.user_id)
+        return query.order_by(Audit.id.desc()).all()
 
     def create_device(self, device_data: Dict[str, Any]) -> Device:
         device = Device(**device_data)
@@ -55,6 +62,7 @@ class AuditRepository:
             self.db.add(
                 Finding(
                     audit_id=audit_id,
+                    user_id=self.user_id,
                     device_id=device_id,
                     control_id=finding.get("control_id", "UNKNOWN"),
                     framework=finding.get("framework", "CIS"),
@@ -108,6 +116,7 @@ class AuditRepository:
             self.db.add(
                 UnknownCommand(
                     audit_id=audit_id,
+                    user_id=self.user_id,
                     device_id=device_id,
                     vendor=vendor,
                     command=command,
@@ -118,12 +127,10 @@ class AuditRepository:
         self.db.commit()
 
     def list_unknown_commands(self) -> List[Dict[str, Any]]:
-        records = (
-            self.db.query(UnknownCommand)
-            .filter(UnknownCommand.resolved.is_(False))
-            .order_by(UnknownCommand.id.desc())
-            .all()
-        )
+        query = self.db.query(UnknownCommand).filter(UnknownCommand.resolved.is_(False))
+        if self.user_id is not None:
+            query = query.filter(UnknownCommand.user_id == self.user_id)
+        records = query.order_by(UnknownCommand.id.desc()).all()
         results: List[Dict[str, Any]] = []
         for record in records:
             ai_suggestion = None
@@ -144,11 +151,14 @@ class AuditRepository:
         return results
 
     def create_report(self, audit_id: int, title: str, file_name: str, summary: Optional[str] = None) -> Report:
-        report = Report(audit_id=audit_id, title=title, file_name=file_name, summary=summary)
+        report = Report(audit_id=audit_id, user_id=self.user_id, title=title, file_name=file_name, summary=summary)
         self.db.add(report)
         self.db.commit()
         self.db.refresh(report)
         return report
 
     def list_reports(self) -> List[Report]:
-        return self.db.query(Report).order_by(Report.id.desc()).all()
+        query = self.db.query(Report)
+        if self.user_id is not None:
+            query = query.filter(Report.user_id == self.user_id)
+        return query.order_by(Report.id.desc()).all()

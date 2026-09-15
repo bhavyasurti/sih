@@ -121,9 +121,20 @@ def _ensure_unknown_command_columns() -> None:
             """))
 
 
+def _ensure_user_columns() -> None:
+    with engine.begin() as connection:
+        tables_to_update = ["audits", "findings", "learned_mappings", "unknown_commands", "reports"]
+        for table in tables_to_update:
+            result = connection.execute(text(f"PRAGMA table_info({table})"))
+            columns = [row[1] for row in result]
+            if "user_id" not in columns:
+                connection.execute(text(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER"))
+
+
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     if engine.dialect.name == "sqlite":
         _ensure_finding_columns()
         _ensure_learned_mapping_columns()
         _ensure_unknown_command_columns()
+        _ensure_user_columns()

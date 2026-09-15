@@ -33,7 +33,8 @@ SUPPORTED_PARAMETERS = {
 
 
 class LearningEngine:
-    def __init__(self, db_session=None):
+    def __init__(self, db_session=None, user_id: int | None = None):
+        self.user_id = user_id
         init_db()
         if db_session is not None:
             self.db = db_session
@@ -77,7 +78,10 @@ class LearningEngine:
         value_type: str,
     ) -> LearnedMapping | None:
         requested_key = self._mapping_key(vendor, command_pattern, normalized_parameter, value_type)
-        for mapping in self.db.query(LearnedMapping).all():
+        query = self.db.query(LearnedMapping)
+        if self.user_id is not None:
+            query = query.filter(LearnedMapping.user_id == self.user_id)
+        for mapping in query.all():
             if self._stored_mapping_key(mapping) == requested_key:
                 return mapping
         return None
@@ -132,6 +136,7 @@ class LearningEngine:
             return self._mapping_response(existing_mapping)
 
         mapping = LearnedMapping(
+            user_id=self.user_id,
             vendor=vendor,
             raw_command=command_pattern,
             command_pattern=command_pattern,
@@ -155,14 +160,20 @@ class LearningEngine:
         return self._mapping_response(mapping)
 
     def list_mappings(self) -> list[dict[str, Any]]:
-        mappings = self.db.query(LearnedMapping).filter(LearnedMapping.enabled == True).all()
+        query = self.db.query(LearnedMapping).filter(LearnedMapping.enabled == True)
+        if self.user_id is not None:
+            query = query.filter(LearnedMapping.user_id == self.user_id)
+        mappings = query.all()
         items = []
         for mapping in mappings:
             items.append(self._mapping_response(mapping))
         return items
 
     def disable_mapping(self, mapping_id: int) -> dict[str, Any]:
-        mapping = self.db.query(LearnedMapping).filter(LearnedMapping.id == mapping_id).first()
+        query = self.db.query(LearnedMapping).filter(LearnedMapping.id == mapping_id)
+        if self.user_id is not None:
+            query = query.filter(LearnedMapping.user_id == self.user_id)
+        mapping = query.first()
         if mapping is None:
             raise ValueError(f'Mapping {mapping_id} not found')
 
@@ -175,7 +186,10 @@ class LearningEngine:
         return {'id': mapping.id, 'enabled': bool(getattr(mapping, 'enabled', False))}
 
     def delete_mapping(self, mapping_id: int) -> None:
-        mapping = self.db.query(LearnedMapping).filter(LearnedMapping.id == mapping_id).first()
+        query = self.db.query(LearnedMapping).filter(LearnedMapping.id == mapping_id)
+        if self.user_id is not None:
+            query = query.filter(LearnedMapping.user_id == self.user_id)
+        mapping = query.first()
         if mapping is not None:
             self.db.delete(mapping)
             self.db.commit()
@@ -189,7 +203,7 @@ class LearningEngine:
             return int(match.group(0)) if match else None
         if value_type == 'boolean':
             if lower in {'true', 'yes', 'enabled', 'allow', 'allowall', 'on'}:
-                return False
+                return True
             if lower in {'false', 'no', 'disabled', 'deny', 'off'}:
                 return False
             return False
@@ -248,7 +262,10 @@ class LearningEngine:
         }
 
     def apply_pattern(self, command: str) -> dict[str, Any] | None:
-        mappings = self.db.query(LearnedMapping).all()
+        query = self.db.query(LearnedMapping)
+        if self.user_id is not None:
+            query = query.filter(LearnedMapping.user_id == self.user_id)
+        mappings = query.all()
         for mapping in mappings:
             result = self._apply_mapping_to_command(mapping, command)
             if result is not None:
@@ -262,11 +279,10 @@ class LearningEngine:
         if hasattr(mapping, 'enabled') and mapping.enabled is False:
             return 0
 
-        records = (
-            self.db.query(UnknownCommand)
-            .filter(UnknownCommand.resolved.is_(False))
-            .all()
-        )
+        query = self.db.query(UnknownCommand).filter(UnknownCommand.resolved.is_(False))
+        if self.user_id is not None:
+            query = query.filter(UnknownCommand.user_id == self.user_id)
+        records = query.all()
         resolved_at = datetime.utcnow()
         resolved_count = 0
         for record in records:

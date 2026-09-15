@@ -44,6 +44,9 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5174"
     )
     gemini_api_key: str | None = None
+    firebase_credentials: str | None = None
+    
+    firebase_service_account_path: str | None = None
 
     @field_validator("app_name", mode="before")
     @classmethod

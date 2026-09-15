@@ -14,13 +14,26 @@ def evaluate(normalized_config: Dict[str, Any], framework: str) -> Dict[str, Any
         controls = get_cis_controls()
     elif framework_name == "NIST":
         controls = get_nist_controls()
+    elif framework_name in ["STIG", "ISO"]:
+        controls = []
     else:
         raise ValueError(f"Unsupported framework: {framework}")
 
     findings = []
-    for control in controls:
-        result = evaluate_control(control, normalized_config or {})
-        findings.append(result)
+    if framework_name in ["STIG", "ISO"]:
+        findings.append({
+            "control_id": "EXT-01",
+            "title": f"{framework_name} Architecture Ready",
+            "description": "Framework available for extension / control pack not yet implemented.",
+            "status": "UNKNOWN",
+            "severity": "LOW",
+            "evidence": "Awaiting control pack installation.",
+            "remediation": "N/A"
+        })
+    else:
+        for control in controls:
+            result = evaluate_control(control, normalized_config or {})
+            findings.append(result)
 
     summary = build_summary(findings)
     summary_payload = {

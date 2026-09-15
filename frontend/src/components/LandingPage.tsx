@@ -27,6 +27,8 @@ import {
   UserCheck,
   Wifi,
   XCircle,
+  Menu,
+  X
 } from 'lucide-react'
 import { Hero3DVisual } from './Hero3DVisual'
 import type { PageKey } from './Sidebar'
@@ -38,6 +40,7 @@ interface LandingPageProps {
 
 export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -119,54 +122,107 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => onNavigate('dashboard')}
-              className="hidden sm:inline-flex px-3 py-1.5 rounded text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+              className="hidden md:inline-flex px-3 py-1.5 rounded text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={onStartAudit}
-              className="flex items-center gap-1 px-3.5 py-1.5 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs transition-colors shadow-sm"
+              className="hidden sm:flex items-center gap-1 px-3.5 py-1.5 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs transition-colors shadow-sm"
             >
               <span>Get Started</span>
               <ArrowRight size={13} className="stroke-[2.5]" />
             </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-1.5 text-text-secondary hover:text-text-primary rounded-md bg-surface-secondary border border-surface-border"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-14 left-0 w-full bg-surface-primary border-b border-surface-border shadow-xl py-4 px-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2">
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+              className="text-left font-semibold text-text-primary py-2 border-b border-surface-border/50"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); onNavigate('dashboard') }}
+              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
+            >
+              Platform
+            </button>
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); scrollToSection('capabilities') }}
+              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
+            >
+              Capabilities
+            </button>
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); scrollToSection('solutions') }}
+              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
+            >
+              Solutions
+            </button>
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); scrollToSection('about') }}
+              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
+            >
+              About
+            </button>
+            <div className="pt-2 flex flex-col gap-3">
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onStartAudit() }}
+                className="w-full flex justify-center items-center gap-2 px-4 py-3 rounded bg-brand-primary text-white font-bold text-sm"
+              >
+                <span>Get Started</span>
+                <ArrowRight size={14} />
+              </button>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onNavigate('dashboard') }}
+                className="w-full text-center px-4 py-3 rounded bg-surface-secondary border border-surface-border text-text-primary font-semibold text-sm"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* 2. HERO SECTION (90–100vh) */}
-      <section className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-hidden border-b border-surface-border/80 bg-surface-primary">
-        {/* Full-screen 3D Background */}
-        <div className="absolute inset-0 z-0">
-          <Hero3DVisual />
-        </div>
-
+      {/* 2. HERO SECTION */}
+      <section className="relative min-h-[calc(100vh-4rem)] flex flex-col md:flex-row items-center md:items-stretch overflow-hidden border-b border-surface-border/80 bg-surface-primary pt-6 md:pt-10 pb-10">
+        
         {/* Foreground Content */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-20 flex flex-col pointer-events-none">
-          <div className="md:w-1/2 lg:w-[45%] space-y-6 pointer-events-auto">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-20 flex flex-col justify-center h-full order-1 md:order-none pointer-events-none">
+          <div className="md:w-1/2 lg:w-[45%] space-y-6 pointer-events-auto flex flex-col justify-center text-center md:text-left items-center md:items-start">
             {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-secondary/60 backdrop-blur-sm border border-surface-border/80 text-[10px] sm:text-[11px] font-mono text-brand-bright font-semibold tracking-widest uppercase">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-secondary/80 backdrop-blur-sm border border-surface-border/80 text-[10px] sm:text-[11px] font-mono text-brand-bright font-semibold tracking-widest uppercase">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-bright animate-pulse" />
               <span>DETERMINISTIC SECURITY</span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-text-primary leading-[1.05] drop-shadow-xl">
-              SECURE EVERY<br />NETWORK.<br />
-              <span className="text-text-secondary">PROVE EVERY<br />CONTROL.</span><br />
-              <span className="text-brand-primary">AUTOMATE<br />COMPLIANCE.</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-text-primary leading-[1.05] drop-shadow-xl break-words w-full">
+              SECURE EVERY<br className="hidden md:block" /> NETWORK.<br className="md:hidden" />
+              <span className="text-text-secondary">PROVE EVERY<br className="hidden md:block" /> CONTROL.</span><br className="md:hidden" />
+              <span className="text-brand-primary">AUTOMATE<br className="hidden md:block" /> COMPLIANCE.</span>
             </h1>
 
             {/* Description */}
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-md drop-shadow-md">
+            <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-md drop-shadow-md">
               NetSecure AI analyzes heterogeneous network configurations, evaluates security controls against industry frameworks, identifies configuration gaps, and provides deterministic remediation guidance with audit-ready reporting.
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 w-full sm:w-auto">
               <button
                 onClick={() => onNavigate('dashboard')}
-                className="flex items-center gap-2 px-6 py-3 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(22,131,216,0.3)] hover:shadow-[0_0_30px_rgba(22,131,216,0.5)]"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(22,131,216,0.3)] hover:shadow-[0_0_30px_rgba(22,131,216,0.5)] w-full sm:w-auto"
               >
                 <span>Explore Platform</span>
                 <ArrowRight size={14} className="stroke-[2.5]" />
@@ -174,13 +230,23 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
 
               <button
                 onClick={() => scrollToSection('how-it-works')}
-                className="flex items-center gap-2 px-6 py-3 rounded bg-surface-secondary/80 hover:bg-surface-hover backdrop-blur-sm border border-surface-border/80 text-text-primary font-semibold text-xs sm:text-sm transition-colors"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded bg-surface-secondary/80 hover:bg-surface-hover backdrop-blur-sm border border-surface-border/80 text-text-primary font-semibold text-sm transition-colors w-full sm:w-auto"
               >
                 <Play size={13} className="fill-current text-brand-bright" />
                 <span>See How It Works</span>
               </button>
             </div>
           </div>
+        </div>
+        
+        {/* Full-screen 3D Background (Desktop) / Foreground Visual (Mobile) */}
+        <div className="absolute inset-0 z-0 opacity-40 md:opacity-100 md:block hidden">
+          <Hero3DVisual />
+        </div>
+        
+        {/* Mobile Visual Container (Ordered below the text) */}
+        <div className="relative w-full h-[45vh] mt-8 z-0 block md:hidden order-2 border-t border-surface-border/50 bg-gradient-to-b from-surface-primary to-surface-secondary/50">
+          <Hero3DVisual />
         </div>
       </section>
 
@@ -414,6 +480,63 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </p>
               <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
                 set deviceconfig system&#10;  service disable-telnet yes&#10;  ntp-servers primary ...
+              </pre>
+            </div>
+
+            {/* Juniper */}
+            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Juniper Junos</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-[10px] font-mono text-emerald-300 border border-emerald-800/60">
+                  Aggregation & Core
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Analyzes system services, root authentication methods, telnet prohibition, and logging settings for comprehensive coverage.
+              </p>
+              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
+                set system services ssh protocol-version v2&#10;delete system services telnet
+              </pre>
+            </div>
+
+            {/* Aruba */}
+            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-orange-400" />
+                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Aruba AOS-CX</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded bg-orange-950 text-[10px] font-mono text-orange-300 border border-orange-800/60">
+                  Switching Fabric
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Checks SSH configurations, password requirements, secure management planes, and AAA server alignment across switches.
+              </p>
+              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
+                ssh server vrf mgmt&#10;no telnet server
+              </pre>
+            </div>
+
+            {/* Check Point */}
+            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-pink-400" />
+                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Check Point Gaia</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded bg-pink-950 text-[10px] font-mono text-pink-300 border border-pink-800/60">
+                  Security Gateways
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Extracts management interface rules, API configurations, lockout threshold settings, and secure password standards.
+              </p>
+              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
+                set user admin shell /bin/bash&#10;set inactivity-timeout 10
               </pre>
             </div>
           </div>

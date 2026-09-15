@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.api.deps import get_current_user
+from app.db.models import User
 from app.db.audit_repository import AuditRepository
 from app.services.training.learning_engine import LearningEngine
 
@@ -22,21 +24,21 @@ class MappingPayload(BaseModel):
 
 
 @router.get("/unknown")
-async def list_unknown_commands(db: Session = Depends(get_db)):
-    repository = AuditRepository(db)
+async def list_unknown_commands(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    repository = AuditRepository(db, user_id=current_user.id)
     return repository.list_unknown_commands()
 
 
 @router.get("/mappings")
-async def list_learned_mappings(db: Session = Depends(get_db)):
-    engine = LearningEngine(db)
+async def list_learned_mappings(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    engine = LearningEngine(db, user_id=current_user.id)
     return engine.list_mappings()
 
 
 @router.post("/mapping")
-async def create_mapping(payload: MappingPayload, db: Session = Depends(get_db)):
+async def create_mapping(payload: MappingPayload, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
-        engine = LearningEngine(db)
+        engine = LearningEngine(db, user_id=current_user.id)
         mapping = engine.create_mapping(
             vendor=payload.vendor,
             command_pattern=payload.command_pattern,
@@ -52,8 +54,8 @@ async def create_mapping(payload: MappingPayload, db: Session = Depends(get_db))
 
 
 @router.delete("/mapping/{mapping_id}")
-async def delete_mapping(mapping_id: int, db: Session = Depends(get_db)):
-    engine = LearningEngine(db)
+async def delete_mapping(mapping_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    engine = LearningEngine(db, user_id=current_user.id)
     try:
         engine.disable_mapping(mapping_id)
     except ValueError as exc:

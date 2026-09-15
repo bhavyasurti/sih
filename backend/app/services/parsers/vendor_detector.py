@@ -8,6 +8,9 @@ def detect_vendor(config_text: str) -> Dict[str, Any]:
         "cisco": 0,
         "fortinet": 0,
         "paloalto": 0,
+        "juniper": 0,
+        "aruba": 0,
+        "checkpoint": 0,
     }
 
     cisco_patterns = [
@@ -35,6 +38,27 @@ def detect_vendor(config_text: str) -> Dict[str, Any]:
         r"configure",
         r"set\s+deviceconfig\s+security",
     ]
+    juniper_patterns = [
+        r"\bsystem\s+\{",
+        r"\bhost-name\b",
+        r"\bservices\s+\{\s*ssh",
+        r"set\s+system\s+host-name",
+        r"\binterfaces\s+\{",
+    ]
+    aruba_patterns = [
+        r"\bssh\s+server\s+vrf\b",
+        r"\binterface\s+\d+/\d+/\d+\b",
+        r"\baruba-central\b",
+        r"\bmodule\s+\d+\b",
+        r"vlan\s+\d+",
+    ]
+    checkpoint_patterns = [
+        r"set\s+hostname\b",
+        r"set\s+clienv\b",
+        r"add\s+user\b",
+        r"set\s+expert-password\b",
+        r"set\s+netflow\b",
+    ]
 
     for pattern in cisco_patterns:
         if re.search(pattern, text):
@@ -47,6 +71,18 @@ def detect_vendor(config_text: str) -> Dict[str, Any]:
     for pattern in paloalto_patterns:
         if re.search(pattern, text):
             score["paloalto"] += 1
+
+    for pattern in juniper_patterns:
+        if re.search(pattern, text):
+            score["juniper"] += 1
+
+    for pattern in aruba_patterns:
+        if re.search(pattern, text):
+            score["aruba"] += 1
+
+    for pattern in checkpoint_patterns:
+        if re.search(pattern, text):
+            score["checkpoint"] += 1
 
     if not any(score.values()):
         return {

@@ -1,10 +1,23 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    firebase_uid: Mapped[Optional[str]] = mapped_column(String(128), unique=True, index=True, nullable=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class Device(Base):
@@ -25,6 +38,7 @@ class Audit(Base):
     __tablename__ = "audits"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     device_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     framework: Mapped[str] = mapped_column(String(100), default="CIS")
@@ -38,6 +52,7 @@ class Finding(Base):
     __tablename__ = "findings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     audit_id: Mapped[int] = mapped_column(Integer, index=True)
     device_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
     control_id: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -58,6 +73,7 @@ class LearnedMapping(Base):
     __tablename__ = "learned_mappings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     vendor: Mapped[str] = mapped_column(String(100), nullable=False)
     raw_command: Mapped[str] = mapped_column(String(500), nullable=False)
     command_pattern: Mapped[str] = mapped_column(String(500), nullable=False, default="")
@@ -77,6 +93,7 @@ class UnknownCommand(Base):
     __tablename__ = "unknown_commands"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     audit_id: Mapped[int] = mapped_column(Integer, index=True)
     device_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
     vendor: Mapped[str] = mapped_column(String(100), default="unknown")
@@ -93,9 +110,30 @@ class Report(Base):
     __tablename__ = "reports"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     audit_id: Mapped[int] = mapped_column(Integer, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     generated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     status: Mapped[str] = mapped_column(String(50), default="generated")
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
+class ApprovalHistory(Base):
+    __tablename__ = "approval_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    audit_id: Mapped[int] = mapped_column(Integer, index=True)
+    finding: Mapped[str] = mapped_column(String(255), nullable=False)
+    framework: Mapped[str] = mapped_column(String(100), nullable=False)
+    vendor: Mapped[str] = mapped_column(String(100), nullable=False)
+    original_state: Mapped[str] = mapped_column(Text, nullable=True)
+    expected_state: Mapped[str] = mapped_column(Text, nullable=True)
+    deterministic_remediation: Mapped[str] = mapped_column(Text, nullable=True)
+    proposed_solution: Mapped[str] = mapped_column(Text, nullable=True)
+    verification_steps: Mapped[str] = mapped_column(Text, nullable=True)
+    user_edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    approval_status: Mapped[str] = mapped_column(String(50), default="approved")
+    resulting_audit_status: Mapped[str] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

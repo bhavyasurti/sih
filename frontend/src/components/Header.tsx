@@ -68,6 +68,11 @@ export function Header({
       title: 'System Settings & Telemetry',
       desc: 'Compliance framework baselines, rule registry status, and database metrics',
     },
+    profile: {
+      section: 'ACCOUNT',
+      title: 'My Profile',
+      desc: 'Manage your authenticated session and account security details',
+    },
   }
 
   const currentMeta = pageTitles[currentPage]

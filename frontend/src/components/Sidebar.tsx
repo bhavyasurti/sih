@@ -11,12 +11,16 @@ import {
   CircleDot,
   Layers,
   Home,
-  X,
   ChevronLeft,
-  ChevronRight,
+  LogOut,
+  X,
+  UserCheck,
+  ChevronRight
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
-export type PageKey = 'home' | 'dashboard' | 'audit' | 'results' | 'training' | 'reports' | 'settings'
+export type PageKey = 'home' | 'dashboard' | 'audit' | 'results' | 'training' | 'reports' | 'settings' | 'profile'
 
 interface SidebarProps {
   currentPage: PageKey
@@ -41,17 +45,8 @@ export function Sidebar({
   isMobileOpen,
   onMobileClose,
 }: SidebarProps) {
-  const navGroups = [
-    {
-      label: 'PORTAL',
-      items: [
-        {
-          key: 'home' as PageKey,
-          label: 'Home / Overview',
-          icon: Home,
-        },
-      ],
-    },
+  const { user, logout } = useAuth()
+  const navGroups: { label: string; isMobileOnly?: boolean; items: { key: PageKey; label: string; icon: React.ElementType; badge?: string | number; badgeVariant?: 'active' | 'warning' }[] }[] = [
     {
       label: 'OVERVIEW',
       items: [
@@ -106,11 +101,16 @@ export function Sidebar({
       items: [
         {
           key: 'settings' as PageKey,
-          label: 'Settings & Telemetry',
+          label: 'Settings',
           icon: Settings,
         },
+        {
+          key: 'profile' as PageKey,
+          label: 'My Profile',
+          icon: UserCheck,
+        },
       ],
-    },
+    }
   ]
 
   return (
@@ -134,11 +134,11 @@ export function Sidebar({
       >
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-surface-border bg-surface-primary">
-          <div className="flex items-center gap-3 overflow-hidden">
+          <Link to="/" className="flex items-center gap-3 overflow-hidden cursor-pointer hover:opacity-90">
             <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-primary/20 border border-brand-primary/30 text-brand-bright">
               <Shield size={20} className="stroke-[2.2]" />
             </div>
-            <div className={`transition-opacity duration-300 whitespace-nowrap ${isCollapsed ? 'md:opacity-0 md:w-0 md:overflow-hidden' : 'opacity-100'}`}>
+            <div className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isCollapsed ? 'md:opacity-0 md:w-0' : 'opacity-100 w-auto'}`}>
               <div className="text-sm font-bold tracking-wider text-text-primary uppercase flex items-center gap-1.5">
                 NetSecure <span className="text-brand-bright font-extrabold text-[11px] px-1.5 py-0.5 rounded bg-surface-panel border border-brand-primary/30">AI</span>
               </div>
@@ -146,7 +146,7 @@ export function Sidebar({
                 Enterprise Security
               </div>
             </div>
-          </div>
+          </Link>
           
           {/* Mobile close button */}
           <button 
@@ -159,13 +159,18 @@ export function Sidebar({
 
         {/* Navigation Groups */}
         <nav className="flex-1 py-4 space-y-6 overflow-y-auto no-scrollbar overflow-x-hidden">
-          {navGroups.map((group) => (
-            <div key={group.label} className="space-y-1">
+          {navGroups.map((group) => {
+            if (group.isMobileOnly && !isMobileOpen) return null;
+            return (
+            <div key={group.label} className={`space-y-1 ${group.isMobileOnly ? 'md:hidden' : ''}`}>
               <div className={`px-4 pb-1.5 text-[10px] font-semibold tracking-wider text-text-secondary uppercase transition-all whitespace-nowrap ${isCollapsed ? 'md:text-center md:text-[9px] md:px-1' : ''}`}>
                 {isCollapsed ? group.label.substring(0,3) : group.label}
               </div>
               <div className="space-y-1 px-2">
                 {group.items.map((item) => {
+                  // Only show My Profile in the SYSTEM group if we are in the mobile drawer
+                  if (item.key === 'profile' && !isMobileOpen) return null;
+                  
                   const Icon = item.icon
                   const isActive = currentPage === item.key
 
@@ -185,7 +190,7 @@ export function Sidebar({
                           size={18}
                           className={`flex-shrink-0 ${isActive ? 'text-brand-bright' : 'text-text-secondary group-hover:text-text-primary'}`}
                         />
-                        <span className={`whitespace-nowrap transition-opacity duration-300 ${isCollapsed ? 'md:opacity-0 md:w-0 md:hidden' : 'opacity-100'}`}>
+                        <span className={`whitespace-nowrap transition-all duration-300 overflow-hidden ${isCollapsed ? 'md:opacity-0 md:w-0' : 'opacity-100 w-auto'}`}>
                           {item.label}
                         </span>
                       </div>
@@ -213,39 +218,28 @@ export function Sidebar({
                 })}
               </div>
             </div>
-          ))}
+          )}
+          )}
         </nav>
 
-      {/* Sidebar Footer / System Health */}
+      {/* Sidebar Footer */}
       <div className="p-3 border-t border-surface-border bg-surface-primary/70 relative flex flex-col gap-2">
-        <div className={`flex items-center rounded bg-surface-panel border border-surface-border transition-all ${isCollapsed ? 'md:justify-center p-1.5' : 'justify-between px-2 py-1.5'}`}>
-          <div className="flex items-center gap-2 text-xs">
-            <span
-              className={`flex-shrink-0 h-2 w-2 rounded-full ${
-                backendStatus === 'online'
-                  ? 'bg-status-success animate-pulse'
-                  : backendStatus === 'offline'
-                  ? 'bg-status-critical'
-                  : 'bg-amber-400 animate-pulse'
-              }`}
-            />
-            <span className={`text-text-primary font-medium text-[11px] whitespace-nowrap transition-opacity ${isCollapsed ? 'md:hidden' : ''}`}>
-              {backendStatus === 'online'
-                ? 'Backend Online'
-                : backendStatus === 'offline'
-                ? 'Backend Disconnected'
-                : 'Connecting...'}
-            </span>
-          </div>
-          <span className={`text-[10px] font-mono text-text-secondary whitespace-nowrap ${isCollapsed ? 'md:hidden' : ''}`}>
-            127.0.0.1:8000
-          </span>
-        </div>
-
-        <div className={`flex items-center justify-between px-2 text-[10px] text-text-secondary font-mono transition-opacity ${isCollapsed ? 'md:hidden' : ''}`}>
-          <span>Engine v2.4</span>
-          <span>CIS &bull; NIST</span>
-        </div>
+        <button 
+          onClick={() => { onNavigate('profile'); onMobileClose(); }}
+          className={`pt-2 mt-1 flex items-center justify-between transition-colors rounded p-1.5 hover:bg-surface-hover w-full text-left ${isCollapsed ? 'md:justify-center' : 'px-2'}`}
+        >
+          {!isCollapsed && (
+            <div className="flex flex-col truncate pr-2">
+              <span className="text-[11px] font-medium text-text-primary truncate">{user?.name || 'User'}</span>
+              <span className="text-[9px] text-text-secondary truncate">{user?.email}</span>
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="h-6 w-6 rounded-full bg-brand-primary/20 text-brand-bright flex items-center justify-center font-bold text-[10px]">
+              {(user?.name || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
+        </button>
 
         {/* Desktop Collapse Toggle */}
         <button 
