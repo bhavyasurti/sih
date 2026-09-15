@@ -304,7 +304,7 @@ export default function App() {
               onMobileClose={() => setIsMobileMenuOpen(false)}
             />
 
-            <div className="flex flex-1 flex-col min-w-0 w-full overflow-hidden relative">
+            <div className="flex flex-1 flex-col min-w-0 overflow-hidden relative">
               <Header 
                 currentPage={currentPage} 
                 onNavigate={handleNavigate} 
