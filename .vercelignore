@@ -1,0 +1,14 @@
+.git
+.vercel
+**/.pytest_tmp
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/node_modules
+*.pyc
+*.db
+data/
+backend/tests/
+tests/
+.env*
+firebase-service-account.json

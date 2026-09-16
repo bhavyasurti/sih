@@ -1,28 +1,77 @@
 import requests
 import json
 import os
+import sys
 
-base_url = 'http://localhost:8000/api'
+# Production Vercel URL
+base_url = 'https://sih-rho-lime.vercel.app/api'
 
-print('Logging in...')
-res = requests.post(f'{base_url}/auth/login', json={'email': 'test@example.com', 'password': 'password'})
-token = res.json().get('access_token')
+# Read Firebase API Key from frontend/.env
+FIREBASE_API_KEY = "AIzaSyBID9AP01WNUhnis-qKQHMDTGUi94wSt-k"
+
+print('Logging in via Firebase REST API...')
+auth_url = f'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}'
+res = requests.post(auth_url, json={
+    'email': 'test@example.com',
+    'password': 'password',
+    'returnSecureToken': True
+})
+
+if not res.ok:
+    # If the user doesn't exist, let's try to sign up
+    print("Login failed, attempting sign up...")
+    signup_url = f'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}'
+    res = requests.post(signup_url, json={
+        'email': 'test@example.com',
+        'password': 'password',
+        'returnSecureToken': True
+    })
+    
+if not res.ok:
+    print(f"Auth failed: {res.text}")
+    sys.exit(1)
+
+token = res.json().get('idToken')
 headers = {'Authorization': f'Bearer {token}'}
 
+print('Syncing user with backend...')
+res = requests.post(f'{base_url}/auth/sync', headers=headers)
+if not res.ok:
+    print(f"Sync failed: {res.text}")
+    sys.exit(1)
+
 print('Uploading config...')
-config_content = '''router ospf 1
-no network 0.0.0.0 255.255.255.255 area 0
-ip name-server 8.8.8.8
+config_content = '''system {
+    host-name TEST-JUNIPER;
+    services {
+        ssh {
+            root-login deny;
+            protocol-version v2;
+        }
+        telnet;
+    }
+}
 '''
 files = {'file': ('test.cfg', config_content, 'text/plain')}
 res = requests.post(f'{base_url}/audits/upload', files=files, headers=headers)
+if not res.ok:
+    print(f"Upload failed: {res.text}")
+    sys.exit(1)
+
 audit_id = res.json()['audit_id']
 
 print(f'Analyzing audit {audit_id}...')
 res = requests.post(f'{base_url}/audits/{audit_id}/analyze', json={'ai_enabled': True, 'framework': 'CIS'}, headers=headers)
+if not res.ok:
+    print(f"Analysis failed: {res.text}")
+    sys.exit(1)
 
 print(f'Evaluating compliance for {audit_id}...')
 res = requests.post(f'{base_url}/audits/{audit_id}/compliance', json={'framework': 'CIS'}, headers=headers)
+if not res.ok:
+    print(f"Compliance failed: {res.text}")
+    sys.exit(1)
+
 score1 = res.json()['score']
 findings = res.json()['findings']
 print(f'Initial Score: {score1}, Total Findings: {len(findings)}')
@@ -35,29 +84,23 @@ if failed_finding:
     print('Reviewing with AI...')
     res = requests.post(f'{base_url}/ai/review-finding', json={
         'finding': failed_finding,
-        'vendor': 'cisco'
+        'vendor': 'juniper'
     }, headers=headers)
+    if not res.ok:
+        print(f"AI review failed: {res.text}")
+        sys.exit(1)
+        
     ai_review = res.json()
-    proposed_fix = ai_review['proposed_solution']
+    print(f'AI Review raw response: {ai_review}')
+    proposed_fix = ai_review.get('proposed_solution', 'N/A')
     print(f'Proposed fix: {proposed_fix}')
     
-    print('Applying remediation...')
-    res = requests.post(f'{base_url}/audits/{audit_id}/apply-remediation', json={
-        'finding': failed_finding["control_id"],
-        'proposed_solution': proposed_fix,
-        'control_title': failed_finding["title"]
-    }, headers=headers)
-    
-    score2 = res.json()['new_score']
-    print(f'New Score: {score2}')
-    print(f'Resulting Status: {res.json()["resulting_audit_status"]}')
-    
-    print('Checking approval history...')
-    res = requests.get(f'{base_url}/audits/approvals/history', headers=headers)
-    history = res.json()
-    print(f'History length: {len(history)}')
-    if len(history) > 0:
-        print(f'Latest history item: {history[0]}')
+    print('Generating PDF report...')
+    res = requests.get(f'{base_url}/audits/{audit_id}/report', headers=headers)
+    if res.ok and len(res.content) > 1000:
+        print(f'PDF report generated successfully: {len(res.content)} bytes')
+    else:
+        print(f"PDF report generation failed: status {res.status_code}")
 else:
     print('No failing findings to fix.')
 

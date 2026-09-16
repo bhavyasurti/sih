@@ -11,6 +11,11 @@ from app.core.config import get_settings
 logger = logging.getLogger(__name__)
 
 # Structured Output Schemas
+class AINormalizedCommand(BaseModel):
+    normalized_action: str
+    confidence: float
+    requires_admin_validation: bool = True
+
 class AIAnalysisResult(BaseModel):
     vendor: str
     raw_command: str
@@ -45,18 +50,22 @@ class GeminiService:
         self.api_key = api_key or settings.gemini_api_key or os.getenv('GEMINI_API_KEY')
         self.model_name = os.getenv('GEMINI_MODEL', 'gemini-3.6-flash')
         self.client = None
+        self.init_error = None
         if self.api_key:
             try:
                 self.client = genai.Client(api_key=self.api_key)
             except Exception as e:
+                self.init_error = str(e)
                 logger.error(f"Failed to initialize Gemini Client: {e}")
+        else:
+            self.init_error = "API key is missing"
 
     def is_available(self) -> bool:
         return self.client is not None
 
     def analyze_unknown_command(self, vendor: str, command: str, context: str = '') -> Dict[str, Any]:
         if not self.is_available():
-            return {"recognized": False, "confidence": 0.0, "requires_admin_validation": True, "error": "Gemini AI unavailable"}
+            return {"recognized": False, "confidence": 0.0, "requires_admin_validation": True, "error": f"Gemini AI unavailable: {self.init_error}"}
 
         from app.services.training.learning_engine import SUPPORTED_PARAMETERS
         valid_vendors = ['cisco', 'fortinet', 'paloalto', 'juniper', 'aruba', 'checkpoint', 'unknown']
@@ -110,7 +119,7 @@ class GeminiService:
 
     def review_finding(self, finding: Dict[str, Any], config_context: str) -> Dict[str, Any]:
         if not self.is_available():
-            return {"error": "Gemini AI unavailable"}
+            return {"error": f"Gemini AI unavailable: {self.init_error}"}
 
         prompt = f"""
         You are a cybersecurity AI Copilot. A compliance issue was found in a network device configuration.
