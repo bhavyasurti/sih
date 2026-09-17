@@ -210,7 +210,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-text-primary leading-[1.05] drop-shadow-xl break-words w-full">
               SECURE EVERY<br className="hidden md:block" /> NETWORK.<br className="md:hidden" />
               <span className="text-text-secondary">PROVE EVERY<br className="hidden md:block" /> CONTROL.</span><br className="md:hidden" />
-              <span className="text-brand-primary">AUTOMATE<br className="hidden md:block" /> COMPLIANCE.</span>
+              <span className="text-brand-primary"><span className="whitespace-nowrap">AUTOMATE</span><br className="hidden md:block" /> COMPLIANCE.</span>
             </h1>
 
             {/* Description */}
