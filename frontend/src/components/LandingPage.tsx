@@ -24,7 +24,6 @@ import {
 } from 'lucide-react'
 import type { PageKey } from './Sidebar'
 import { Link, useNavigate } from 'react-router-dom'
-import { VendorBadge, StatusPill, SeverityBadge } from './Shared'
 import { Hero3DVisual } from './Hero3DVisual'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -40,19 +39,21 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const navigate = useNavigate()
   const pageContainerRef = useRef<HTMLDivElement | null>(null)
   const preloaderRef = useRef<HTMLDivElement | null>(null)
+  const heroDotsCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const tabsContentRef = useRef<HTMLDivElement | null>(null)
 
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [navDropOpen, setNavDropOpen] = useState(false)
   const [activeServeTab, setActiveServeTab] = useState(0)
   const [activeSxItem, setActiveSxItem] = useState(0)
   const [activeFaq, setActiveFaq] = useState<number | null>(0)
   const [sandboxRemediated, setSandboxRemediated] = useState(false)
   const [loaderVisible, setLoaderVisible] = useState(true)
   const [loaderProgress, setLoaderProgress] = useState(0)
-  const [loaderMessage, setLoaderMessage] = useState('Initializing multi-vendor security rules')
+  const [loaderMessage, setLoaderMessage] = useState('Collecting multi-vendor syntax grammars')
 
-  // Polished session entrance preloader with GSAP curtain slide-up
+  // 1. Session Entrance Preloader (Potadot Benchmark)
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReduced) {
@@ -71,7 +72,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     ]
 
     const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 12) + 8
+      progress += Math.floor(Math.random() * 14) + 10
       if (progress > 100) progress = 100
       setLoaderProgress(progress)
       const msgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1)
@@ -86,14 +87,14 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             },
           })
 
-          // 1. Slide preloader curtain up
+          // Slide curtain up
           tl.to(preloaderRef.current, {
             yPercent: -100,
             duration: 0.85,
             ease: 'power4.inOut',
           })
 
-          // 2. Staggered hero entrance
+          // Staggered hero entrance
           tl.fromTo(
             '.hero-anim-badge',
             { opacity: 0, y: 15 },
@@ -133,50 +134,131 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     return () => clearInterval(interval)
   }, [])
 
-  // GSAP ScrollTrigger coordinated section entrances
+  // 2. Full-Bleed Interactive Hero Dot Field (#heroDots)
+  useEffect(() => {
+    if (loaderVisible) return
+    const canvas = heroDotsCanvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animId: number
+    const heroSection = canvas.parentElement
+
+    const updateSize = () => {
+      if (!canvas || !heroSection) return
+      canvas.width = heroSection.offsetWidth || window.innerWidth
+      canvas.height = heroSection.offsetHeight || 750
+    }
+    updateSize()
+
+    const mouse = { x: -1000, y: -1000, active: false }
+    const onMouseMove = (e: MouseEvent) => {
+      if (!heroSection) return
+      const rect = heroSection.getBoundingClientRect()
+      mouse.x = e.clientX - rect.left
+      mouse.y = e.clientY - rect.top
+      mouse.active = true
+    }
+    const onMouseLeave = () => {
+      mouse.active = false
+    }
+
+    heroSection?.addEventListener('mousemove', onMouseMove, { passive: true })
+    heroSection?.addEventListener('mouseleave', onMouseLeave, { passive: true })
+
+    const spacing = 36
+    const dots: { x: number; y: number; ox: number; oy: number; vx: number; vy: number }[] = []
+    for (let x = spacing / 2; x < 2600; x += spacing) {
+      for (let y = spacing / 2; y < 1400; y += spacing) {
+        dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0 })
+      }
+    }
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i]
+        if (d.ox > canvas.width + 30 || d.oy > canvas.height + 30) continue
+
+        if (mouse.active) {
+          const dx = mouse.x - d.x
+          const dy = mouse.y - d.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const maxDist = 110
+          if (dist < maxDist && dist > 0) {
+            const force = (1 - dist / maxDist) * 16
+            d.vx -= (dx / dist) * force * 0.14
+            d.vy -= (dy / dist) * force * 0.14
+          }
+        }
+
+        d.vx += (d.ox - d.x) * 0.08
+        d.vy += (d.oy - d.y) * 0.08
+        d.vx *= 0.82
+        d.vy *= 0.82
+        d.x += d.vx
+        d.y += d.vy
+
+        const distFromOrig = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2)
+        const isDisplaced = distFromOrig > 1.2
+        ctx.fillStyle = isDisplaced ? '#3DB663' : 'rgba(10, 40, 45, 0.13)'
+        ctx.beginPath()
+        ctx.arc(d.x, d.y, isDisplaced ? 2.5 : 1.4, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      animId = requestAnimationFrame(render)
+    }
+
+    render()
+
+    const ro = new ResizeObserver(() => updateSize())
+    if (heroSection) ro.observe(heroSection)
+
+    return () => {
+      ro.disconnect()
+      heroSection?.removeEventListener('mousemove', onMouseMove)
+      heroSection?.removeEventListener('mouseleave', onMouseLeave)
+      cancelAnimationFrame(animId)
+    }
+  }, [loaderVisible])
+
+  // 3. GSAP ScrollTrigger section animations
   useEffect(() => {
     if (loaderVisible) return
 
     const ctx = gsap.context(() => {
-      // Reveal on scroll elements
+      ScrollTrigger.refresh()
+
       const revealElements = document.querySelectorAll('.gsap-reveal')
       revealElements.forEach((el) => {
-        gsap.fromTo(
-          el,
-          { opacity: 0, y: 35 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.75,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top 85%',
-              toggleActions: 'play none none none',
-            },
-          }
-        )
+        gsap.from(el, {
+          opacity: 0,
+          y: 28,
+          duration: 0.65,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 90%',
+            once: true,
+          },
+        })
       })
 
-      // Stagger cards in grids
       const cardGrids = document.querySelectorAll('.gsap-stagger-grid')
       cardGrids.forEach((grid) => {
-        gsap.fromTo(
-          grid.children,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            stagger: 0.12,
-            duration: 0.65,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: grid,
-              start: 'top 82%',
-              toggleActions: 'play none none none',
-            },
-          }
-        )
+        gsap.from(grid.children, {
+          opacity: 0,
+          y: 24,
+          stagger: 0.1,
+          duration: 0.55,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: grid,
+            start: 'top 88%',
+            once: true,
+          },
+        })
       })
     }, pageContainerRef)
 
@@ -209,7 +291,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     }
   }
 
-  // Interactive Tabbed Ecosystem Data
+  // Multi-Vendor Fleet Tabs
   const serveTabs = [
     {
       title: 'Perimeter Firewalls',
@@ -261,7 +343,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     },
   ]
 
-  // Interactive 4-step Audit Lifecycle Data
+  // 4-Step Audit Lifecycle
   const sxItems = [
     {
       num: '01',
@@ -269,7 +351,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       sub: 'Ingest raw configurations without vendor lock-in or proprietary agents.',
       features: [
         'Supports Cisco, Fortinet, Palo Alto, Juniper, Aruba, Check Point',
-        'Automatic vendor & operating system detection',
+        'Automatic vendor & operating system grammar detection',
         'Zero production device modifications (strictly offline configuration audits)',
         'Unknown syntax isolation for continuous engine learning',
       ],
@@ -349,7 +431,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const faqs = [
     {
       q: 'Does NetSecure AI connect directly to or modify physical network devices?',
-      a: 'No. NetSecure AI maintains a strict, secure boundary: it audits uploaded or pasted offline configuration files. It never connects directly to or modifies live hardware. All proposed CLI fixes are staged in a working configuration for human review and approval.',
+      a: 'No. NetSecure AI maintains a strict, safe boundary: it audits uploaded or pasted offline configuration files. It never connects directly to or modifies live hardware. All proposed CLI fixes are staged in a working configuration for human review and approval.',
     },
     {
       q: 'How does NetSecure AI prevent AI hallucinations in compliance scores?',
@@ -374,13 +456,12 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       ref={pageContainerRef}
       className="min-h-screen bg-[#F2F3F7] text-[#0A282D] font-sans selection:bg-[#3DB663]/25 selection:text-[#0A282D]"
     >
-      {/* 1. POTADOT-STYLE LOADER (Initial Session Entrance) */}
+      {/* 1. SESSION ENTRANCE PRELOADER (Potadot Benchmark) */}
       {loaderVisible && (
         <div
           ref={preloaderRef}
           className="fixed inset-0 z-[100] flex flex-col justify-between p-6 sm:p-12 bg-[#0A282D] text-white dark-dots relative overflow-hidden"
         >
-          {/* Subtle glowing radial gradient in the center */}
           <div className="absolute inset-0 bg-radial from-[#3DB663]/10 via-transparent to-transparent pointer-events-none" />
 
           <div className="relative z-10 flex items-center justify-between font-mono text-xs text-[#8AA3A8] tracking-widest uppercase">
@@ -395,11 +476,14 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           <div className="relative z-10 max-w-xl mx-auto w-full text-center my-auto flex flex-col items-center">
             {/* Animated Security Core Symbol */}
             <div className="relative mb-8 flex items-center justify-center">
-              {/* Outer slow counter-rotating dashed ring */}
-              <div className="absolute w-24 h-24 rounded-full border border-dashed border-[#3DB663]/40 animate-spin" style={{ animationDuration: '14s' }} />
-              {/* Inner glowing ring */}
-              <div className="absolute w-20 h-20 rounded-full border border-[#3DB663]/60 animate-ping opacity-25" style={{ animationDuration: '3s' }} />
-              {/* Central shield badge */}
+              <div
+                className="absolute w-24 h-24 rounded-full border border-dashed border-[#3DB663]/40 animate-spin"
+                style={{ animationDuration: '14s' }}
+              />
+              <div
+                className="absolute w-20 h-20 rounded-full border border-[#3DB663]/60 animate-ping opacity-25"
+                style={{ animationDuration: '3s' }}
+              />
               <div className="w-16 h-16 rounded-2xl bg-[#0F343A] border border-[#1E4950] flex items-center justify-center shadow-lg shadow-[#3DB663]/15">
                 <Shield size={28} className="text-[#3DB663] stroke-[2.2]" />
               </div>
@@ -428,7 +512,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         </div>
       )}
 
-      {/* 2. FLOATING SITE HEADER & NAVIGATION (Potadot Signature Floating Pill) */}
+      {/* 2. FLOATING NAVIGATION BAR (Potadot Floating Pill with Dropdown Preview) */}
       <div className="sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 pointer-events-none">
         <header className="max-w-6xl mx-auto h-16 sm:h-20 px-5 sm:px-7 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-[0_10px_35px_rgba(10,40,45,0.08)] flex items-center justify-between pointer-events-auto transition-all">
           {/* Brand Identity */}
@@ -449,20 +533,83 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-[#4A5B60]">
+          {/* Desktop Navigation Links with Mega Dropdown */}
+          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-[#4A5B60] relative">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="text-[#0A282D] hover:text-[#3DB663] transition-colors"
             >
               Overview
             </button>
-            <button
-              onClick={() => scrollToSection('ecosystem')}
-              className="hover:text-[#0A282D] transition-colors"
+
+            {/* Dropdown Trigger */}
+            <div
+              className="relative"
+              onMouseEnter={() => setNavDropOpen(true)}
+              onMouseLeave={() => setNavDropOpen(false)}
             >
-              Multi-Vendor
-            </button>
+              <button
+                onClick={() => scrollToSection('ecosystem')}
+                className="hover:text-[#0A282D] transition-colors flex items-center gap-1.5 py-2"
+              >
+                <span>Ecosystem</span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${navDropOpen ? 'rotate-180 text-[#3DB663]' : ''}`}
+                />
+              </button>
+
+              {/* Potadot Mega-Dropdown Card */}
+              {navDropOpen && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[620px] rounded-3xl bg-white border border-[#D7DCE5] shadow-[0_20px_50px_rgba(10,40,45,0.12)] p-6 grid grid-cols-12 gap-6 z-50 pointer-events-auto">
+                  <div className="col-span-7 space-y-2">
+                    <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#7E8F95] mb-2">
+                      Supported Architectures
+                    </div>
+                    {serveTabs.map((t, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          setActiveServeTab(idx)
+                          scrollToSection('ecosystem')
+                          setNavDropOpen(false)
+                        }}
+                        className="p-2.5 rounded-xl hover:bg-[#F2F3F7] cursor-pointer transition-colors group/item flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-display text-sm font-bold text-[#0A282D] group-hover/item:text-[#3DB663] transition-colors">
+                            {t.title}
+                          </div>
+                          <div className="text-[11px] font-mono text-[#7E8F95]">
+                            {t.subtitle}
+                          </div>
+                        </div>
+                        <ArrowRight size={13} className="text-[#D7DCE5] group-hover/item:text-[#3DB663] group-hover/item:translate-x-0.5 transition-all" />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="col-span-5 bg-[#0A282D] rounded-2xl p-4 text-white font-mono text-xs flex flex-col justify-between border border-[#1E4950]">
+                    <div>
+                      <div className="text-[10px] text-[#3DB663] font-bold uppercase tracking-wider">
+                        Live Engine Status
+                      </div>
+                      <div className="font-display font-bold text-sm text-white mt-1">
+                        Deterministic Core
+                      </div>
+                      <p className="text-[10px] text-[#A3B8BC] mt-2 font-sans leading-relaxed">
+                        Evaluates 6 vendor operating systems against official CIS & NIST benchmarks.
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-[#7E8F95]">
+                      <span>Zero Hallucinations</span>
+                      <span className="text-[#3DB663] font-bold">100% Math</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={() => scrollToSection('lifecycle')}
               className="hover:text-[#0A282D] transition-colors"
@@ -489,7 +636,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </button>
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action Buttons */}
           <div className="hidden sm:flex items-center gap-3">
             <Link
               to="/login"
@@ -520,7 +667,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           </div>
         </header>
 
-        {/* Floating Mobile Navigation Dropdown */}
+        {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
           <div className="lg:hidden mt-3 max-w-6xl mx-auto rounded-3xl border border-[#D7DCE5] bg-white p-6 space-y-4 shadow-2xl pointer-events-auto">
             <div className="flex flex-col space-y-3 font-display font-semibold text-base text-[#0A282D]">
@@ -607,13 +754,20 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         )}
       </div>
 
-      {/* 3. HERO EXPERIENCE (Potadot Benchmark) */}
-      <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-20 overflow-hidden light-dots" id="overview">
-        {/* Subtle decorative background glow */}
+      {/* 3. HERO EXPERIENCE (Potadot Benchmark with Full-Bleed Dot Canvas) */}
+      <section className="relative pt-6 pb-16 lg:pt-10 lg:pb-24 overflow-hidden bg-[#F2F3F7]" id="overview">
+        {/* Full-Bleed Interactive Spring-Dot Canvas */}
+        <canvas
+          ref={heroDotsCanvasRef}
+          className="hero-canvas"
+          id="heroDots"
+          aria-hidden="true"
+        />
+
         <div className="orb orb--ring w-[540px] h-[540px] -right-24 -top-24 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Hero Editorial Copy */}
             <div className="lg:col-span-5 flex flex-col justify-center">
               <div className="hero-anim-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-xs font-mono font-bold text-[#0A282D] w-fit mb-5 shadow-xs">
@@ -621,7 +775,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 <span>MULTI-VENDOR DETERMINISTIC COMPLIANCE</span>
               </div>
 
-              <h1 className="hero-anim-title font-display text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.08]">
+              <h1 className="hero-anim-title font-display text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.06]">
                 Enterprise network security,{' '}
                 <span className="text-[#3DB663] underline decoration-[#3DB663]/30 underline-offset-4">
                   verified with mathematical certainty.
@@ -653,24 +807,27 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 </button>
               </div>
 
-              {/* Trust Badges */}
-              <div className="hero-anim-cta mt-8 pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2.5 text-[11px] font-mono text-[#4A5B60]">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
-                  CIS & NIST SP 800-53
+              {/* Potadot Signature Pill Tags */}
+              <div className="hero-anim-cta mt-8 pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2.5">
+                <span className="tag">
+                  <i></i>CIS Benchmark L1 & L2
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
-                  Zero Physical Modification
+                <span className="tag">
+                  <i></i>Zero Physical Device Modification
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
-                  6 Vendor Parsers
+                <span className="tag">
+                  <i></i>6 Native Vendor Parsers
                 </span>
+              </div>
+
+              <div className="mt-6 flex items-center gap-2 text-xs font-mono text-[#7E8F95]">
+                <div className="hero-hint">
+                  <b></b>Scroll to explore
+                </div>
               </div>
             </div>
 
-            {/* Right Column: Hero 3D Interactive Topology Visual (ABOVE THE FOLD) */}
+            {/* Right Column: Hero 3D Interactive Topology Visual */}
             <div className="hero-anim-visual lg:col-span-7 w-full">
               <Hero3DVisual />
             </div>
@@ -683,31 +840,26 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         <div className="orb orb--ring w-[440px] h-[440px] -left-32 top-10" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <span className="eyebrow mb-4">The Compliance Dilemma</span>
-          <p className="font-display text-2xl sm:text-3xl lg:text-4xl text-[#0A282D] font-bold leading-snug tracking-tight">
+          <p className="statement">
             Still auditing multi-vendor routers, firewalls, and switches with{' '}
-            <span className="text-[#B07040] underline decoration-[#B07040]/30 underline-offset-8">
-              manual checklists
-            </span>
-            , fragmented spreadsheets, and slow guess-and-check CLI? NetSecure AI delivers the{' '}
-            <span className="accent underline decoration-[#3DB663]/30 underline-offset-8">
-              one deterministic platform
-            </span>{' '}
+            <em>manual checklists</em>, fragmented spreadsheets, and slow guess-and-check CLI? NetSecure AI delivers the{' '}
+            <span className="accent">one deterministic platform</span>{' '}
             your network engineering and security teams can trust with zero doubt.
           </p>
 
           <div className="mt-8">
             <button
               onClick={() => scrollToSection('ecosystem')}
-              className="inline-flex items-center gap-2 font-semibold text-sm text-[#0A282D] hover:text-[#3DB663] transition-colors"
+              className="link-arrow"
             >
               <span>Explore supported multi-vendor architectures</span>
-              <ArrowRight size={14} className="stroke-[2.5]" />
+              <ArrowRight size={15} className="stroke-[2.5]" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* 5. MULTI-VENDOR ECOSYSTEM (Potadot serve section with tabbed stages) */}
+      {/* 5. MULTI-VENDOR FLEET (Potadot serve section with tabbed stages) */}
       <section className="gsap-reveal py-20 lg:py-28" id="ecosystem">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -766,7 +918,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </div>
             </div>
 
-            {/* Right Column: Live Simulated Stage */}
+            {/* Right Column: Living Simulated UI Stage (Potadot sa-cards & sa-track) */}
             <div
               ref={tabsContentRef}
               className="lg:col-span-7 bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-8 shadow-sm relative overflow-hidden"
@@ -783,33 +935,31 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                     {serveTabs[activeServeTab].subtitle}
                   </div>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-[#EDF8F1] text-[#1E6E37] text-xs font-mono font-bold border border-[#BFE7CB]">
-                  CIS Compliant
+                <span className="ui-pill">
+                  ✓ CIS Compliant
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-[#4A5B60] mt-4 leading-relaxed">
-                {serveTabs[activeServeTab].desc}
-              </p>
-
-              {/* KPI Badges */}
-              <div className="grid grid-cols-3 gap-3 my-6">
-                {serveTabs[activeServeTab].stats.map((s, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 rounded-2xl bg-[#F2F3F7] border border-[#D7DCE5] text-center"
-                  >
-                    <div className="text-[10px] font-mono text-[#7E8F95] uppercase">
-                      {s.label}
-                    </div>
-                    <div className="text-xs sm:text-sm font-sans font-bold text-[#0A282D] mt-1">
-                      {s.val}
-                    </div>
-                  </div>
-                ))}
+              {/* Potadot Micro UI Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
+                <div className="ui-card">
+                  <div className="ui-strong">Ingress Rules</div>
+                  <div className="ui-mini">Strict Filtering</div>
+                  <div className="meter"><i></i></div>
+                </div>
+                <div className="ui-card">
+                  <div className="ui-strong">SSH Protocol</div>
+                  <div className="ui-mini">v2 Enforced</div>
+                  <span className="ui-pill">Active</span>
+                </div>
+                <div className="ui-card">
+                  <div className="ui-strong">Syslog TLS</div>
+                  <div className="ui-mini">Encrypted Forwarding</div>
+                  <span className="ui-pill">Non-repudiation</span>
+                </div>
               </div>
 
-              {/* Native Configuration Preview */}
+              {/* Native Configuration Preview Box */}
               <div className="rounded-2xl bg-[#0A282D] p-4 text-[#A3B8BC] font-mono text-xs overflow-x-auto shadow-inner border border-[#1E4950]">
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 text-[10px] text-[#7E8F95] uppercase">
                   <span>Device Running Configuration</span>
@@ -818,6 +968,29 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 <pre className="text-white leading-relaxed">
                   {serveTabs[activeServeTab].sampleCode}
                 </pre>
+              </div>
+
+              {/* Potadot Signature Pipeline Stage Track */}
+              <div className="sa-track">
+                <div className="sa-line">
+                  <i style={{ width: `${(activeServeTab + 1) * 25}%` }} />
+                </div>
+                <div className="sa-node">
+                  <span className="n">01</span>
+                  <span>Ingestion</span>
+                </div>
+                <div className="sa-node">
+                  <span className="n">02</span>
+                  <span>AST Parsing</span>
+                </div>
+                <div className="sa-node">
+                  <span className="n">03</span>
+                  <span>Regex Core</span>
+                </div>
+                <div className="sa-node">
+                  <span className="n">04</span>
+                  <span>CIS Certified</span>
+                </div>
               </div>
 
               <div className="mt-6 pt-5 border-t border-[#D7DCE5] flex items-center justify-between text-xs font-mono text-[#7E8F95]">
@@ -842,57 +1015,43 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </p>
           </div>
 
-          {/* Accordion Cards Grid */}
-          <div className="space-y-4">
+          {/* Accordion Cards (.sx) */}
+          <div className="sx">
             {sxItems.map((item, idx) => (
-              <div
+              <article
                 key={idx}
-                className={`rounded-3xl border transition-all overflow-hidden ${
-                  activeSxItem === idx
-                    ? 'bg-[#F2F3F7] border-[#3DB663] shadow-md ring-1 ring-[#3DB663]/20'
-                    : 'bg-white hover:bg-[#F2F3F7]/50 border-[#D7DCE5]'
-                }`}
+                className={`sx-item ${activeSxItem === idx ? 'is-open' : ''}`}
               >
-                {/* Accordion Header */}
-                <button
+                <div
+                  className="sx-tab"
                   onClick={() => setActiveSxItem(activeSxItem === idx ? -1 : idx)}
-                  className="w-full p-6 sm:p-8 flex items-center justify-between text-left"
                 >
-                  <div className="flex items-center gap-6">
-                    <span className="font-display text-2xl sm:text-3xl font-extrabold text-[#0A282D]">
-                      {item.num}
-                    </span>
-                    <div>
-                      <h3 className="font-display text-lg sm:text-xl font-bold text-[#0A282D]">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-[#7E8F95] mt-0.5">
-                        {item.sub}
-                      </p>
-                    </div>
-                  </div>
+                  <span className="sx-n">{item.num}</span>
+                  <span className="sx-name">{item.title}</span>
                   <span
-                    className={`w-8 h-8 rounded-full border border-[#D7DCE5] flex items-center justify-center transition-transform ${
-                      activeSxItem === idx ? 'rotate-180 bg-[#3DB663] text-white border-transparent' : 'bg-white text-[#0A282D]'
+                    className={`ml-auto w-8 h-8 rounded-full border border-[#D7DCE5] flex items-center justify-center transition-transform ${
+                      activeSxItem === idx ? 'rotate-180 bg-[#3DB663] text-white border-transparent' : 'bg-[#F2F3F7] text-[#0A282D]'
                     }`}
                   >
                     <ChevronDown size={16} />
                   </span>
-                </button>
+                </div>
 
-                {/* Accordion Expanded Body */}
                 {activeSxItem === idx && (
-                  <div className="px-6 pb-8 sm:px-8 sm:pb-8 pt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center border-t border-[#D7DCE5]/60 animate-fadeIn">
-                    <div className="lg:col-span-6 space-y-4">
-                      <div className="text-xs font-mono font-bold uppercase text-[#3DB663]">
+                  <div className="sx-body animate-fadeIn">
+                    <div className="sx-copy">
+                      <span className="text-xs font-mono font-bold uppercase text-[#3DB663]">
                         {item.num} / 04 Pipeline Stage
-                      </div>
-                      <p className="text-sm text-[#4A5B60] leading-relaxed">
+                      </span>
+                      <h3 className="font-display text-2xl font-bold text-[#0A282D] mt-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-[#4A5B60] mt-2 leading-relaxed">
                         {item.sub}
                       </p>
-                      <ul className="space-y-2.5 text-xs sm:text-sm text-[#0A282D]">
+                      <ul className="my-6 space-y-2.5">
                         {item.features.map((f, fIdx) => (
-                          <li key={fIdx} className="flex items-start gap-2.5">
+                          <li key={fIdx} className="flex items-start gap-2.5 text-sm text-[#0A282D]">
                             <span className="h-5 w-5 rounded-full bg-[#EDF8F1] text-[#3DB663] flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Check size={12} className="stroke-[3]" />
                             </span>
@@ -901,53 +1060,50 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                         ))}
                       </ul>
 
-                      <div className="pt-2">
-                        <button
-                          onClick={onStartAudit}
-                          className="btn btn--green"
-                        >
-                          <span>Execute Stage in Ingestion Console</span>
-                          <span className="btn-ico">
-                            <ArrowRight size={13} className="stroke-[2.5]" />
-                          </span>
-                        </button>
-                      </div>
+                      <button
+                        onClick={onStartAudit}
+                        className="btn btn--green"
+                      >
+                        <span>Execute Stage in Ingestion Console</span>
+                        <span className="btn-ico">
+                          <ArrowRight size={13} className="stroke-[2.5]" />
+                        </span>
+                      </button>
                     </div>
 
-                    {/* Stage Visual Card */}
-                    <div className="lg:col-span-6 bg-white rounded-2xl border border-[#D7DCE5] p-5 shadow-xs font-mono text-xs">
-                      <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
-                        <span className="font-bold text-[#0A282D]">{item.mockup.filename}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] text-[10px] font-bold">
-                          {item.mockup.badge}
-                        </span>
-                      </div>
-                      <div className="space-y-2.5 py-4">
-                        {item.mockup.tokens.map((t, tIdx) => (
-                          <div
-                            key={tIdx}
-                            className="flex items-center justify-between p-2 rounded-xl bg-[#F2F3F7] text-[11px]"
-                          >
-                            <span className="text-[#7E8F95]">{t.key}</span>
-                            <span className="font-bold text-[#0A282D]">{t.val}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="pt-3 border-t border-[#D7DCE5] text-[10px] text-[#7E8F95] flex items-center justify-between">
-                        <span>State: Deterministic Verified</span>
-                        <span className="text-[#3DB663] font-bold">100% Cryptographic Match</span>
+                    {/* Realistic System Window Mockup (.mk-win) */}
+                    <div className="sx-visual">
+                      <div className="mk-win">
+                        <div className="mk-top">
+                          <span>{item.mockup.filename}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] text-[10px] font-bold border border-[#BFE7CB]">
+                            {item.mockup.badge}
+                          </span>
+                        </div>
+                        <div className="mk-kpis">
+                          {item.mockup.tokens.map((t, tIdx) => (
+                            <div key={tIdx}>
+                              <small>{t.key}</small>
+                              <b>{t.val}</b>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="pt-3 border-t border-[#1E4950] text-[10px] text-[#8AA3A8] flex items-center justify-between">
+                          <span>State: Deterministic Verified</span>
+                          <span className="text-[#3DB663] font-bold">100% Cryptographic Match</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
       {/* 7. WHY DETERMINISTIC SECURITY (Potadot on-dark section with glowing rings) */}
-      <section className="gsap-reveal py-20 lg:py-28 bg-[#0A282D] text-white relative overflow-hidden" id="why-deterministic">
+      <section className="gsap-reveal py-20 lg:py-28 on-dark" id="why-deterministic">
         <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
         <div className="orb orb--dark-ring w-[500px] h-[500px] -right-32 top-10" />
 
@@ -962,41 +1118,29 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </p>
           </div>
 
-          {/* Numbered Rings Grid */}
-          <div className="gsap-stagger-grid grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
-                01
-              </div>
-              <h3 className="font-display text-xl font-bold text-white mb-2">
-                Zero Hallucination Compliance
-              </h3>
-              <p className="text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
+          {/* Numbered Glowing Rings (.rings) */}
+          <div className="rings">
+            <div className="ring-item">
+              <div className="ring-num"><b>01</b></div>
+              <h3>100% Deterministic & Verifiable</h3>
+              <p>
                 Rules are evaluated by strict deterministic Python regular expressions based on official CIS Benchmarks and NIST SP 800-53 controls. Generative AI never determines whether a check passes or fails.
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
-                02
-              </div>
-              <h3 className="font-display text-xl font-bold text-white mb-2">
-                Safe Boundary Isolation
-              </h3>
-              <p className="text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
+            <div className="ring-item">
+              <div className="ring-num"><b>02</b></div>
+              <h3>Safe Boundary Isolation</h3>
+              <p>
                 NetSecure AI audits uploaded configuration text files. It contains zero active network probes and zero device write permissions. Your physical infrastructure is completely isolated from live risks.
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
-                03
-              </div>
-              <h3 className="font-display text-xl font-bold text-white mb-2">
-                Closed-Loop Verification
-              </h3>
-              <p className="text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
-                Proposed CLI fixes are staged directly into an isolated working-configuration sandbox. You can re-audit the staged configuration immediately to mathematically confirm that all findings pass.
+            <div className="ring-item">
+              <div className="ring-num"><b>03</b></div>
+              <h3>Continuous Autonomous Learning</h3>
+              <p>
+                Unmapped vendor commands are safely isolated in the Training Center, enabling network architects to permanently teach the engine new vendor parameters with human oversight.
               </p>
             </div>
           </div>
@@ -1116,33 +1260,39 @@ write memory`}
       </section>
 
       {/* 9. MARQUEE BANNER (Potadot big-marquee) */}
-      <section className="py-8 bg-white border-y border-[#D7DCE5] overflow-hidden" aria-hidden="true">
-        <div className="marquee-track flex items-center gap-8 text-sm sm:text-base font-display font-extrabold uppercase tracking-wider text-[#0A282D]">
+      <section className="big-marquee" aria-hidden="true">
+        <div className="marquee-track">
           <span>Cisco IOS-XE</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Fortinet FortiOS</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Palo Alto PAN-OS</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Juniper Junos</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Aruba AOS-CX</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Check Point Gaia</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>CIS Benchmark Certified</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>NIST SP 800-53</span>
-          <span className="text-[#3DB663]">●</span>
-          <span>Zero Hallucination</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
+          <span>Deterministic Regex Core</span>
+          <i className="sep" />
           <span>Cisco IOS-XE</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Fortinet FortiOS</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Palo Alto PAN-OS</span>
-          <span className="text-[#3DB663]">●</span>
+          <i className="sep" />
           <span>Juniper Junos</span>
+          <i className="sep" />
+          <span>Aruba AOS-CX</span>
+          <i className="sep" />
+          <span>Check Point Gaia</span>
+          <i className="sep" />
+          <span>CIS Benchmark Certified</span>
         </div>
       </section>
 
@@ -1171,72 +1321,67 @@ write memory`}
               </div>
             </div>
 
-            <div className="gsap-stagger-grid lg:col-span-7 space-y-3">
+            <div className="faq lg:col-span-7">
               {faqs.map((f, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-2xl border border-[#D7DCE5] bg-white overflow-hidden transition-all"
-                >
-                  <button
-                    onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                    className="w-full p-5 text-left flex items-center justify-between font-display font-bold text-base text-[#0A282D]"
-                  >
+                <details key={idx} open={idx === 0}>
+                  <summary>
                     <span>{f.q}</span>
-                    <span
-                      className={`w-6 h-6 rounded-full border border-[#D7DCE5] flex items-center justify-center text-xs flex-shrink-0 ml-3 transition-transform ${
-                        activeFaq === idx ? 'rotate-180 bg-[#3DB663] text-white border-transparent' : 'bg-[#F2F3F7]'
-                      }`}
-                    >
-                      <ChevronDown size={14} />
-                    </span>
-                  </button>
-                  {activeFaq === idx && (
-                    <div className="px-5 pb-5 text-xs sm:text-sm text-[#4A5B60] leading-relaxed border-t border-[#D7DCE5]/60 pt-3 animate-fadeIn">
-                      {f.a}
-                    </div>
-                  )}
-                </div>
+                    <span className="pm" aria-hidden="true" />
+                  </summary>
+                  <div className="ans">
+                    <p>{f.a}</p>
+                  </div>
+                </details>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* 11. HIGH-IMPACT DARK CALL TO ACTION BANNER (Potadot cta) */}
+      {/* 11. HIGH-IMPACT DARK CALL TO ACTION CARD (Potadot cta) */}
       <section className="gsap-reveal py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-8 sm:p-14 lg:p-16 rounded-3xl bg-[#0A282D] text-white relative overflow-hidden shadow-2xl">
+          <div className="cta">
+            <div className="cta-orb" />
             <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
-            <div className="orb orb--dark-ring w-[400px] h-[400px] -right-20 -bottom-20" />
 
-            <div className="relative z-10 max-w-3xl space-y-6">
-              <span className="eyebrow eyebrow-dark">Get Started Immediately</span>
-              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
-                Have network configurations that need deterministic compliance?
-              </h2>
-              <p className="text-sm sm:text-base text-[#A3B8BC] leading-relaxed">
-                Upload raw device configuration files now to generate instant CIS & NIST audit evaluations, AI explanations, and verified CLI remediation scripts.
-              </p>
+            <div className="cta-row">
+              <div className="space-y-6">
+                <span className="eyebrow eyebrow-dark">Get Started Immediately</span>
+                <h2>
+                  Have network configurations that need deterministic compliance?
+                </h2>
+                <p className="text-sm sm:text-base text-[#A3B8BC] leading-relaxed">
+                  Upload raw device configuration files now to generate instant CIS & NIST audit evaluations, AI explanations, and verified CLI remediation scripts.
+                </p>
 
-              <div className="pt-2 flex flex-wrap items-center gap-4">
-                <button
-                  onClick={onStartAudit}
-                  className="btn btn--green text-sm sm:text-base px-6 py-3"
-                >
-                  <span>Launch Configuration Audit</span>
-                  <span className="btn-ico">
-                    <ArrowRight size={14} className="stroke-[2.5]" />
-                  </span>
-                </button>
-                <Link
-                  to="/login"
-                  className="btn btn--light text-sm sm:text-base px-6 py-3"
-                >
-                  <span>Auditor Sign In</span>
-                  <span className="btn-ico">
-                    <ArrowRight size={14} className="stroke-[2.5]" />
-                  </span>
-                </Link>
+                <div className="pt-2 flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={onStartAudit}
+                    className="btn btn--green text-sm sm:text-base px-6 py-3"
+                  >
+                    <span>Launch Configuration Audit</span>
+                    <span className="btn-ico">
+                      <ArrowRight size={14} className="stroke-[2.5]" />
+                    </span>
+                  </button>
+                  <Link
+                    to="/login"
+                    className="btn btn--light text-sm sm:text-base px-6 py-3"
+                  >
+                    <span>Auditor Sign In</span>
+                    <span className="btn-ico">
+                      <ArrowRight size={14} className="stroke-[2.5]" />
+                    </span>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="space-y-3 font-mono text-xs text-[#A3B8BC] border-l border-white/10 pl-6 hidden lg:block">
+                <div>Offline Configuration Ingestion</div>
+                <div>CIS Benchmark Level 1 & Level 2</div>
+                <div>NIST SP 800-53 Rev 5 Mapping</div>
+                <div className="text-[#3DB663] font-bold">Zero Production Hardware Touching</div>
               </div>
             </div>
           </div>
@@ -1244,13 +1389,24 @@ write memory`}
       </section>
 
       {/* 12. ARCHITECTURAL SITE FOOTER (Potadot site-footer) */}
-      <footer className="pt-16 pb-12 bg-[#0A282D] text-white border-t border-[#1E4950] relative overflow-hidden">
+      <footer className="site-footer">
         <div className="dark-dots absolute inset-0 opacity-25 pointer-events-none" />
+        {/* Background Watermark Mark SVG */}
+        <svg
+          className="foot-mark"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+          aria-hidden="true"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-white/10">
+          <div className="foot-grid">
             {/* Brand Column */}
-            <div className="col-span-2 space-y-4">
+            <div className="foot-brand space-y-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3DB663] text-white">
                   <Shield size={18} className="stroke-[2.4]" />
@@ -1259,7 +1415,7 @@ write memory`}
                   NetSecure AI
                 </div>
               </div>
-              <p className="text-xs text-[#A3B8BC] leading-relaxed max-w-sm">
+              <p>
                 Deterministic Multi-Vendor Network Security Compliance, Adaptive Rule Learning, and Verified Remediation Engine.
               </p>
               <div className="flex items-center gap-2 pt-2 text-xs font-mono text-[#3DB663]">
@@ -1269,11 +1425,9 @@ write memory`}
             </div>
 
             {/* Column: Platform */}
-            <div className="space-y-3">
-              <div className="text-xs font-mono font-bold uppercase text-[#7E8F95] tracking-wider">
-                Platform
-              </div>
-              <ul className="space-y-2 text-xs text-[#A3B8BC]">
+            <div>
+              <h4>Platform</h4>
+              <ul>
                 <li><button onClick={() => onNavigate('dashboard')} className="hover:text-white transition-colors">Fleet Dashboard</button></li>
                 <li><button onClick={onStartAudit} className="hover:text-white transition-colors">Configuration Audits</button></li>
                 <li><button onClick={() => onNavigate('results')} className="hover:text-white transition-colors">Audit Findings</button></li>
@@ -1283,11 +1437,9 @@ write memory`}
             </div>
 
             {/* Column: Vendors */}
-            <div className="space-y-3">
-              <div className="text-xs font-mono font-bold uppercase text-[#7E8F95] tracking-wider">
-                Vendors
-              </div>
-              <ul className="space-y-2 text-xs text-[#A3B8BC]">
+            <div>
+              <h4>Vendors</h4>
+              <ul>
                 <li><span>Cisco IOS / IOS-XE</span></li>
                 <li><span>Fortinet FortiOS</span></li>
                 <li><span>Palo Alto PAN-OS</span></li>
@@ -1298,22 +1450,19 @@ write memory`}
             </div>
 
             {/* Column: Standards */}
-            <div className="space-y-3">
-              <div className="text-xs font-mono font-bold uppercase text-[#7E8F95] tracking-wider">
-                Compliance
-              </div>
-              <ul className="space-y-2 text-xs text-[#A3B8BC]">
+            <div>
+              <h4>Compliance</h4>
+              <ul>
                 <li><span>CIS Benchmark L1 & L2</span></li>
                 <li><span>NIST SP 800-53 Rev 5</span></li>
-                <li><span>Zero-Touch Security Boundary</span></li>
-                <li><span>Deterministic Regex Proofs</span></li>
-                <li><span>Staged Remediation Sandbox</span></li>
+                <li><span>Zero-Touch Boundary</span></li>
+                <li><span>Deterministic Regex</span></li>
+                <li><span>Staged CLI Sandbox</span></li>
               </ul>
             </div>
           </div>
 
-          {/* Bottom Copyright & Disclaimer */}
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-[#7E8F95]">
+          <div className="foot-bottom">
             <div>
               © {new Date().getFullYear()} NetSecure AI Platform. All rights reserved.
             </div>

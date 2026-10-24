@@ -106,7 +106,6 @@ const VENDOR_NODES: VendorNodeData[] = [
 
 export function Hero3DVisual() {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const dotsCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const [hoveredNode, setHoveredNode] = useState<VendorNodeData | null>(null)
   const hoveredNodeRef = useRef<VendorNodeData | null>(null)
   const [activeStageIndex, setActiveStageIndex] = useState(0)
@@ -127,101 +126,7 @@ export function Hero3DVisual() {
     return () => clearInterval(timer)
   }, [stages.length])
 
-  // 1. 2D Interactive Dot Canvas (Signature Potadot Mesh)
-  useEffect(() => {
-    const canvas = dotsCanvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    let animId: number
-    let width = (canvas.width = canvas.offsetWidth || 600)
-    let height = (canvas.height = canvas.offsetHeight || 500)
-
-    const updateCanvasSize = () => {
-      if (!canvas) return
-      width = canvas.width = canvas.offsetWidth || 600
-      height = canvas.height = canvas.offsetHeight || 500
-    }
-
-    const mouse = { x: -1000, y: -1000, active: false }
-    const onMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      mouse.x = e.clientX - rect.left
-      mouse.y = e.clientY - rect.top
-      mouse.active = true
-    }
-    const onMouseLeave = () => {
-      mouse.active = false
-    }
-
-    const parent = canvas.parentElement
-    parent?.addEventListener('mousemove', onMouseMove, { passive: true })
-    parent?.addEventListener('mouseleave', onMouseLeave, { passive: true })
-
-    const spacing = 32
-    const dots: { x: number; y: number; ox: number; oy: number; vx: number; vy: number }[] = []
-
-    for (let x = spacing / 2; x < 1200; x += spacing) {
-      for (let y = spacing / 2; y < 800; y += spacing) {
-        dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0 })
-      }
-    }
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height)
-
-      for (let i = 0; i < dots.length; i++) {
-        const d = dots[i]
-
-        if (mouse.active) {
-          const dx = mouse.x - d.x
-          const dy = mouse.y - d.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          const maxDist = 95
-          if (dist < maxDist && dist > 0) {
-            const force = (1 - dist / maxDist) * 14
-            d.vx -= (dx / dist) * force * 0.12
-            d.vy -= (dy / dist) * force * 0.12
-          }
-        }
-
-        // Spring back to origin
-        d.vx += (d.ox - d.x) * 0.08
-        d.vy += (d.oy - d.y) * 0.08
-        d.vx *= 0.84
-        d.vy *= 0.84
-        d.x += d.vx
-        d.y += d.vy
-
-        // Draw dot
-        const distFromOrig = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2)
-        const isDisplaced = distFromOrig > 1.2
-        ctx.fillStyle = isDisplaced ? '#3DB663' : 'rgba(10, 40, 45, 0.18)'
-        ctx.beginPath()
-        ctx.arc(d.x, d.y, isDisplaced ? 2.5 : 1.5, 0, Math.PI * 2)
-        ctx.fill()
-      }
-
-      animId = requestAnimationFrame(render)
-    }
-
-    render()
-
-    const ro = new ResizeObserver(() => {
-      updateCanvasSize()
-    })
-    if (parent) ro.observe(parent)
-
-    return () => {
-      ro.disconnect()
-      parent?.removeEventListener('mousemove', onMouseMove)
-      parent?.removeEventListener('mouseleave', onMouseLeave)
-      cancelAnimationFrame(animId)
-    }
-  }, [])
-
-  // 2. Three.js 3D WebGL Network Security Topology
+  // Three.js 3D WebGL Network Security Topology
   useEffect(() => {
     const container = mountRef.current
     if (!container) return
@@ -634,15 +539,8 @@ export function Hero3DVisual() {
   }, [])
 
   return (
-    <div className="relative w-full h-[460px] md:h-[520px] lg:h-[560px] select-none overflow-hidden rounded-3xl bg-gradient-to-b from-[#F2F3F7]/50 via-[#E8EAF0]/40 to-[#F2F3F7]/80 border border-[#D7DCE5]/80 shadow-[0_20px_50px_rgba(10,40,45,0.06)]">
-      {/* 1. INTERACTIVE DOT-FIELD CANVAS (POTADOT SIGNATURE) */}
-      <canvas
-        ref={dotsCanvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        aria-hidden="true"
-      />
-
-      {/* 2. THREE.JS 3D WEBGL CONTAINER */}
+    <div className="relative w-full h-[480px] md:h-[540px] lg:h-[580px] select-none overflow-hidden rounded-3xl bg-white/40 backdrop-blur-md border border-[#D7DCE5] shadow-[0_20px_50px_rgba(10,40,45,0.08)]">
+      {/* THREE.JS 3D WEBGL CONTAINER (Continuously Animated 60FPS) */}
       <div
         ref={mountRef}
         className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
