@@ -40,7 +40,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const [activeSxItem, setActiveSxItem] = useState(0)
   const [activeFaq, setActiveFaq] = useState<number | null>(0)
   const [sandboxRemediated, setSandboxRemediated] = useState(false)
-  const [loaderVisible, setLoaderVisible] = useState(false)
+  const [loaderVisible, setLoaderVisible] = useState(true)
   const [loaderProgress, setLoaderProgress] = useState(0)
   const [loaderMessage, setLoaderMessage] = useState('Initializing multi-vendor security rules')
 
@@ -306,35 +306,29 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         </div>
       )}
 
-      {/* 2. SITE HEADER & NAVIGATION (Inspired by Potadot) */}
-      <header
-        className={`sticky top-0 z-50 w-full transition-all duration-200 ${
-          isScrolled
-            ? 'bg-[#F2F3F7]/95 border-b border-[#D7DCE5] backdrop-blur-md shadow-xs'
-            : 'bg-[#F2F3F7] border-b border-[#D7DCE5]/60'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      {/* 2. FLOATING SITE HEADER & NAVIGATION (Potadot Signature Floating Pill) */}
+      <div className="sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 pointer-events-none">
+        <header className="max-w-6xl mx-auto h-16 sm:h-20 px-5 sm:px-7 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-[0_10px_35px_rgba(10,40,45,0.08)] flex items-center justify-between pointer-events-auto transition-all">
           {/* Brand Identity */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0A282D] text-white shadow-sm transition-transform group-hover:scale-105">
               <Shield size={20} className="text-[#3DB663] stroke-[2.4]" />
             </div>
             <div>
-              <div className="text-lg font-display font-bold tracking-tight text-[#0A282D] flex items-center gap-1.5">
+              <div className="text-lg font-display font-bold tracking-tight text-[#0A282D] flex items-center gap-1.5 leading-none">
                 <span>NetSecure</span>
                 <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded-full bg-[#3DB663] text-white uppercase tracking-wider">
                   AI
                 </span>
               </div>
-              <div className="text-[9px] tracking-widest text-[#7E8F95] uppercase font-mono font-semibold">
-                Multi-Vendor Network Security
+              <div className="text-[9px] tracking-widest text-[#7E8F95] uppercase font-mono font-semibold mt-1">
+                Multi-Vendor Security
               </div>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-[#4A5B60]">
+          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-[#4A5B60]">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="text-[#0A282D] hover:text-[#3DB663] transition-colors"
@@ -345,13 +339,13 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               onClick={() => scrollToSection('ecosystem')}
               className="hover:text-[#0A282D] transition-colors"
             >
-              Multi-Vendor Ecosystem
+              Multi-Vendor
             </button>
             <button
               onClick={() => scrollToSection('lifecycle')}
               className="hover:text-[#0A282D] transition-colors"
             >
-              Audit Lifecycle
+              Lifecycle
             </button>
             <button
               onClick={() => scrollToSection('why-deterministic')}
@@ -374,20 +368,20 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           </nav>
 
           {/* Action CTAs */}
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-3">
             <Link
               to="/login"
-              className="text-xs font-bold font-mono tracking-wider uppercase text-[#4A5B60] hover:text-[#0A282D] px-3 py-2 transition-colors"
+              className="text-xs font-bold font-mono tracking-wider uppercase text-[#4A5B60] hover:text-[#0A282D] px-3.5 py-2 transition-colors"
             >
-              Auditor Sign In
+              Sign In
             </Link>
             <button
               onClick={() => onNavigate('dashboard')}
-              className="btn btn--green"
+              className="btn btn--green text-xs px-4 py-2"
             >
               <span>Launch Console</span>
-              <span className="btn-ico">
-                <ArrowRight size={13} className="stroke-[2.5]" />
+              <span className="btn-ico w-5 h-5">
+                <ArrowRight size={12} className="stroke-[2.5]" />
               </span>
             </button>
           </div>
@@ -396,17 +390,17 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2.5 text-[#0A282D] rounded-full hover:bg-white border border-[#D7DCE5] transition-colors"
+              className="p-2 text-[#0A282D] rounded-full hover:bg-[#F2F3F7] transition-colors"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Mobile Navigation Dropdown */}
+        {/* Floating Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-b border-[#D7DCE5] bg-white px-6 py-6 space-y-4 shadow-xl">
+          <div className="lg:hidden mt-3 max-w-6xl mx-auto rounded-3xl border border-[#D7DCE5] bg-white p-6 space-y-4 shadow-2xl pointer-events-auto">
             <div className="flex flex-col space-y-3 font-display font-semibold text-base text-[#0A282D]">
               <button
                 onClick={() => {
@@ -489,7 +483,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </div>
           </div>
         )}
-      </header>
+      </div>
 
       {/* 3. HERO EXPERIENCE (Potadot Benchmark) */}
       <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-20 overflow-hidden light-dots" id="overview">
