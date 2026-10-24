@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { Shield, CheckCircle2, AlertTriangle, ArrowRight, Activity, Terminal, Lock } from 'lucide-react'
+import { Shield, CheckCircle2, Activity } from 'lucide-react'
 
 interface VendorNodeData {
   id: string
@@ -30,7 +30,7 @@ const VENDOR_NODES: VendorNodeData[] = [
     rulesTotal: 28,
     color: 0x0284c7, // cyan-blue
     hexColor: '#0284C7',
-    pos: [-4.2, 1.8, 1.2],
+    pos: [-3.2, 1.4, 1.0],
   },
   {
     id: 'fortinet-edge',
@@ -44,7 +44,7 @@ const VENDOR_NODES: VendorNodeData[] = [
     rulesTotal: 28,
     color: 0xe11d48, // crimson
     hexColor: '#E11D48',
-    pos: [-3.4, -2.2, 2.0],
+    pos: [-2.6, -1.8, 1.5],
   },
   {
     id: 'paloalto-vpn',
@@ -58,7 +58,7 @@ const VENDOR_NODES: VendorNodeData[] = [
     rulesTotal: 28,
     color: 0xf97316, // orange
     hexColor: '#F97316',
-    pos: [3.8, 2.0, 1.5],
+    pos: [3.0, 1.6, 1.2],
   },
   {
     id: 'juniper-core',
@@ -70,9 +70,9 @@ const VENDOR_NODES: VendorNodeData[] = [
     score: 98,
     rulesPassed: 28,
     rulesTotal: 28,
-    color: 0x3db663, // potadot green
+    color: 0x3db663, // emerald green
     hexColor: '#3DB663',
-    pos: [4.4, -1.6, 0.8],
+    pos: [3.2, -1.4, 0.6],
   },
   {
     id: 'aruba-access',
@@ -86,7 +86,7 @@ const VENDOR_NODES: VendorNodeData[] = [
     rulesTotal: 28,
     color: 0xd97706, // amber
     hexColor: '#D97706',
-    pos: [-1.4, -3.2, -1.8],
+    pos: [-1.2, -2.4, -1.2],
   },
   {
     id: 'checkpoint-dc',
@@ -100,7 +100,7 @@ const VENDOR_NODES: VendorNodeData[] = [
     rulesTotal: 28,
     color: 0x8b5cf6, // purple
     hexColor: '#8B5CF6',
-    pos: [1.6, 3.4, -1.5],
+    pos: [1.2, 2.5, -1.0],
   },
 ]
 
@@ -108,9 +108,8 @@ export function Hero3DVisual() {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const dotsCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const [hoveredNode, setHoveredNode] = useState<VendorNodeData | null>(null)
+  const hoveredNodeRef = useRef<VendorNodeData | null>(null)
   const [activeStageIndex, setActiveStageIndex] = useState(0)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const [webglSupported, setWebglSupported] = useState(true)
 
   const stages = [
     { label: 'Multi-Vendor Ingestion', status: 'Online · 6 Parsers Active' },
@@ -120,7 +119,7 @@ export function Hero3DVisual() {
     { label: 'Verified Remediation Staging', status: 'Closed-Loop CLI Dry Run' },
   ]
 
-  // Cycle telemetry stages periodically
+  // Telemetry stages cycler
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveStageIndex((prev) => (prev + 1) % stages.length)
@@ -128,16 +127,7 @@ export function Hero3DVisual() {
     return () => clearInterval(timer)
   }, [stages.length])
 
-  // Reduced motion preference
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mq.matches)
-    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mq.addEventListener('change', listener)
-    return () => mq.removeEventListener('change', listener)
-  }, [])
-
-  // Dot Canvas background (inspired by Potadot #heroDots)
+  // 1. 2D Interactive Dot Canvas (Signature Potadot Mesh)
   useEffect(() => {
     const canvas = dotsCanvasRef.current
     if (!canvas) return
@@ -145,15 +135,14 @@ export function Hero3DVisual() {
     if (!ctx) return
 
     let animId: number
-    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth)
-    let height = (canvas.height = canvas.parentElement?.clientHeight || 600)
+    let width = (canvas.width = canvas.offsetWidth || 600)
+    let height = (canvas.height = canvas.offsetHeight || 500)
 
-    const handleResize = () => {
-      if (!canvas.parentElement) return
-      width = canvas.width = canvas.parentElement.clientWidth
-      height = canvas.height = canvas.parentElement.clientHeight
+    const updateCanvasSize = () => {
+      if (!canvas) return
+      width = canvas.width = canvas.offsetWidth || 600
+      height = canvas.height = canvas.offsetHeight || 500
     }
-    window.addEventListener('resize', handleResize)
 
     const mouse = { x: -1000, y: -1000, active: false }
     const onMouseMove = (e: MouseEvent) => {
@@ -166,14 +155,15 @@ export function Hero3DVisual() {
       mouse.active = false
     }
 
-    canvas.parentElement?.addEventListener('mousemove', onMouseMove)
-    canvas.parentElement?.addEventListener('mouseleave', onMouseLeave)
+    const parent = canvas.parentElement
+    parent?.addEventListener('mousemove', onMouseMove, { passive: true })
+    parent?.addEventListener('mouseleave', onMouseLeave, { passive: true })
 
-    const spacing = 36
+    const spacing = 32
     const dots: { x: number; y: number; ox: number; oy: number; vx: number; vy: number }[] = []
 
-    for (let x = spacing / 2; x < width; x += spacing) {
-      for (let y = spacing / 2; y < height; y += spacing) {
+    for (let x = spacing / 2; x < 1200; x += spacing) {
+      for (let y = spacing / 2; y < 800; y += spacing) {
         dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0 })
       }
     }
@@ -188,28 +178,28 @@ export function Hero3DVisual() {
           const dx = mouse.x - d.x
           const dy = mouse.y - d.y
           const dist = Math.sqrt(dx * dx + dy * dy)
-          const maxDist = 90
+          const maxDist = 95
           if (dist < maxDist && dist > 0) {
-            const force = (1 - dist / maxDist) * 12
-            d.vx -= (dx / dist) * force * 0.1
-            d.vy -= (dy / dist) * force * 0.1
+            const force = (1 - dist / maxDist) * 14
+            d.vx -= (dx / dist) * force * 0.12
+            d.vy -= (dy / dist) * force * 0.12
           }
         }
 
         // Spring back to origin
         d.vx += (d.ox - d.x) * 0.08
         d.vy += (d.oy - d.y) * 0.08
-        d.vx *= 0.85
-        d.vy *= 0.85
+        d.vx *= 0.84
+        d.vy *= 0.84
         d.x += d.vx
         d.y += d.vy
 
         // Draw dot
         const distFromOrig = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2)
-        const alpha = Math.min(0.28 + distFromOrig * 0.08, 0.75)
-        ctx.fillStyle = distFromOrig > 1.5 ? 'rgba(61, 182, 99, ' + alpha + ')' : 'rgba(10, 40, 45, 0.12)'
+        const isDisplaced = distFromOrig > 1.2
+        ctx.fillStyle = isDisplaced ? '#3DB663' : 'rgba(10, 40, 45, 0.18)'
         ctx.beginPath()
-        ctx.arc(d.x, d.y, distFromOrig > 1.5 ? 2.2 : 1.4, 0, Math.PI * 2)
+        ctx.arc(d.x, d.y, isDisplaced ? 2.5 : 1.5, 0, Math.PI * 2)
         ctx.fill()
       }
 
@@ -218,84 +208,115 @@ export function Hero3DVisual() {
 
     render()
 
+    const ro = new ResizeObserver(() => {
+      updateCanvasSize()
+    })
+    if (parent) ro.observe(parent)
+
     return () => {
-      window.removeEventListener('resize', handleResize)
-      canvas.parentElement?.removeEventListener('mousemove', onMouseMove)
-      canvas.parentElement?.removeEventListener('mouseleave', onMouseLeave)
+      ro.disconnect()
+      parent?.removeEventListener('mousemove', onMouseMove)
+      parent?.removeEventListener('mouseleave', onMouseLeave)
       cancelAnimationFrame(animId)
     }
   }, [])
 
-  // Three.js 3D Interactive Topology
+  // 2. Three.js 3D WebGL Network Security Topology
   useEffect(() => {
     const container = mountRef.current
     if (!container) return
 
     // Scene, Camera, Renderer
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
-    camera.position.set(0, 0, 14)
+    const initialW = container.clientWidth || 700
+    const initialH = container.clientHeight || 520
+
+    const camera = new THREE.PerspectiveCamera(45, initialW / initialH, 0.1, 100)
+    camera.position.set(0, 0, 12.5)
 
     let renderer: THREE.WebGLRenderer
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
-      renderer.setSize(container.clientWidth, container.clientHeight)
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true,
+        powerPreference: 'high-performance'
+      })
+      renderer.setSize(initialW, initialH)
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.1
+      renderer.toneMappingExposure = 1.2
+      renderer.domElement.style.display = 'block'
+      renderer.domElement.style.width = '100%'
+      renderer.domElement.style.height = '100%'
       container.appendChild(renderer.domElement)
-    } catch {
-      setWebglSupported(false)
+    } catch (e) {
+      console.warn('WebGL initialization failed', e)
       return
     }
 
-    // Ambient and Directional Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2)
+    // High-visibility lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8)
     scene.add(ambientLight)
 
-    const dirLight1 = new THREE.DirectionalLight(0x3db663, 2.4)
-    dirLight1.position.set(5, 8, 5)
+    const dirLight1 = new THREE.DirectionalLight(0x3db663, 3.2)
+    dirLight1.position.set(6, 8, 7)
     scene.add(dirLight1)
 
-    const dirLight2 = new THREE.DirectionalLight(0x0284c7, 1.8)
-    dirLight2.position.set(-6, -4, 4)
+    const dirLight2 = new THREE.DirectionalLight(0x0284c7, 2.6)
+    dirLight2.position.set(-7, -5, 6)
     scene.add(dirLight2)
 
-    // CENTRAL SECURITY INTELLIGENCE ELEMENT
-    const coreGroup = new THREE.Group()
-    scene.add(coreGroup)
+    // Master Scene Topology Pivot (Rotatable by user drag)
+    const masterPivot = new THREE.Group()
+    scene.add(masterPivot)
 
-    // Inner glowing faceted nucleus
-    const coreIcosaGeo = new THREE.IcosahedronGeometry(1.25, 1)
+    // A. CENTRAL COMPLIANCE NUCLEUS
+    const coreGroup = new THREE.Group()
+    masterPivot.add(coreGroup)
+
+    // Inner faceted compliance core
+    const coreIcosaGeo = new THREE.IcosahedronGeometry(1.2, 1)
     const coreIcosaMat = new THREE.MeshStandardMaterial({
       color: 0x0a282d,
-      roughness: 0.15,
-      metalness: 0.85,
-      wireframe: false,
+      emissive: 0x124047,
+      emissiveIntensity: 0.8,
+      roughness: 0.2,
+      metalness: 0.4,
     })
     const coreMesh = new THREE.Mesh(coreIcosaGeo, coreIcosaMat)
     coreGroup.add(coreMesh)
 
-    // Outer crystalline wireframe shield
-    const wireGeo = new THREE.IcosahedronGeometry(1.48, 1)
+    // Outer crystalline wireframe shield (Emerald)
+    const wireGeo = new THREE.IcosahedronGeometry(1.45, 1)
     const wireMat = new THREE.MeshBasicMaterial({
       color: 0x3db663,
       wireframe: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.95,
     })
     const wireMesh = new THREE.Mesh(wireGeo, wireMat)
     coreGroup.add(wireMesh)
 
-    // Orbital Scan Rings (Representing CIS, NIST & Rule Boundaries)
+    // Pulsing inner heartbeat nucleus
+    const heartGeo = new THREE.SphereGeometry(0.5, 24, 24)
+    const heartMat = new THREE.MeshBasicMaterial({
+      color: 0x3db663,
+      transparent: true,
+      opacity: 0.8,
+    })
+    const heartMesh = new THREE.Mesh(heartGeo, heartMat)
+    coreGroup.add(heartMesh)
+
+    // B. ORBITAL SCAN RINGS (CIS, NIST & Multi-Vendor Perimeter)
     const createRing = (radius: number, tube: number, color: number, rx: number, ry: number) => {
-      const ringGeo = new THREE.TorusGeometry(radius, tube, 16, 80)
+      const ringGeo = new THREE.TorusGeometry(radius, tube, 16, 100)
       const ringMat = new THREE.MeshStandardMaterial({
         color,
         emissive: color,
-        emissiveIntensity: 0.4,
-        roughness: 0.2,
-        metalness: 0.9,
+        emissiveIntensity: 0.85,
+        roughness: 0.1,
+        metalness: 0.8,
       })
       const ring = new THREE.Mesh(ringGeo, ringMat)
       ring.rotation.x = rx
@@ -303,26 +324,26 @@ export function Hero3DVisual() {
       return ring
     }
 
-    const ring1 = createRing(2.1, 0.022, 0x3db663, Math.PI / 3, Math.PI / 6)
-    const ring2 = createRing(2.5, 0.018, 0x0284c7, -Math.PI / 4, Math.PI / 4)
-    const ring3 = createRing(2.9, 0.014, 0xf97316, Math.PI / 2.2, 0)
+    const ring1 = createRing(2.0, 0.024, 0x3db663, Math.PI / 3, Math.PI / 6) // CIS
+    const ring2 = createRing(2.4, 0.020, 0x0284c7, -Math.PI / 4, Math.PI / 4) // NIST
+    const ring3 = createRing(2.8, 0.018, 0xf97316, Math.PI / 2.2, 0) // Perimeter
     coreGroup.add(ring1)
     coreGroup.add(ring2)
     coreGroup.add(ring3)
 
-    // Radar Scanning Wave (Expanding disc/ring)
-    const radarGeo = new THREE.RingGeometry(0.2, 0.28, 64)
+    // C. EXPANDING RADAR SWEEP WAVE
+    const radarGeo = new THREE.RingGeometry(0.2, 0.32, 64)
     const radarMat = new THREE.MeshBasicMaterial({
       color: 0x3db663,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.85,
     })
     const radarWave = new THREE.Mesh(radarGeo, radarMat)
     radarWave.rotation.x = Math.PI / 2
-    scene.add(radarWave)
+    masterPivot.add(radarWave)
 
-    // VENDOR SATELLITE NODES & CONNECTIONS
+    // D. MULTI-VENDOR SATELLITE NODES & CONNECTIONS
     const nodeMeshes: { mesh: THREE.Mesh; data: VendorNodeData; glow: THREE.Mesh }[] = []
     const connectionLines: { line: THREE.Line; curve: THREE.QuadraticBezierCurve3 }[] = []
     const nodeRaycastObjects: THREE.Object3D[] = []
@@ -331,55 +352,55 @@ export function Hero3DVisual() {
       const nodeGroup = new THREE.Group()
       nodeGroup.position.set(...n.pos)
 
-      // Solid sphere
-      const sphereGeo = new THREE.SphereGeometry(0.38, 32, 32)
+      // Solid sphere node with emissive glow
+      const sphereGeo = new THREE.SphereGeometry(0.36, 32, 32)
       const sphereMat = new THREE.MeshStandardMaterial({
         color: n.color,
-        roughness: 0.25,
-        metalness: 0.8,
         emissive: n.color,
-        emissiveIntensity: 0.35,
+        emissiveIntensity: 0.65,
+        roughness: 0.2,
+        metalness: 0.6,
       })
       const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat)
       sphereMesh.userData = { nodeData: n }
       nodeGroup.add(sphereMesh)
 
-      // Outer glow shell
-      const glowGeo = new THREE.SphereGeometry(0.52, 24, 24)
+      // Outer wireframe halo ring
+      const glowGeo = new THREE.SphereGeometry(0.50, 16, 16)
       const glowMat = new THREE.MeshBasicMaterial({
         color: n.color,
         transparent: true,
-        opacity: 0.25,
+        opacity: 0.45,
         wireframe: true,
       })
       const glowMesh = new THREE.Mesh(glowGeo, glowMat)
       nodeGroup.add(glowMesh)
 
-      scene.add(nodeGroup)
+      masterPivot.add(nodeGroup)
       nodeMeshes.push({ mesh: sphereMesh, data: n, glow: glowMesh })
       nodeRaycastObjects.push(sphereMesh)
 
-      // Connection Curve to Core
+      // Quadratic Bezier curve to Central Core
       const start = new THREE.Vector3(...n.pos)
       const mid = new THREE.Vector3(n.pos[0] * 0.45, n.pos[1] * 0.45 + (n.pos[2] > 0 ? 0.6 : -0.6), n.pos[2] * 0.45)
       const end = new THREE.Vector3(0, 0, 0)
       const curve = new THREE.QuadraticBezierCurve3(start, mid, end)
 
-      const points = curve.getPoints(40)
+      const points = curve.getPoints(45)
       const lineGeo = new THREE.BufferGeometry().setFromPoints(points)
       const lineMat = new THREE.LineBasicMaterial({
         color: n.color,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.55,
       })
       const line = new THREE.Line(lineGeo, lineMat)
-      scene.add(line)
+      masterPivot.add(line)
       connectionLines.push({ line, curve })
     })
 
-    // PACKET PARTICLES FLOWING ALONG CURVES
-    const packetCount = 28
-    const packetGeo = new THREE.SphereGeometry(0.065, 12, 12)
+    // E. PACKET PARTICLES STREAMING ALONG CURVES
+    const packetCount = 30
+    const packetGeo = new THREE.SphereGeometry(0.08, 12, 12)
     const packets: { mesh: THREE.Mesh; curveIndex: number; progress: number; speed: number }[] = []
 
     for (let i = 0; i < packetCount; i++) {
@@ -388,118 +409,195 @@ export function Hero3DVisual() {
       const pMat = new THREE.MeshBasicMaterial({
         color: vendorColor,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
       })
       const pMesh = new THREE.Mesh(packetGeo, pMat)
-      scene.add(pMesh)
+      masterPivot.add(pMesh)
       packets.push({
         mesh: pMesh,
         curveIndex,
         progress: (i / packetCount) * 1.0,
-        speed: 0.003 + Math.random() * 0.004,
+        speed: 0.004 + (i % 3) * 0.0015,
       })
     }
 
-    // RAYCASTING & MOUSE INTERACTION
+    // F. RAYCASTING, PARALLAX & INTERACTIVE DRAG ORBIT
     const raycaster = new THREE.Raycaster()
     const mouseNorm = new THREE.Vector2(-999, -999)
-    const mousePos = { x: 0, y: 0, targetX: 0, targetY: 0 }
+    const parallax = { x: 0, y: 0, targetX: 0, targetY: 0 }
+    const drag = { isDragging: false, startX: 0, startY: 0, rotX: 0, rotY: 0, targetRotX: 0, targetRotY: 0 }
 
     const onPointerMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect()
-      mouseNorm.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
-      mouseNorm.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      if (rect.width === 0 || rect.height === 0) return
 
-      mousePos.targetX = (e.clientX - rect.left - rect.width / 2) * 0.0018
-      mousePos.targetY = (e.clientY - rect.top - rect.height / 2) * 0.0018
+      if (drag.isDragging) {
+        const deltaX = e.clientX - drag.startX
+        const deltaY = e.clientY - drag.startY
+        drag.targetRotY += deltaX * 0.008
+        drag.targetRotX += deltaY * 0.008
+        drag.startX = e.clientX
+        drag.startY = e.clientY
+      } else {
+        mouseNorm.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+        mouseNorm.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      }
+
+      parallax.targetX = (e.clientX - rect.left - rect.width / 2) * 0.0018
+      parallax.targetY = (e.clientY - rect.top - rect.height / 2) * 0.0018
+    }
+
+    const onPointerDown = (e: MouseEvent) => {
+      drag.isDragging = true
+      drag.startX = e.clientX
+      drag.startY = e.clientY
+      container.style.cursor = 'grabbing'
+    }
+
+    const onPointerUp = () => {
+      drag.isDragging = false
+      container.style.cursor = 'grab'
     }
 
     const onPointerLeave = () => {
+      drag.isDragging = false
       mouseNorm.x = -999
       mouseNorm.y = -999
-      mousePos.targetX = 0
-      mousePos.targetY = 0
-      setHoveredNode(null)
+      parallax.targetX = 0
+      parallax.targetY = 0
+      if (hoveredNodeRef.current !== null) {
+        hoveredNodeRef.current = null
+        setHoveredNode(null)
+      }
+      container.style.cursor = 'grab'
     }
 
-    container.addEventListener('mousemove', onPointerMove)
-    container.addEventListener('mouseleave', onPointerLeave)
-
-    // Handle Window Resize
-    const handleResize = () => {
-      if (!container) return
-      camera.aspect = container.clientWidth / container.clientHeight
-      camera.updateProjectionMatrix()
-      renderer.setSize(container.clientWidth, container.clientHeight)
+    // Touch event support for mobile / tablet
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        drag.isDragging = true
+        drag.startX = e.touches[0].clientX
+        drag.startY = e.touches[0].clientY
+      }
     }
-    window.addEventListener('resize', handleResize)
 
-    // ANIMATION LOOP
+    const onTouchMove = (e: TouchEvent) => {
+      if (drag.isDragging && e.touches.length === 1) {
+        const deltaX = e.touches[0].clientX - drag.startX
+        const deltaY = e.touches[0].clientY - drag.startY
+        drag.targetRotY += deltaX * 0.01
+        drag.targetRotX += deltaY * 0.01
+        drag.startX = e.touches[0].clientX
+        drag.startY = e.touches[0].clientY
+      }
+    }
+
+    const onTouchEnd = () => {
+      drag.isDragging = false
+    }
+
+    container.addEventListener('mousemove', onPointerMove, { passive: true })
+    container.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('mouseup', onPointerUp)
+    container.addEventListener('mouseleave', onPointerLeave, { passive: true })
+    container.addEventListener('touchstart', onTouchStart, { passive: true })
+    container.addEventListener('touchmove', onTouchMove, { passive: true })
+    container.addEventListener('touchend', onTouchEnd, { passive: true })
+
+    // G. RESIZE OBSERVER (Eliminates NaN aspect ratios)
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          camera.aspect = width / height
+          camera.updateProjectionMatrix()
+          renderer.setSize(width, height)
+        }
+      }
+    })
+    resizeObserver.observe(container)
+
+    // H. CONTINUOUS 60FPS ANIMATION LOOP
     let animFrame: number
     let radarScale = 0.5
     let time = 0
 
     const animate = () => {
-      time += 0.015
+      time += 0.016
 
-      // Smooth camera parallax
-      mousePos.x += (mousePos.targetX - mousePos.x) * 0.05
-      mousePos.y += (mousePos.targetY - mousePos.y) * 0.05
-      camera.position.x = mousePos.x * 2.8
-      camera.position.y = -mousePos.y * 2.8
+      // Parallax smooth interpolation
+      parallax.x += (parallax.targetX - parallax.x) * 0.06
+      parallax.y += (parallax.targetY - parallax.y) * 0.06
+      camera.position.x = parallax.x * 2.5
+      camera.position.y = -parallax.y * 2.5
       camera.lookAt(0, 0, 0)
 
-      if (!prefersReducedMotion) {
-        // Rotate Central Core
-        coreGroup.rotation.y = time * 0.35
-        coreGroup.rotation.x = Math.sin(time * 0.25) * 0.15
+      // Interactive drag rotation interpolation
+      drag.rotX += (drag.targetRotX - drag.rotX) * 0.08
+      drag.rotY += (drag.targetRotY - drag.rotY) * 0.08
+      masterPivot.rotation.x = drag.rotX
+      masterPivot.rotation.y = drag.rotY
 
-        ring1.rotation.z = time * 0.6
-        ring2.rotation.z = -time * 0.5
-        ring3.rotation.z = time * 0.4
+      // Rotate Central Core
+      coreGroup.rotation.y = time * 0.4
+      coreGroup.rotation.x = Math.sin(time * 0.3) * 0.15
 
-        // Expand Radar Pulse
-        radarScale += 0.035
-        if (radarScale > 6.2) radarScale = 0.5
-        radarWave.scale.set(radarScale, radarScale, radarScale)
-        ;(radarWave.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.7 - radarScale / 7)
+      // Heartbeat pulse
+      const pulse = 1.0 + Math.sin(time * 3.5) * 0.15
+      heartMesh.scale.set(pulse, pulse, pulse)
 
-        // Float Vendor Satellite Nodes
-        nodeMeshes.forEach((n, idx) => {
-          const hoverOffset = Math.sin(time * 1.5 + idx) * 0.12
-          n.mesh.parent!.position.y = n.data.pos[1] + hoverOffset
-          n.glow.rotation.y = time * 0.8
-        })
+      // Rotate Rings in opposing 3D angles
+      ring1.rotation.z = time * 0.7
+      ring2.rotation.z = -time * 0.55
+      ring3.rotation.z = time * 0.45
 
-        // Flow packets
-        packets.forEach((p) => {
-          p.progress += p.speed
-          if (p.progress > 1) p.progress = 0
+      // Radar Wave Expansion
+      radarScale += 0.04
+      if (radarScale > 5.5) radarScale = 0.5
+      radarWave.scale.set(radarScale, radarScale, radarScale)
+      ;(radarWave.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.85 - radarScale / 6)
 
-          const conn = connectionLines[p.curveIndex]
-          if (conn) {
-            const point = conn.curve.getPoint(p.progress)
-            p.mesh.position.copy(point)
-            const scale = 0.7 + Math.sin(p.progress * Math.PI) * 0.5
-            p.mesh.scale.set(scale, scale, scale)
-          }
-        })
-      }
-
-      // Raycast test
-      raycaster.setFromCamera(mouseNorm, camera)
-      const intersects = raycaster.intersectObjects(nodeRaycastObjects)
-
-      if (intersects.length > 0) {
-        const hit = intersects[0].object
-        const data = hit.userData?.nodeData as VendorNodeData
-        if (data && hoveredNode?.id !== data.id) {
-          setHoveredNode(data)
-          document.body.style.cursor = 'pointer'
+      // Satellite Nodes Float & Spin (with parent existence guard)
+      nodeMeshes.forEach((n, idx) => {
+        const hoverOffset = Math.sin(time * 1.8 + idx) * 0.14
+        if (n.mesh.parent) {
+          n.mesh.parent.position.y = n.data.pos[1] + hoverOffset
         }
-      } else if (hoveredNode !== null) {
-        setHoveredNode(null)
-        document.body.style.cursor = 'default'
+        n.glow.rotation.y = time * 0.9
+      })
+
+      // Flowing data packets along Bezier curves
+      packets.forEach((p) => {
+        p.progress += p.speed
+        if (p.progress > 1) p.progress = 0
+
+        const conn = connectionLines[p.curveIndex]
+        if (conn) {
+          const point = conn.curve.getPoint(p.progress)
+          p.mesh.position.copy(point)
+          const scale = 0.75 + Math.sin(p.progress * Math.PI) * 0.55
+          p.mesh.scale.set(scale, scale, scale)
+        }
+      })
+
+      // Raycast test (Uses ref to prevent React re-render thrashing at 60 FPS)
+      if (!drag.isDragging) {
+        raycaster.setFromCamera(mouseNorm, camera)
+        const intersects = raycaster.intersectObjects(nodeRaycastObjects)
+
+        if (intersects.length > 0) {
+          const hit = intersects[0].object
+          const data = hit.userData?.nodeData as VendorNodeData
+          if (data && hoveredNodeRef.current?.id !== data.id) {
+            hoveredNodeRef.current = data
+            setHoveredNode(data)
+            container.style.cursor = 'pointer'
+          }
+        } else if (hoveredNodeRef.current !== null) {
+          hoveredNodeRef.current = null
+          setHoveredNode(null)
+          container.style.cursor = 'grab'
+        }
       }
 
       renderer.render(scene, camera)
@@ -511,10 +609,14 @@ export function Hero3DVisual() {
     // CLEANUP
     return () => {
       cancelAnimationFrame(animFrame)
-      window.removeEventListener('resize', handleResize)
+      resizeObserver.disconnect()
       container.removeEventListener('mousemove', onPointerMove)
+      container.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('mouseup', onPointerUp)
       container.removeEventListener('mouseleave', onPointerLeave)
-      document.body.style.cursor = 'default'
+      container.removeEventListener('touchstart', onTouchStart)
+      container.removeEventListener('touchmove', onTouchMove)
+      container.removeEventListener('touchend', onTouchEnd)
 
       // Dispose Three.js objects
       scene.traverse((obj) => {
@@ -529,14 +631,14 @@ export function Hero3DVisual() {
         container.removeChild(renderer.domElement)
       }
     }
-  }, [prefersReducedMotion])
+  }, [])
 
   return (
     <div className="relative w-full h-[460px] md:h-[520px] lg:h-[560px] select-none overflow-hidden rounded-3xl bg-gradient-to-b from-[#F2F3F7]/50 via-[#E8EAF0]/40 to-[#F2F3F7]/80 border border-[#D7DCE5]/80 shadow-[0_20px_50px_rgba(10,40,45,0.06)]">
       {/* 1. INTERACTIVE DOT-FIELD CANVAS (POTADOT SIGNATURE) */}
       <canvas
         ref={dotsCanvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-auto"
+        className="absolute inset-0 w-full h-full pointer-events-none"
         aria-hidden="true"
       />
 
@@ -549,7 +651,7 @@ export function Hero3DVisual() {
       {/* 3. FLOATING STATUS BADGES & TELEMETRY OVERLAYS */}
       {/* Top Left: Live Security Engine State */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-none">
-        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[#D7DCE5] shadow-xs">
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-xs">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3DB663] opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3DB663]" />
@@ -558,14 +660,14 @@ export function Hero3DVisual() {
             Multi-Vendor Topology Engine
           </span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB]">
-            6/6 Synchronized
+            6/6 Active
           </span>
         </div>
       </div>
 
       {/* Top Right: Real-Time Cycle Indicator */}
       <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 pointer-events-none hidden sm:block">
-        <div className="px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-md border border-[#D7DCE5] shadow-xs text-right">
+        <div className="px-4 py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-xs text-right">
           <div className="text-[10px] uppercase font-mono font-bold text-[#7E8F95] tracking-wider">
             Deterministic Pipeline
           </div>

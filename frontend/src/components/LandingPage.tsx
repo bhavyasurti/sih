@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Shield,
   ArrowRight,
@@ -26,6 +26,10 @@ import type { PageKey } from './Sidebar'
 import { Link, useNavigate } from 'react-router-dom'
 import { VendorBadge, StatusPill, SeverityBadge } from './Shared'
 import { Hero3DVisual } from './Hero3DVisual'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface LandingPageProps {
   onNavigate: (page: PageKey) => void
@@ -34,6 +38,10 @@ interface LandingPageProps {
 
 export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const navigate = useNavigate()
+  const pageContainerRef = useRef<HTMLDivElement | null>(null)
+  const preloaderRef = useRef<HTMLDivElement | null>(null)
+  const tabsContentRef = useRef<HTMLDivElement | null>(null)
+
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeServeTab, setActiveServeTab] = useState(0)
@@ -44,7 +52,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const [loaderProgress, setLoaderProgress] = useState(0)
   const [loaderMessage, setLoaderMessage] = useState('Initializing multi-vendor security rules')
 
-  // Polished session entrance preloader inspired by Potadot
+  // Polished session entrance preloader with GSAP curtain slide-up
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReduced) {
@@ -61,22 +69,130 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       'Synthesizing 3D security topology',
       'Operational readiness verified',
     ]
+
     const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 14) + 10
+      progress += Math.floor(Math.random() * 12) + 8
       if (progress > 100) progress = 100
       setLoaderProgress(progress)
       const msgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1)
       setLoaderMessage(messages[msgIdx])
 
-      if (progress === 100) {
+      if (progress >= 100) {
         clearInterval(interval)
-        setTimeout(() => {
+        if (preloaderRef.current) {
+          const tl = gsap.timeline({
+            onComplete: () => {
+              setLoaderVisible(false)
+            },
+          })
+
+          // 1. Slide preloader curtain up
+          tl.to(preloaderRef.current, {
+            yPercent: -100,
+            duration: 0.85,
+            ease: 'power4.inOut',
+          })
+
+          // 2. Staggered hero entrance
+          tl.fromTo(
+            '.hero-anim-badge',
+            { opacity: 0, y: 15 },
+            { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
+            '-=0.35'
+          )
+          tl.fromTo(
+            '.hero-anim-title',
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' },
+            '-=0.4'
+          )
+          tl.fromTo(
+            '.hero-anim-desc',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+            '-=0.35'
+          )
+          tl.fromTo(
+            '.hero-anim-cta',
+            { opacity: 0, y: 15, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, stagger: 0.1, duration: 0.5, ease: 'back.out(1.5)' },
+            '-=0.3'
+          )
+          tl.fromTo(
+            '.hero-anim-visual',
+            { opacity: 0, scale: 0.94, y: 25 },
+            { opacity: 1, scale: 1, y: 0, duration: 0.85, ease: 'power3.out' },
+            '-=0.55'
+          )
+        } else {
           setLoaderVisible(false)
-        }, 300)
+        }
       }
     }, 45)
+
     return () => clearInterval(interval)
   }, [])
+
+  // GSAP ScrollTrigger coordinated section entrances
+  useEffect(() => {
+    if (loaderVisible) return
+
+    const ctx = gsap.context(() => {
+      // Reveal on scroll elements
+      const revealElements = document.querySelectorAll('.gsap-reveal')
+      revealElements.forEach((el) => {
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: 35 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.75,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+          }
+        )
+      })
+
+      // Stagger cards in grids
+      const cardGrids = document.querySelectorAll('.gsap-stagger-grid')
+      cardGrids.forEach((grid) => {
+        gsap.fromTo(
+          grid.children,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.12,
+            duration: 0.65,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: grid,
+              start: 'top 82%',
+              toggleActions: 'play none none none',
+            },
+          }
+        )
+      })
+    }, pageContainerRef)
+
+    return () => ctx.revert()
+  }, [loaderVisible])
+
+  // Tab switch micro-animation
+  useEffect(() => {
+    if (tabsContentRef.current) {
+      gsap.fromTo(
+        tabsContentRef.current,
+        { opacity: 0.3, y: 12 },
+        { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+      )
+    }
+  }, [activeServeTab])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -254,10 +370,16 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F2F3F7] text-[#0A282D] font-sans selection:bg-[#3DB663]/25 selection:text-[#0A282D]">
+    <div
+      ref={pageContainerRef}
+      className="min-h-screen bg-[#F2F3F7] text-[#0A282D] font-sans selection:bg-[#3DB663]/25 selection:text-[#0A282D]"
+    >
       {/* 1. POTADOT-STYLE LOADER (Initial Session Entrance) */}
       {loaderVisible && (
-        <div className="fixed inset-0 z-[100] flex flex-col justify-between p-6 sm:p-12 bg-[#0A282D] text-white transition-opacity duration-300 dark-dots relative overflow-hidden">
+        <div
+          ref={preloaderRef}
+          className="fixed inset-0 z-[100] flex flex-col justify-between p-6 sm:p-12 bg-[#0A282D] text-white dark-dots relative overflow-hidden"
+        >
           {/* Subtle glowing radial gradient in the center */}
           <div className="absolute inset-0 bg-radial from-[#3DB663]/10 via-transparent to-transparent pointer-events-none" />
 
@@ -494,23 +616,23 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             {/* Left Column: Hero Editorial Copy */}
             <div className="lg:col-span-5 flex flex-col justify-center">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-xs font-mono font-bold text-[#0A282D] w-fit mb-5 shadow-xs">
+              <div className="hero-anim-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-xs font-mono font-bold text-[#0A282D] w-fit mb-5 shadow-xs">
                 <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-pulse" />
                 <span>MULTI-VENDOR DETERMINISTIC COMPLIANCE</span>
               </div>
 
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.08]">
+              <h1 className="hero-anim-title font-display text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.08]">
                 Enterprise network security,{' '}
                 <span className="text-[#3DB663] underline decoration-[#3DB663]/30 underline-offset-4">
                   verified with mathematical certainty.
                 </span>
               </h1>
 
-              <p className="mt-5 text-base sm:text-lg text-[#4A5B60] leading-relaxed font-normal">
+              <p className="hero-anim-desc mt-5 text-base sm:text-lg text-[#4A5B60] leading-relaxed font-normal">
                 Deterministic regex compliance parsing across Cisco, Fortinet, Palo Alto, Juniper, Aruba, and Check Point configurations. Verified against CIS Benchmarks and NIST SP 800-53 before changes touch production.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3.5">
+              <div className="hero-anim-cta mt-8 flex flex-wrap items-center gap-3.5">
                 <button
                   onClick={onStartAudit}
                   className="btn btn--green text-sm px-6 py-3"
@@ -532,7 +654,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </div>
 
               {/* Trust Badges */}
-              <div className="mt-8 pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2.5 text-[11px] font-mono text-[#4A5B60]">
+              <div className="hero-anim-cta mt-8 pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2.5 text-[11px] font-mono text-[#4A5B60]">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
                   CIS & NIST SP 800-53
@@ -549,7 +671,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </div>
 
             {/* Right Column: Hero 3D Interactive Topology Visual (ABOVE THE FOLD) */}
-            <div className="lg:col-span-7 w-full">
+            <div className="hero-anim-visual lg:col-span-7 w-full">
               <Hero3DVisual />
             </div>
           </div>
@@ -557,7 +679,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 4. EDITORIAL STATEMENT SECTION (Potadot pad style) */}
-      <section className="py-20 lg:py-28 relative overflow-hidden bg-white border-y border-[#D7DCE5]">
+      <section className="gsap-reveal py-20 lg:py-28 relative overflow-hidden bg-white border-y border-[#D7DCE5]">
         <div className="orb orb--ring w-[440px] h-[440px] -left-32 top-10" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <span className="eyebrow mb-4">The Compliance Dilemma</span>
@@ -586,7 +708,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 5. MULTI-VENDOR ECOSYSTEM (Potadot serve section with tabbed stages) */}
-      <section className="py-20 lg:py-28" id="ecosystem">
+      <section className="gsap-reveal py-20 lg:py-28" id="ecosystem">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             {/* Left Column: Side Tabs */}
@@ -645,7 +767,10 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </div>
 
             {/* Right Column: Live Simulated Stage */}
-            <div className="lg:col-span-7 bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-8 shadow-sm relative overflow-hidden">
+            <div
+              ref={tabsContentRef}
+              className="lg:col-span-7 bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-8 shadow-sm relative overflow-hidden"
+            >
               <div className="flex items-center justify-between pb-5 border-b border-[#D7DCE5]">
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-[#3DB663]">
@@ -705,7 +830,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 6. AUDIT LIFECYCLE (Potadot sx-sec accordion cards) */}
-      <section className="py-20 lg:py-28 bg-white border-y border-[#D7DCE5]" id="lifecycle">
+      <section className="gsap-reveal py-20 lg:py-28 bg-white border-y border-[#D7DCE5]" id="lifecycle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12">
             <span className="eyebrow mb-3">Deterministic Pipeline</span>
@@ -822,7 +947,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 7. WHY DETERMINISTIC SECURITY (Potadot on-dark section with glowing rings) */}
-      <section className="py-20 lg:py-28 bg-[#0A282D] text-white relative overflow-hidden" id="why-deterministic">
+      <section className="gsap-reveal py-20 lg:py-28 bg-[#0A282D] text-white relative overflow-hidden" id="why-deterministic">
         <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
         <div className="orb orb--dark-ring w-[500px] h-[500px] -right-32 top-10" />
 
@@ -838,7 +963,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           </div>
 
           {/* Numbered Rings Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="gsap-stagger-grid grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
               <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
                 01
@@ -879,7 +1004,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 8. INTERACTIVE FINDINGS & REMEDIATION PLAYGROUND */}
-      <section className="py-20 lg:py-28" id="sandbox">
+      <section className="gsap-reveal py-20 lg:py-28" id="sandbox">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12">
             <span className="eyebrow mb-3">Live Interactive Demonstration</span>
@@ -1022,7 +1147,7 @@ write memory`}
       </section>
 
       {/* 10. FREQUENTLY ASKED QUESTIONS (Potadot faq) */}
-      <section className="py-20 lg:py-28" id="faq">
+      <section className="gsap-reveal py-20 lg:py-28" id="faq">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-5 space-y-4">
@@ -1046,7 +1171,7 @@ write memory`}
               </div>
             </div>
 
-            <div className="lg:col-span-7 space-y-3">
+            <div className="gsap-stagger-grid lg:col-span-7 space-y-3">
               {faqs.map((f, idx) => (
                 <div
                   key={idx}
@@ -1078,7 +1203,7 @@ write memory`}
       </section>
 
       {/* 11. HIGH-IMPACT DARK CALL TO ACTION BANNER (Potadot cta) */}
-      <section className="py-12 sm:py-16">
+      <section className="gsap-reveal py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="p-8 sm:p-14 lg:p-16 rounded-3xl bg-[#0A282D] text-white relative overflow-hidden shadow-2xl">
             <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
