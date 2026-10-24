@@ -227,42 +227,64 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   useEffect(() => {
     if (loaderVisible) return
 
-    const ctx = gsap.context(() => {
-      ScrollTrigger.refresh()
+    const container = pageContainerRef.current
+    if (!container) return
 
-      const revealElements = document.querySelectorAll('.gsap-reveal')
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) return
+
+    // Small delay to ensure layout has settled after preloader curtain lifts
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh()
+    }, 100)
+
+    const ctx = gsap.context(() => {
+      const revealElements = container.querySelectorAll('.gsap-reveal')
       revealElements.forEach((el) => {
-        gsap.from(el, {
-          opacity: 0,
-          y: 28,
-          duration: 0.65,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 90%',
-            once: true,
-          },
-        })
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: 'power3.out',
+            clearProps: 'all',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              once: true,
+            },
+          }
+        )
       })
 
-      const cardGrids = document.querySelectorAll('.gsap-stagger-grid')
+      const cardGrids = container.querySelectorAll('.gsap-stagger-grid')
       cardGrids.forEach((grid) => {
-        gsap.from(grid.children, {
-          opacity: 0,
-          y: 24,
-          stagger: 0.1,
-          duration: 0.55,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: grid,
-            start: 'top 88%',
-            once: true,
-          },
-        })
+        gsap.fromTo(
+          grid.children,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.08,
+            duration: 0.5,
+            ease: 'power3.out',
+            clearProps: 'all',
+            scrollTrigger: {
+              trigger: grid,
+              start: 'top 88%',
+              once: true,
+            },
+          }
+        )
       })
     }, pageContainerRef)
 
-    return () => ctx.revert()
+    return () => {
+      clearTimeout(timer)
+      ctx.revert()
+    }
   }, [loaderVisible])
 
   // Tab switch micro-animation
@@ -514,7 +536,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
 
       {/* 2. FLOATING NAVIGATION BAR (Potadot Floating Pill with Dropdown Preview) */}
       <div className="sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 pointer-events-none">
-        <header className="max-w-6xl mx-auto h-16 sm:h-20 px-5 sm:px-7 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-[0_10px_35px_rgba(10,40,45,0.08)] flex items-center justify-between pointer-events-auto transition-all">
+        <header className="floating-pill-nav max-w-6xl mx-auto h-16 sm:h-20 px-5 sm:px-7 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-[0_10px_35px_rgba(10,40,45,0.08)] flex items-center justify-between pointer-events-auto transition-all">
           {/* Brand Identity */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0A282D] text-white shadow-sm transition-transform group-hover:scale-105">
@@ -759,7 +781,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         {/* Full-Bleed Interactive Spring-Dot Canvas */}
         <canvas
           ref={heroDotsCanvasRef}
-          className="hero-canvas"
+          className="hero-canvas spring-dots-canvas"
           id="heroDots"
           aria-hidden="true"
         />

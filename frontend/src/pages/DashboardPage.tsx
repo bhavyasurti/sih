@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import {
   ShieldCheck,
   AlertTriangle,
@@ -22,6 +22,7 @@ import { AuditSummaryItem } from '../types'
 import { RiskBadge, StatusPill, VendorBadge } from '../components/Shared'
 import { fetchApprovalHistory } from '../services/api'
 import { SecurityTopology3D } from '../components/SecurityTopology3D'
+import { usePageEntrance } from '../utils/motion'
 
 export function DashboardPage({
   audits,
@@ -40,6 +41,9 @@ export function DashboardPage({
   onDownloadReport: (auditId: number) => void
   isDownloading: boolean
 }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  usePageEntrance(containerRef, '.animate-reveal', 0.06)
+
   const completedAudits = audits.filter((a) => a.compliance_score !== null)
   const avgScore = completedAudits.length
     ? Math.round(
@@ -89,12 +93,14 @@ export function DashboardPage({
     )
   }, [audits, searchQuery])
 
-  // Real multi-vendor distribution from audits list
+  // Real multi-vendor distribution across all 6 supported vendor ecosystems
   const vendorBreakdown = useMemo(() => {
     const cisco = audits.filter((a) => a.title.toLowerCase().includes('cisco') || a.title.toLowerCase().includes('rtr') || a.title.toLowerCase().includes('switch'))
     const fortinet = audits.filter((a) => a.title.toLowerCase().includes('forti') || a.title.toLowerCase().includes('fgt'))
     const paloalto = audits.filter((a) => a.title.toLowerCase().includes('pan') || a.title.toLowerCase().includes('palo'))
     const juniper = audits.filter((a) => a.title.toLowerCase().includes('juniper') || a.title.toLowerCase().includes('junos') || a.title.toLowerCase().includes('srx'))
+    const aruba = audits.filter((a) => a.title.toLowerCase().includes('aruba') || a.title.toLowerCase().includes('cx') || a.title.toLowerCase().includes('aos'))
+    const checkpoint = audits.filter((a) => a.title.toLowerCase().includes('check') || a.title.toLowerCase().includes('gaia') || a.title.toLowerCase().includes('checkpoint'))
 
     const getAvg = (list: AuditSummaryItem[]) => {
       const valid = list.filter((a) => a.compliance_score !== null)
@@ -106,6 +112,8 @@ export function DashboardPage({
       fortinet: { count: fortinet.length, score: getAvg(fortinet) },
       paloalto: { count: paloalto.length, score: getAvg(paloalto) },
       juniper: { count: juniper.length, score: getAvg(juniper) },
+      aruba: { count: aruba.length, score: getAvg(aruba) },
+      checkpoint: { count: checkpoint.length, score: getAvg(checkpoint) },
     }
   }, [audits])
 
@@ -115,9 +123,9 @@ export function DashboardPage({
   }, [audits])
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div ref={containerRef} className="space-y-8 max-w-7xl mx-auto">
       {/* 1. EDITORIAL HEADER & ACTIVE BASELINE */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
+      <div className="animate-reveal flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
         <div>
           <div className="eyebrow mb-2">Fleet Overview & Telemetry</div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
@@ -145,7 +153,7 @@ export function DashboardPage({
       </div>
 
       {/* 2. 3D SECURITY TOPOLOGY POSTURE SCENE */}
-      <div className="w-full">
+      <div className="animate-reveal w-full">
         <SecurityTopology3D
           complianceScore={avgScore}
           riskLevel={overallRisk}
@@ -157,7 +165,7 @@ export function DashboardPage({
       {/* 3. SUMMARY STATS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Fleet Compliance Score */}
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="animate-reveal ui-card-hover p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
           <div className="flex items-center justify-between pb-2">
             <span className="text-[10px] font-mono font-bold tracking-widest text-[#7E8F95] uppercase">
               Average Fleet Score
@@ -178,7 +186,7 @@ export function DashboardPage({
         </div>
 
         {/* Metric 2: Audited Configurations */}
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="animate-reveal ui-card-hover p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
           <div className="flex items-center justify-between pb-2">
             <span className="text-[10px] font-mono font-bold tracking-widest text-[#7E8F95] uppercase">
               Total Devices Audited
@@ -197,7 +205,7 @@ export function DashboardPage({
         </div>
 
         {/* Metric 3: Active Learned Rules */}
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="animate-reveal ui-card-hover p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
           <div className="flex items-center justify-between pb-2">
             <span className="text-[10px] font-mono font-bold tracking-widest text-[#7E8F95] uppercase">
               Authoritative Learned Rules
@@ -218,7 +226,7 @@ export function DashboardPage({
         </div>
 
         {/* Metric 4: Unresolved Syntax */}
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="animate-reveal ui-card-hover p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
           <div className="flex items-center justify-between pb-2">
             <span className="text-[10px] font-mono font-bold tracking-widest text-[#7E8F95] uppercase">
               Unknown Syntax Items
@@ -261,73 +269,109 @@ export function DashboardPage({
       {/* 4. MULTI-VENDOR FLEET & ATTENTION AREAS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Multi-Vendor Distribution (7 Cols) */}
-        <div className="lg:col-span-7 bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs">
+        <div className="animate-reveal lg:col-span-7 bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs">
           <div className="flex items-center justify-between pb-4 border-b border-[#D7DCE5]">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono">
-              Fleet Posture by Vendor
+              Fleet Posture by Vendor (6 Supported Ecosystems)
             </h2>
             <span className="text-xs text-[#7E8F95] font-mono">
               {completedAudits.length} of {audits.length} Audited
             </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {/* Cisco */}
+            <div className="ui-card-hover p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
               <div className="flex items-center justify-between mb-2">
                 <VendorBadge vendor="cisco" />
                 <span className="text-xs font-mono font-bold text-[#0A282D]">
-                  {vendorBreakdown.cisco.count} devices
+                  {vendorBreakdown.cisco.count} dev
                 </span>
               </div>
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-[#4A5B60]">Average Compliance</span>
-                <span className="text-xl font-display font-bold text-[#0A282D]">
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-[11px] text-[#4A5B60]">Compliance</span>
+                <span className="text-lg font-display font-bold text-[#0A282D]">
                   {vendorBreakdown.cisco.score !== null ? `${vendorBreakdown.cisco.score}%` : 'N/A'}
                 </span>
               </div>
             </div>
 
-            <div className="p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
+            {/* Fortinet */}
+            <div className="ui-card-hover p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
               <div className="flex items-center justify-between mb-2">
                 <VendorBadge vendor="fortinet" />
                 <span className="text-xs font-mono font-bold text-[#0A282D]">
-                  {vendorBreakdown.fortinet.count} devices
+                  {vendorBreakdown.fortinet.count} dev
                 </span>
               </div>
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-[#4A5B60]">Average Compliance</span>
-                <span className="text-xl font-display font-bold text-[#0A282D]">
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-[11px] text-[#4A5B60]">Compliance</span>
+                <span className="text-lg font-display font-bold text-[#0A282D]">
                   {vendorBreakdown.fortinet.score !== null ? `${vendorBreakdown.fortinet.score}%` : 'N/A'}
                 </span>
               </div>
             </div>
 
-            <div className="p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
+            {/* Palo Alto */}
+            <div className="ui-card-hover p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
               <div className="flex items-center justify-between mb-2">
                 <VendorBadge vendor="paloalto" />
                 <span className="text-xs font-mono font-bold text-[#0A282D]">
-                  {vendorBreakdown.paloalto.count} devices
+                  {vendorBreakdown.paloalto.count} dev
                 </span>
               </div>
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-[#4A5B60]">Average Compliance</span>
-                <span className="text-xl font-display font-bold text-[#0A282D]">
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-[11px] text-[#4A5B60]">Compliance</span>
+                <span className="text-lg font-display font-bold text-[#0A282D]">
                   {vendorBreakdown.paloalto.score !== null ? `${vendorBreakdown.paloalto.score}%` : 'N/A'}
                 </span>
               </div>
             </div>
 
-            <div className="p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
+            {/* Juniper */}
+            <div className="ui-card-hover p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
               <div className="flex items-center justify-between mb-2">
                 <VendorBadge vendor="juniper" />
                 <span className="text-xs font-mono font-bold text-[#0A282D]">
-                  {vendorBreakdown.juniper.count} devices
+                  {vendorBreakdown.juniper.count} dev
                 </span>
               </div>
-              <div className="flex items-baseline justify-between mt-3">
-                <span className="text-xs text-[#4A5B60]">Average Compliance</span>
-                <span className="text-xl font-display font-bold text-[#0A282D]">
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-[11px] text-[#4A5B60]">Compliance</span>
+                <span className="text-lg font-display font-bold text-[#0A282D]">
                   {vendorBreakdown.juniper.score !== null ? `${vendorBreakdown.juniper.score}%` : 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            {/* Aruba */}
+            <div className="ui-card-hover p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
+              <div className="flex items-center justify-between mb-2">
+                <VendorBadge vendor="aruba" />
+                <span className="text-xs font-mono font-bold text-[#0A282D]">
+                  {vendorBreakdown.aruba.count} dev
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-[11px] text-[#4A5B60]">Compliance</span>
+                <span className="text-lg font-display font-bold text-[#0A282D]">
+                  {vendorBreakdown.aruba.score !== null ? `${vendorBreakdown.aruba.score}%` : 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            {/* Check Point */}
+            <div className="ui-card-hover p-4 bg-[#F2F3F7] border border-[#D7DCE5] rounded-2xl">
+              <div className="flex items-center justify-between mb-2">
+                <VendorBadge vendor="checkpoint" />
+                <span className="text-xs font-mono font-bold text-[#0A282D]">
+                  {vendorBreakdown.checkpoint.count} dev
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <span className="text-[11px] text-[#4A5B60]">Compliance</span>
+                <span className="text-lg font-display font-bold text-[#0A282D]">
+                  {vendorBreakdown.checkpoint.score !== null ? `${vendorBreakdown.checkpoint.score}%` : 'N/A'}
                 </span>
               </div>
             </div>
@@ -335,7 +379,7 @@ export function DashboardPage({
         </div>
 
         {/* Right: High Priority & Failed Findings Warning (5 Cols) */}
-        <div className="lg:col-span-5 bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs">
+        <div className="animate-reveal lg:col-span-5 bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs">
           <div className="flex items-center justify-between pb-4 border-b border-[#D7DCE5]">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono flex items-center gap-2">
               <ShieldAlert size={16} className="text-[#E11D48]" />
@@ -390,7 +434,7 @@ export function DashboardPage({
       </div>
 
       {/* 5. RECENT AUDITS TABLE (POTADOT CRAFTSMANSHIP) */}
-      <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+      <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
         {/* Table Controls Bar */}
         <div className="p-5 sm:p-6 border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

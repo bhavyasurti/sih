@@ -140,6 +140,7 @@ export default function App() {
     if (page === 'home') navigate('/dashboard')
     else navigate(`/${page}`)
   }
+  const { isAuthenticated } = useAuth()
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
   const [selectedVendor, setSelectedVendor] = useState<VendorSelection>('auto')
   const [selectedFramework, setSelectedFramework] = useState<FrameworkSelection>('CIS')
@@ -174,6 +175,8 @@ export default function App() {
       setBackendStatus('offline')
     }
 
+    if (!isAuthenticated) return
+
     try {
       const [audits, unknowns, mappings] = await Promise.all([
         listAudits(),
@@ -190,7 +193,7 @@ export default function App() {
 
   useEffect(() => {
     refreshHealthAndAudits()
-  }, [])
+  }, [isAuthenticated])
 
   const handleFileSelect = async (file: File | null) => {
     if (!file) return

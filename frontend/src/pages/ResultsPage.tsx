@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   FileCode2,
   Download,
@@ -20,7 +20,8 @@ import {
   RefreshCw,
   Edit3,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  GitCommit
 } from 'lucide-react'
 import { AuditResult } from '../types'
 import { PageKey } from '../components/Sidebar'
@@ -30,6 +31,7 @@ import {
   SeverityBadge,
   RiskBadge,
 } from '../components/Shared'
+import { usePageEntrance } from '../utils/motion'
 
 export function ResultsPage({
   result,
@@ -44,6 +46,9 @@ export function ResultsPage({
   isDownloading: boolean
   onNavigate: (page: PageKey) => void
 }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  usePageEntrance(containerRef, '.animate-reveal', 0.05)
+
   const [activeTab, setActiveTab] = useState<'findings' | 'parameters' | 'telemetry'>('findings')
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'FAIL' | 'PASS' | 'UNKNOWN'>('ALL')
   const [severityFilter, setSeverityFilter] = useState<'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'>('ALL')
@@ -241,9 +246,9 @@ export function ResultsPage({
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div ref={containerRef} className="space-y-8 max-w-7xl mx-auto">
       {/* 1. TOP DEVICE SPECIMEN BANNER */}
-      <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs">
+      <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#D7DCE5]">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2 font-mono">
@@ -342,7 +347,7 @@ export function ResultsPage({
       </div>
 
       {/* 2. SUB-NAVIGATION TABS */}
-      <div className="border-b border-[#D7DCE5] flex items-center gap-8 font-mono text-xs uppercase tracking-wider font-bold">
+      <div className="animate-reveal border-b border-[#D7DCE5] flex items-center gap-8 font-mono text-xs uppercase tracking-wider font-bold">
         <button
           onClick={() => setActiveTab('findings')}
           className={`pb-3.5 transition-colors border-b-2 ${
@@ -445,7 +450,7 @@ export function ResultsPage({
                 return (
                   <div
                     key={finding.control_id}
-                    className={`bg-white border rounded-3xl p-6 sm:p-7 shadow-xs transition-all ${
+                    className={`animate-reveal ui-card-hover bg-white border rounded-3xl p-6 sm:p-7 shadow-xs transition-all ${
                       isFail
                         ? 'border-[#FCA5A5]'
                         : isUnknown
@@ -491,9 +496,9 @@ export function ResultsPage({
                       </div>
                     </div>
 
-                    {/* Deterministic Remediation CLI Box */}
+                    {/* Deterministic Remediation CLI Box & Staged Diff */}
                     {hasRemediation && finding.remediation && (
-                      <div className="mt-4 rounded-2xl border border-[#1E4950] bg-[#0A282D] p-4 text-white">
+                      <div className="mt-4 rounded-2xl border border-[#1E4950] bg-[#0A282D] p-5 text-white space-y-4">
                         <div className="flex items-center justify-between pb-2 border-b border-white/10 font-mono text-[10px] uppercase font-bold">
                           <span className="flex items-center gap-1.5 text-[#3DB663]">
                             <Terminal size={12} className="text-[#3DB663]" />
@@ -513,9 +518,42 @@ export function ResultsPage({
                             )}
                           </button>
                         </div>
-                        <pre className="mt-2 font-mono text-xs text-[#3DB663] leading-relaxed overflow-x-auto whitespace-pre-wrap">
+                        <pre className="font-mono text-xs text-[#3DB663] leading-relaxed overflow-x-auto whitespace-pre-wrap">
                           {finding.remediation}
                         </pre>
+
+                        {/* Staged Configuration Diff Preview */}
+                        <div className="pt-3 border-t border-white/10 space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-[#A3B8BC]">
+                            <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-white">
+                              <GitCommit size={13} className="text-[#3DB663]" />
+                              Staged Working Configuration Diff
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-[#3DB663] text-[10px] font-bold border border-white/10">
+                              Offline Sandbox Only · Physical Hardware Untouched
+                            </span>
+                          </div>
+
+                          <div className="space-y-1 font-mono text-xs pt-1">
+                            {finding.evidence ? (
+                              <div className="diff-line diff-line--del">
+                                <span className="diff-sign">-</span>
+                                <span className="diff-text">{finding.evidence}</span>
+                              </div>
+                            ) : (
+                              <div className="diff-line diff-line--del">
+                                <span className="diff-sign">-</span>
+                                <span className="diff-text">[Observed non-compliant setting or omitted requirement]</span>
+                              </div>
+                            )}
+                            {(editedSolutions[finding.control_id] || finding.remediation || '').split('\n').filter((l: string) => l.trim().length > 0).map((line: string, lIdx: number) => (
+                              <div key={lIdx} className="diff-line diff-line--add">
+                                <span className="diff-sign">+</span>
+                                <span className="diff-text">{line}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -599,6 +637,39 @@ export function ResultsPage({
                               </p>
                             </div>
 
+                            {/* Staged Working Configuration Diff Preview */}
+                            <div className="p-4 bg-[#0A282D] rounded-2xl border border-[#1E4950] text-white font-mono text-xs space-y-2">
+                              <div className="flex items-center justify-between pb-2 border-b border-white/10 text-[10px] text-[#A3B8BC]">
+                                <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-white">
+                                  <GitCommit size={13} className="text-[#3DB663]" />
+                                  Staged Working Configuration Diff
+                                </span>
+                                <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-[#3DB663] text-[10px] font-bold border border-white/10">
+                                  Offline Sandbox Only · Physical Hardware Untouched
+                                </span>
+                              </div>
+
+                              <div className="space-y-1 pt-1">
+                                {finding.evidence ? (
+                                  <div className="diff-line diff-line--del">
+                                    <span className="diff-sign">-</span>
+                                    <span className="diff-text">{finding.evidence}</span>
+                                  </div>
+                                ) : (
+                                  <div className="diff-line diff-line--del">
+                                    <span className="diff-sign">-</span>
+                                    <span className="diff-text">[Observed non-compliant setting or omitted requirement]</span>
+                                  </div>
+                                )}
+                                {(editedSolutions[finding.control_id] || review.proposed_solution || finding.remediation || '').split('\n').filter((l: string) => l.trim().length > 0).map((line: string, lIdx: number) => (
+                                  <div key={lIdx} className="diff-line diff-line--add">
+                                    <span className="diff-sign">+</span>
+                                    <span className="diff-text">{line}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
                             {/* Proposed Solution & Interactive Code Editor */}
                             <div className="p-4 bg-white border border-[#D7DCE5] rounded-2xl space-y-2 shadow-2xs">
                               <div className="flex items-center justify-between">
@@ -629,7 +700,7 @@ export function ResultsPage({
                             {/* Action Authorization Safeguards */}
                             <div className="pt-3 border-t border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
                               <span className="text-[11px] text-[#7E8F95]">
-                                Authorizing this remediation triggers an instant deterministic re-audit to verify PASS status.
+                                Authorizing this remediation triggers an instant deterministic re-audit in the working sandbox.
                               </span>
 
                               <div className="flex items-center gap-2">
@@ -656,7 +727,7 @@ export function ResultsPage({
                                   ) : (
                                     <Check size={13} className="stroke-[3]" />
                                   )}
-                                  <span>Approve & Apply to Working Config</span>
+                                  <span>Authorize &amp; Re-Audit in Working Sandbox</span>
                                 </button>
                               </div>
                             </div>

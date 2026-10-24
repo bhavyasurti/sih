@@ -1,20 +1,24 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { UserCheck, Mail, ShieldCheck, LogOut, Lock, Calendar, Key, ArrowRight } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { auth } from '../services/firebase'
+import { usePageEntrance } from '../utils/motion'
 
 export function ProfilePage() {
   const { user, logout } = useAuth()
   const firebaseUser = auth.currentUser
+  const pageRef = useRef<HTMLDivElement>(null)
+
+  usePageEntrance(pageRef, [user?.email])
 
   const creationTime = firebaseUser?.metadata.creationTime
   const providerId = firebaseUser?.providerData[0]?.providerId || 'email/password'
   const isVerified = firebaseUser?.emailVerified
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div ref={pageRef} className="space-y-8 max-w-4xl mx-auto">
       {/* 1. EDITORIAL HEADER */}
-      <div className="pb-4 border-b border-[#D7DCE5]">
+      <div className="animate-reveal pb-4 border-b border-[#D7DCE5]">
         <div className="eyebrow mb-2">Account Administration</div>
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
           Auditor Profile & Credentials
@@ -26,7 +30,7 @@ export function ProfilePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Left: User Avatar & Session Card (4 Cols) */}
-        <div className="md:col-span-4 bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 text-center shadow-xs">
+        <div className="animate-reveal md:col-span-4 bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 text-center shadow-xs ui-card-hover transition-all">
           <div className="w-20 h-20 rounded-2xl bg-[#0A282D] text-white flex items-center justify-center font-display text-3xl font-bold mx-auto mb-4 shadow-sm border border-[#1E4950]">
             {firebaseUser?.photoURL ? (
               <img
@@ -65,7 +69,7 @@ export function ProfilePage() {
 
         {/* Right: Security & Authentication Telemetry (8 Cols) */}
         <div className="md:col-span-8 space-y-6">
-          <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+          <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs ui-card-hover space-y-4 transition-all">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono flex items-center gap-2 pb-3 border-b border-[#D7DCE5]">
               <Lock size={15} className="text-[#3DB663]" />
               Authentication & Security Clearance

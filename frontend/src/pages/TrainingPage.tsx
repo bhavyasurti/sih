@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   GraduationCap,
   RefreshCw,
@@ -27,6 +27,7 @@ import {
   disableMapping,
   analyzeUnknownCommand
 } from '../services/api'
+import { usePageEntrance } from '../utils/motion'
 
 export const SUPPORTED_PARAMETERS = [
   'ssh_enabled',
@@ -58,10 +59,13 @@ interface ReviewModalData {
 }
 
 export function TrainingPage() {
+  const pageRef = useRef<HTMLDivElement>(null)
   const [unknownCommands, setUnknownCommands] = useState<UnknownCommand[]>([])
   const [learnedMappings, setLearnedMappings] = useState<LearnedMapping[]>([])
   const [activeTab, setActiveTab] = useState<'unknown' | 'mappings'>('unknown')
   const [isLoading, setIsLoading] = useState(true)
+
+  usePageEntrance(pageRef, [isLoading, activeTab])
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [reviewModal, setReviewModal] = useState<ReviewModalData | null>(null)
@@ -171,9 +175,9 @@ export function TrainingPage() {
   }, [learnedMappings, searchQuery])
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div ref={pageRef} className="space-y-8 max-w-7xl mx-auto">
       {/* 1. EDITORIAL HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
+      <div className="animate-reveal flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
         <div>
           <div className="eyebrow mb-2">Adaptive Parser Intelligence</div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
@@ -195,8 +199,8 @@ export function TrainingPage() {
       </div>
 
       {/* 2. STATS ROW */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+      <div className="animate-reveal grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs ui-card-hover transition-all">
           <span className="text-[10px] font-mono font-bold tracking-widest text-[#D97706] uppercase block mb-1">
             Isolated Unrecognized Syntax
           </span>
@@ -211,7 +215,7 @@ export function TrainingPage() {
           </p>
         </div>
 
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs ui-card-hover transition-all">
           <span className="text-[10px] font-mono font-bold tracking-widest text-[#3DB663] uppercase block mb-1">
             Authoritative Learned Mappings
           </span>
@@ -228,7 +232,7 @@ export function TrainingPage() {
       </div>
 
       {/* 3. TABS BAR */}
-      <div className="border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
+      <div className="animate-reveal border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
         <div className="flex items-center gap-8 font-bold uppercase tracking-wider">
           <button
             onClick={() => setActiveTab('unknown')}
@@ -266,7 +270,7 @@ export function TrainingPage() {
 
       {/* 4. CONTENT TABLE: UNKNOWN COMMANDS */}
       {activeTab === 'unknown' && (
-        <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+        <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
           {filteredUnknowns.length === 0 ? (
             <div className="p-12 text-center text-xs font-mono text-[#7E8F95]">
               {searchQuery
@@ -320,7 +324,7 @@ export function TrainingPage() {
 
       {/* 5. CONTENT TABLE: LEARNED MAPPINGS */}
       {activeTab === 'mappings' && (
-        <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+        <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
           {filteredMappings.length === 0 ? (
             <div className="p-12 text-center text-xs font-mono text-[#7E8F95]">
               No learned mappings in database.
@@ -387,8 +391,8 @@ export function TrainingPage() {
 
       {/* 6. MODAL: REVIEW & TEACH MAPPING DIALOG */}
       {reviewModal && (
-        <div className="fixed inset-0 z-50 bg-[#0A282D]/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D7DCE5] rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-[#0A282D]/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white border border-[#D7DCE5] rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
               <div>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#3DB663] block">

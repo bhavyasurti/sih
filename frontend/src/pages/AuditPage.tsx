@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { VendorSelection, FrameworkSelection, AuditSummaryItem } from '../types'
 import { StatusPill } from '../components/Shared'
+import { usePageEntrance } from '../utils/motion'
 
 export function AuditPage({
   configText,
@@ -58,9 +59,13 @@ export function AuditPage({
   onDownloadReport: (auditId: number) => void
   isDownloading: boolean
 }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  usePageEntrance(containerRef, '.animate-reveal', 0.06)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [inputMode, setInputMode] = useState<'upload' | 'paste'>('upload')
   const [searchFilter, setSearchFilter] = useState('')
+  const [isDragActive, setIsDragActive] = useState(false)
 
   const filteredAudits = useMemo(() => {
     return audits.filter(
@@ -73,19 +78,26 @@ export function AuditPage({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
+    setIsDragActive(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragActive(false)
   }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setIsDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       onFilePicked(e.dataTransfer.files[0])
     }
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div ref={containerRef} className="space-y-8 max-w-7xl mx-auto">
       {/* 1. EDITORIAL HEADER */}
-      <div className="pb-4 border-b border-[#D7DCE5]">
+      <div className="animate-reveal pb-4 border-b border-[#D7DCE5]">
         <div className="eyebrow mb-2">Ingestion Console</div>
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
           Configuration Audits
@@ -96,7 +108,7 @@ export function AuditPage({
       </div>
 
       {/* 2. MAIN INGESTION CONSOLE */}
-      <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs">
+      <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs">
         {/* Console Header & Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#D7DCE5]">
           <div>
@@ -137,9 +149,14 @@ export function AuditPage({
           {inputMode === 'upload' ? (
             <div
               onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-[#D7DCE5] hover:border-[#3DB663] bg-[#F2F3F7]/40 hover:bg-[#F2F3F7]/80 rounded-3xl p-10 text-center cursor-pointer transition-all group"
+              className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all group ${
+                isDragActive
+                  ? 'border-[#3DB663] bg-[#EDF8F1]/80 scale-[1.005]'
+                  : 'border-[#D7DCE5] hover:border-[#3DB663] bg-[#F2F3F7]/40 hover:bg-[#F2F3F7]/80'
+              }`}
             >
               <input
                 ref={fileInputRef}
@@ -159,6 +176,17 @@ export function AuditPage({
                   ? `${(uploadedFile.size / 1024).toFixed(1)} KB · Ready for deterministic audit`
                   : 'Supports Cisco IOS/NX-OS, Fortinet FortiOS, PAN-OS, Junos OS, Aruba CX, and Gaia (.cfg, .txt, .conf)'}
               </p>
+
+              {/* Supported Vendor Badges */}
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <span className="tag text-[10px]"><i></i>Cisco IOS</span>
+                <span className="tag text-[10px]"><i></i>Fortinet FortiOS</span>
+                <span className="tag text-[10px]"><i></i>Palo Alto PAN-OS</span>
+                <span className="tag text-[10px]"><i></i>Juniper Junos</span>
+                <span className="tag text-[10px]"><i></i>Aruba AOS-CX</span>
+                <span className="tag text-[10px]"><i></i>Check Point Gaia</span>
+              </div>
+
               <div className="mt-4">
                 <span className="btn btn--soft text-xs">
                   Browse Local Files
@@ -320,7 +348,7 @@ export function AuditPage({
       </div>
 
       {/* 3. HISTORICAL INGESTIONS TABLE */}
-      <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+      <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
         <div className="p-5 sm:p-6 border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-display font-bold text-[#0A282D]">

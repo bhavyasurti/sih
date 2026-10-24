@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import { FileText, RefreshCw, Search, Loader2, Download, ExternalLink, Calendar, ShieldCheck, ArrowRight } from 'lucide-react'
 import { AuditSummaryItem } from '../types'
 import { StatusPill } from '../components/Shared'
+import { usePageEntrance } from '../utils/motion'
 
 export function ReportsPage({
   audits,
@@ -16,8 +17,11 @@ export function ReportsPage({
   isDownloading: boolean
   onRefresh: () => void
 }) {
+  const pageRef = useRef<HTMLDivElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
+
+  usePageEntrance(pageRef, [audits.length])
 
   const handleDownload = async (id: number) => {
     setDownloadingId(id)
@@ -44,9 +48,9 @@ export function ReportsPage({
   ).length
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div ref={pageRef} className="space-y-8 max-w-7xl mx-auto">
       {/* 1. EDITORIAL HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
+      <div className="animate-reveal flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
         <div>
           <div className="eyebrow mb-2">Formal Audit Records</div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
@@ -67,8 +71,8 @@ export function ReportsPage({
       </div>
 
       {/* 2. STATS SUMMARY ROW */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+      <div className="animate-reveal grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs ui-card-hover transition-all">
           <div className="flex items-center justify-between pb-2 text-[#7E8F95] font-mono text-[10px] uppercase font-bold">
             <span>Total Formal Reports</span>
             <FileText size={16} className="text-[#0284C7]" />
@@ -81,7 +85,7 @@ export function ReportsPage({
           </div>
         </div>
 
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs ui-card-hover transition-all">
           <div className="flex items-center justify-between pb-2 text-[#7E8F95] font-mono text-[10px] uppercase font-bold">
             <span>Compliant Audits</span>
             <ShieldCheck size={16} className="text-[#3DB663]" />
@@ -94,7 +98,7 @@ export function ReportsPage({
           </div>
         </div>
 
-        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs ui-card-hover transition-all">
           <div className="flex items-center justify-between pb-2 text-[#7E8F95] font-mono text-[10px] uppercase font-bold">
             <span>Export Formats</span>
             <Download size={16} className="text-[#7E8F95]" />
@@ -109,7 +113,7 @@ export function ReportsPage({
       </div>
 
       {/* 3. REPORTS TABLE */}
-      <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+      <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
         <div className="p-5 sm:p-6 border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-display font-bold text-[#0A282D]">

@@ -543,7 +543,7 @@ export function Hero3DVisual() {
       {/* THREE.JS 3D WEBGL CONTAINER (Continuously Animated 60FPS) */}
       <div
         ref={mountRef}
-        className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
+        className="hero-canvas-3d absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
       />
 
       {/* 3. FLOATING STATUS BADGES & TELEMETRY OVERLAYS */}

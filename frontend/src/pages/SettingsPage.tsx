@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { Settings, Server, Network, Activity, Database, Shield, Cpu, Lock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { usePageEntrance } from '../utils/motion'
 
 export function SettingsPage({
   backendStatus,
@@ -12,11 +13,14 @@ export function SettingsPage({
 }) {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const pageRef = useRef<HTMLDivElement>(null)
+
+  usePageEntrance(pageRef, [backendStatus])
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div ref={pageRef} className="space-y-8 max-w-5xl mx-auto">
       {/* 1. EDITORIAL HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
+      <div className="animate-reveal flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
         <div>
           <div className="eyebrow mb-2">Engine Configuration</div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
@@ -39,7 +43,7 @@ export function SettingsPage({
       {/* 2. PLATFORM STATUS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Core Services Status */}
-        <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs ui-card-hover space-y-4 transition-all">
           <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono flex items-center gap-2">
               <Server size={15} className="text-[#0284C7]" />
@@ -78,7 +82,7 @@ export function SettingsPage({
         </div>
 
         {/* Regulatory Baselines Status */}
-        <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs ui-card-hover space-y-4 transition-all">
           <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono flex items-center gap-2">
               <Shield size={15} className="text-[#3DB663]" />
@@ -106,7 +110,7 @@ export function SettingsPage({
         </div>
 
         {/* Database & Storage */}
-        <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs ui-card-hover space-y-4 transition-all">
           <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono flex items-center gap-2">
               <Database size={15} className="text-[#D97706]" />
@@ -132,7 +136,7 @@ export function SettingsPage({
         </div>
 
         {/* Auditor Profile Quick Link */}
-        <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="animate-reveal bg-white border border-[#D7DCE5] rounded-3xl p-6 shadow-xs ui-card-hover space-y-4 transition-all">
           <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#0A282D] font-mono flex items-center gap-2">
               <Lock size={15} className="text-[#0A282D]" />
