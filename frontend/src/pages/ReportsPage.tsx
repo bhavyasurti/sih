@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { FileText, RefreshCw, Info, Search, Loader2, Download } from 'lucide-react'
+import { FileText, RefreshCw, Search, Loader2, Download, ExternalLink, Calendar, ShieldCheck, ArrowRight } from 'lucide-react'
 import { AuditSummaryItem } from '../types'
 import { StatusPill } from '../components/Shared'
 
@@ -39,141 +39,175 @@ export function ReportsPage({
     )
   }, [audits, searchQuery])
 
-  return (
-    <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
-          <div>
-            <h1 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
-              <FileText size={16} className="text-brand-primary" />
-              Compliance Reports Archive
-            </h1>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Export formal PDF audit documentation generated via the local ReportLab reporting engine
-            </p>
-          </div>
+  const compliantCount = audits.filter(
+    (a) => a.compliance_score !== null && a.compliance_score >= 70
+  ).length
 
-          <button
-            onClick={onRefresh}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-border/50 hover:bg-surface-border border border-surface-border text-text-primary text-xs font-semibold transition-colors"
-          >
-            <RefreshCw size={13} />
-            <span>Refresh Archive</span>
-          </button>
+  return (
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* 1. EDITORIAL HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#D7DCE5]">
+        <div>
+          <div className="eyebrow mb-2">Formal Audit Records</div>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
+            Compliance Reports Archive
+          </h1>
+          <p className="text-xs sm:text-sm text-[#4A5B60] mt-1">
+            Formal technical and executive compliance audits formatted for regulatory submission and board review.
+          </p>
         </div>
 
-        <div className="mt-4 p-3 rounded bg-surface-primary border border-surface-border/80 text-xs text-text-secondary flex items-center gap-2">
-          <Info size={14} className="text-brand-primary flex-shrink-0" />
-          <span>
-            Reports contain formal executive summaries, compliance matrices, evaluated control evidence, and deterministic multi-vendor remediation command playbooks.
-          </span>
+        <button
+          onClick={onRefresh}
+          className="btn btn--soft text-xs"
+        >
+          <RefreshCw size={13} />
+          <span>Refresh Archive</span>
+        </button>
+      </div>
+
+      {/* 2. STATS SUMMARY ROW */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+          <div className="flex items-center justify-between pb-2 text-[#7E8F95] font-mono text-[10px] uppercase font-bold">
+            <span>Total Formal Reports</span>
+            <FileText size={16} className="text-[#0284C7]" />
+          </div>
+          <div className="mt-2 text-3xl font-display font-extrabold text-[#0A282D]">
+            {audits.length}
+          </div>
+          <div className="text-xs text-[#4A5B60] mt-1 font-mono">
+            Cryptographically signed audit artifacts
+          </div>
+        </div>
+
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+          <div className="flex items-center justify-between pb-2 text-[#7E8F95] font-mono text-[10px] uppercase font-bold">
+            <span>Compliant Audits</span>
+            <ShieldCheck size={16} className="text-[#3DB663]" />
+          </div>
+          <div className="mt-2 text-3xl font-display font-extrabold text-[#3DB663]">
+            {compliantCount}
+          </div>
+          <div className="text-xs text-[#4A5B60] mt-1 font-mono">
+            Score &ge; 70% passing threshold
+          </div>
+        </div>
+
+        <div className="p-6 bg-white rounded-3xl border border-[#D7DCE5] shadow-xs">
+          <div className="flex items-center justify-between pb-2 text-[#7E8F95] font-mono text-[10px] uppercase font-bold">
+            <span>Export Formats</span>
+            <Download size={16} className="text-[#7E8F95]" />
+          </div>
+          <div className="mt-2 text-3xl font-display font-extrabold text-[#0A282D]">
+            PDF / ReportLab
+          </div>
+          <div className="text-xs text-[#4A5B60] mt-1 font-mono">
+            Executive & technical findings breakdown
+          </div>
         </div>
       </div>
 
-      {/* Reports Table (Document Management Interface) */}
-      <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
+      {/* 3. REPORTS TABLE */}
+      <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
-              Generated Audit Documents ({filteredAudits.length})
+            <h2 className="text-lg font-display font-bold text-[#0A282D]">
+              Generated Compliance Audits
             </h2>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Click Download PDF to export instant reports for compliance reporting
+            <p className="text-xs text-[#4A5B60] mt-0.5">
+              Select any report to inspect live findings or download the official PDF.
             </p>
           </div>
 
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7E8F95]" />
             <input
               type="text"
-              placeholder="Search reports..."
+              placeholder="Filter by title, ID, framework..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded bg-surface-primary border border-surface-border text-xs text-text-primary placeholder:text-text-muted focus:border-brand-primary focus:ring-1 focus:ring-brand-primary focus:outline-none w-52 transition-all"
+              className="pl-9 pr-3.5 py-1.5 text-xs font-mono bg-[#F2F3F7] border border-[#D7DCE5] rounded-full text-[#0A282D] placeholder:text-[#7E8F95] focus:outline-none focus:border-[#3DB663] w-full sm:w-64"
             />
           </div>
         </div>
 
-        <div className="mt-4 overflow-x-auto">
-          {filteredAudits.length === 0 ? (
-            <div className="py-12 text-center text-text-secondary text-xs">
-              <FileText size={32} className="mx-auto text-text-muted mb-2 opacity-50" />
-              <div className="font-semibold text-text-primary">No Reports Available</div>
-              <p className="text-text-secondary mt-0.5">Run a configuration audit to generate compliance reports.</p>
-            </div>
-          ) : (
-            <>
-            {/* Desktop View */}
-            <table className="w-full min-w-[700px] whitespace-nowrap text-left text-xs border-collapse hidden md:table">
+        {filteredAudits.length === 0 ? (
+          <div className="p-12 text-center text-[#7E8F95] font-mono text-xs">
+            No compliance reports found.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse font-mono">
               <thead>
-                <tr className="border-b border-surface-border text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
-                  <th className="pb-2.5 font-medium">Audit ID</th>
-                  <th className="pb-2.5 font-medium">Document / Configuration</th>
-                  <th className="pb-2.5 font-medium">Framework</th>
-                  <th className="pb-2.5 font-medium">Status</th>
-                  <th className="pb-2.5 font-medium">Compliance Score</th>
-                  <th className="pb-2.5 font-medium text-right">Actions</th>
+                <tr className="border-b border-[#D7DCE5] bg-[#F2F3F7] text-[11px] font-bold uppercase tracking-wider text-[#7E8F95]">
+                  <th className="py-3.5 px-5">Report ID</th>
+                  <th className="py-3.5 px-5">Device / Configuration Title</th>
+                  <th className="py-3.5 px-5">Baseline</th>
+                  <th className="py-3.5 px-5">Generation Date</th>
+                  <th className="py-3.5 px-5 text-center">Score</th>
+                  <th className="py-3.5 px-5 text-center">Status</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-border/60 font-mono">
-                {filteredAudits.map((audit) => {
-                  const score = audit.compliance_score
-                  const isCurDownloading = downloadingId === audit.id
+              <tbody className="divide-y divide-[#D7DCE5]">
+                {filteredAudits.map((a) => {
+                  const isDownloadingThis = downloadingId === a.id
+                  const score = a.compliance_score
+                  const isPass = score !== null && score >= 70
 
                   return (
-                    <tr key={audit.id} className="hover:bg-surface-border/20 transition-colors">
-                      <td className="py-3 text-text-secondary">#{audit.id}</td>
-                      <td className="py-3 font-semibold text-text-primary">
-                        <div className="flex items-center gap-2">
-                          <FileText size={14} className="text-brand-primary flex-shrink-0" />
-                          <span>{audit.title}</span>
-                        </div>
+                    <tr key={a.id} className="hover:bg-[#F2F3F7]/50 transition-colors">
+                      <td className="py-3.5 px-5 font-bold text-[#0A282D]">#{a.id}</td>
+                      <td className="py-3.5 px-5 font-sans font-semibold text-[#0A282D] truncate max-w-xs">
+                        {a.title}
                       </td>
-                      <td className="py-3">
-                        <span className="px-1.5 py-0.5 rounded bg-surface-border border border-surface-border/50 text-text-secondary text-[10px]">
-                          {audit.framework || 'CIS'}
+                      <td className="py-3.5 px-5">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#F2F3F7] border border-[#D7DCE5] text-[#4A5B60] text-[10px] font-bold">
+                          {a.framework || 'CIS'}
                         </span>
                       </td>
-                      <td className="py-3">
-                        <StatusPill status={audit.status} />
+                      <td className="py-3.5 px-5 text-[#7E8F95]">
+                        {a.created_at
+                          ? new Date(a.created_at).toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : 'Recent'}
                       </td>
-                      <td className="py-3 font-bold">
+                      <td className="py-3.5 px-5 text-center font-bold">
                         {score !== null ? (
-                          <span
-                            className={
-                              score >= 80
-                                ? 'text-emerald-400'
-                                : score >= 50
-                                ? 'text-amber-400'
-                                : 'text-rose-400'
-                            }
-                          >
-                            {Math.round(score)}%
+                          <span className={isPass ? 'text-[#3DB663]' : 'text-[#E11D48]'}>
+                            {score}%
                           </span>
                         ) : (
-                          <span className="text-text-muted">—</span>
+                          <span className="text-[#7E8F95]">—</span>
                         )}
                       </td>
-                      <td className="py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="py-3.5 px-5 text-center">
+                        <StatusPill status={a.status} />
+                      </td>
+                      <td className="py-3.5 px-5 text-right">
+                        <div className="flex items-center justify-end gap-2 font-mono">
                           <button
-                            onClick={() => onViewAudit(audit.id, audit.framework)}
-                            className="px-2.5 py-1 rounded bg-surface-border/50 hover:bg-surface-border border border-surface-border text-text-primary text-[11px] font-sans font-medium transition-colors"
+                            onClick={() => onViewAudit(a.id, a.framework || 'CIS')}
+                            className="px-3 py-1 bg-white hover:bg-[#F2F3F7] border border-[#D7DCE5] rounded-full text-[#0A282D] font-bold text-[11px] uppercase transition-colors"
                           >
-                            View
+                            Inspect
                           </button>
                           <button
-                            onClick={() => handleDownload(audit.id)}
-                            disabled={isCurDownloading}
-                            className="flex items-center gap-1.5 px-3 py-1 rounded bg-brand-primary hover:bg-brand-secondary text-white font-sans font-bold text-[11px] transition-colors disabled:opacity-50"
+                            onClick={() => handleDownload(a.id)}
+                            disabled={isDownloadingThis}
+                            className="btn btn--green text-xs px-3 py-1 disabled:opacity-50"
+                            title="Download PDF report"
                           >
-                            {isCurDownloading ? (
-                              <Loader2 size={12} className="animate-spin" />
+                            {isDownloadingThis ? (
+                              <Loader2 size={13} className="animate-spin" />
                             ) : (
-                              <Download size={12} />
+                              <Download size={13} className="stroke-[2.5]" />
                             )}
-                            <span>{isCurDownloading ? 'Generating...' : 'PDF'}</span>
+                            <span className="hidden sm:inline">PDF</span>
                           </button>
                         </div>
                       </td>
@@ -182,80 +216,8 @@ export function ReportsPage({
                 })}
               </tbody>
             </table>
-
-            {/* Mobile View */}
-            <div className="md:hidden space-y-4">
-                {filteredAudits.map((audit) => {
-                  const score = audit.compliance_score
-                  const isCurDownloading = downloadingId === audit.id
-
-                  return (
-                    <div key={audit.id} className="rounded-lg border border-surface-border bg-surface-panel p-4 flex flex-col gap-3 font-mono">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 font-semibold text-text-primary text-xs">
-                            <FileText size={14} className="text-brand-primary flex-shrink-0" />
-                            <span className="break-words line-clamp-2 whitespace-normal">{audit.title}</span>
-                          </div>
-                          <span className="text-text-secondary text-[10px]">#{audit.id}</span>
-                        </div>
-                        <StatusPill status={audit.status} />
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="text-text-secondary">Framework:</span>
-                          <span className="px-1.5 py-0.5 rounded bg-surface-border border border-surface-border/50 text-text-secondary text-[10px]">
-                            {audit.framework || 'CIS'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 font-bold">
-                          <span className="text-text-secondary font-sans font-medium text-[11px]">Score:</span>
-                          {score !== null ? (
-                            <span
-                              className={
-                                score >= 80
-                                  ? 'text-emerald-400'
-                                  : score >= 50
-                                  ? 'text-amber-400'
-                                  : 'text-rose-400'
-                              }
-                            >
-                              {Math.round(score)}%
-                            </span>
-                          ) : (
-                            <span className="text-text-muted">—</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2 border-t border-surface-border/50 mt-1">
-                          <button
-                            onClick={() => onViewAudit(audit.id, audit.framework)}
-                            className="flex-1 flex items-center justify-center py-2 rounded bg-surface-border/50 hover:bg-surface-border border border-surface-border text-text-primary text-xs font-sans font-medium transition-colors"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleDownload(audit.id)}
-                            disabled={isCurDownloading}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded bg-brand-primary hover:bg-brand-secondary text-white font-sans font-bold text-xs transition-colors disabled:opacity-50"
-                          >
-                            {isCurDownloading ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Download size={14} />
-                            )}
-                            <span>{isCurDownloading ? 'Generating...' : 'Download PDF'}</span>
-                          </button>
-                      </div>
-                    </div>
-                  )
-                })}
-            </div>
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

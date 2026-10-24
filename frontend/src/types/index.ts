@@ -60,4 +60,5 @@ export type AuditSummaryItem = {
   status: string
   framework: string
   compliance_score: number | null
+  created_at?: string
 }

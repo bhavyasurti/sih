@@ -7,15 +7,13 @@ import {
   GraduationCap,
   FileText,
   Settings,
-  Activity,
-  CircleDot,
-  Layers,
-  Home,
   ChevronLeft,
-  LogOut,
+  ChevronRight,
   X,
   UserCheck,
-  ChevronRight
+  LogOut,
+  Activity,
+  ArrowRight
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -46,13 +44,23 @@ export function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const { user, logout } = useAuth()
-  const navGroups: { label: string; isMobileOnly?: boolean; items: { key: PageKey; label: string; icon: React.ElementType; badge?: string | number; badgeVariant?: 'active' | 'warning' }[] }[] = [
+
+  const navGroups: {
+    label: string
+    items: {
+      key: PageKey
+      label: string
+      icon: React.ElementType
+      badge?: string | number
+      badgeVariant?: 'active' | 'warning'
+    }[]
+  }[] = [
     {
       label: 'OVERVIEW',
       items: [
         {
-          key: 'dashboard' as PageKey,
-          label: 'Dashboard',
+          key: 'dashboard',
+          label: 'Fleet Posture',
           icon: LayoutDashboard,
         },
       ],
@@ -61,16 +69,16 @@ export function Sidebar({
       label: 'AUDITING',
       items: [
         {
-          key: 'audit' as PageKey,
+          key: 'audit',
           label: 'Configuration Audits',
           icon: FileCode2,
         },
         {
-          key: 'results' as PageKey,
+          key: 'results',
           label: 'Audit Results',
           icon: CheckSquare,
           badge: hasActiveAudit ? 'Active' : undefined,
-          badgeVariant: 'active' as const,
+          badgeVariant: 'active',
         },
       ],
     },
@@ -78,11 +86,11 @@ export function Sidebar({
       label: 'KNOWLEDGE',
       items: [
         {
-          key: 'training' as PageKey,
+          key: 'training',
           label: 'Training Center',
           icon: GraduationCap,
           badge: unresolvedCount > 0 ? unresolvedCount : undefined,
-          badgeVariant: 'warning' as const,
+          badgeVariant: 'warning',
         },
       ],
     },
@@ -90,7 +98,7 @@ export function Sidebar({
       label: 'REPORTING',
       items: [
         {
-          key: 'reports' as PageKey,
+          key: 'reports',
           label: 'Reports Archive',
           icon: FileText,
         },
@@ -100,155 +108,220 @@ export function Sidebar({
       label: 'SYSTEM',
       items: [
         {
-          key: 'settings' as PageKey,
-          label: 'Settings',
+          key: 'settings',
+          label: 'System Settings',
           icon: Settings,
         },
         {
-          key: 'profile' as PageKey,
-          label: 'My Profile',
+          key: 'profile',
+          label: 'Auditor Profile',
           icon: UserCheck,
         },
       ],
-    }
+    },
   ]
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full bg-white border-r border-[#D7DCE5] text-[#0A282D]">
+      {/* 1. Header / Brand Mark */}
+      <div className="h-20 flex items-center justify-between px-5 border-b border-[#D7DCE5]">
+        <Link
+          to="/"
+          className={`flex items-center gap-3 transition-opacity ${
+            isCollapsed ? 'justify-center w-full' : ''
+          }`}
+          title="NetSecure AI Home"
+        >
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-[#0A282D] text-white shadow-xs">
+            <Shield size={20} className="text-[#3DB663] stroke-[2.4]" />
+          </div>
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <div className="text-base font-display font-bold tracking-tight text-[#0A282D] flex items-center gap-1.5">
+                <span>NetSecure</span>
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-[#3DB663] text-white uppercase">
+                  AI
+                </span>
+              </div>
+              <div className="text-[9px] tracking-widest text-[#7E8F95] uppercase font-mono font-medium truncate">
+                Deterministic Engine
+              </div>
+            </div>
+          )}
+        </Link>
+
+        {/* Mobile close button */}
+        <button
+          onClick={onMobileClose}
+          className="lg:hidden p-2 rounded-xl text-[#7E8F95] hover:text-[#0A282D] hover:bg-[#F2F3F7]"
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* 2. Navigation Items List */}
+      <div className="flex-1 overflow-y-auto px-3 py-6 space-y-6">
+        {navGroups.map((group, gIdx) => (
+          <div key={gIdx} className="space-y-1.5">
+            {!isCollapsed && (
+              <div className="px-3 text-[10px] font-mono font-bold tracking-wider uppercase text-[#7E8F95] mb-2">
+                {group.label}
+              </div>
+            )}
+            {group.items.map((item) => {
+              const Icon = item.icon
+              const isActive = currentPage === item.key
+
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => {
+                    onNavigate(item.key)
+                    onMobileClose()
+                  }}
+                  title={isCollapsed ? item.label : undefined}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'bg-[#0A282D] text-white shadow-sm'
+                      : 'text-[#4A5B60] hover:text-[#0A282D] hover:bg-[#F2F3F7]'
+                  } ${isCollapsed ? 'justify-center px-2' : ''}`}
+                >
+                  <Icon
+                    size={17}
+                    className={`flex-shrink-0 ${
+                      isActive ? 'text-[#3DB663]' : 'text-[#7E8F95]'
+                    }`}
+                  />
+                  {!isCollapsed && (
+                    <span className="truncate flex-1 text-left font-display">
+                      {item.label}
+                    </span>
+                  )}
+                  {!isCollapsed && item.badge !== undefined && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
+                        item.badgeVariant === 'active'
+                          ? 'bg-[#3DB663] text-white'
+                          : 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* 3. Footer: Telemetry & Auditor Session */}
+      <div className="p-4 border-t border-[#D7DCE5] space-y-3 bg-[#F2F3F7]/50">
+        {/* Backend Connectivity Status */}
+        {!isCollapsed ? (
+          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-white border border-[#D7DCE5] text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  backendStatus === 'online'
+                    ? 'bg-[#3DB663] animate-ping'
+                    : backendStatus === 'checking'
+                    ? 'bg-[#D97706]'
+                    : 'bg-[#E11D48]'
+                }`}
+              />
+              <span className="text-[#4A5B60] text-[11px] font-medium">
+                {backendStatus === 'online'
+                  ? 'Core Engine Online'
+                  : backendStatus === 'checking'
+                  ? 'Connecting...'
+                  : 'Engine Offline'}
+              </span>
+            </div>
+            <span className="text-[10px] text-[#7E8F95] font-bold">FastAPI</span>
+          </div>
+        ) : (
+          <div
+            className="flex justify-center"
+            title={`Backend Status: ${backendStatus}`}
+          >
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                backendStatus === 'online'
+                  ? 'bg-[#3DB663]'
+                  : backendStatus === 'checking'
+                  ? 'bg-[#D97706]'
+                  : 'bg-[#E11D48]'
+              }`}
+            />
+          </div>
+        )}
+
+        {/* Auditor Profile & Logout */}
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} gap-2`}>
+          {!isCollapsed && (
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-display font-bold text-[#0A282D] truncate">
+                {user?.name || user?.email || 'Authorized Auditor'}
+              </div>
+              <div className="text-[10px] font-mono text-[#7E8F95] truncate">
+                {user?.email}
+              </div>
+            </div>
+          )}
+          <button
+            onClick={logout}
+            className="p-2 rounded-xl text-[#7E8F95] hover:text-[#E11D48] hover:bg-[#FEECEC] transition-colors"
+            title="Sign Out"
+            aria-label="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
+
+        {/* Collapse Toggle Button (Desktop Only) */}
+        <div className="hidden lg:block pt-1">
+          <button
+            onClick={onToggleCollapse}
+            className="w-full flex items-center justify-center p-2 rounded-xl text-[#7E8F95] hover:text-[#0A282D] hover:bg-white border border-transparent hover:border-[#D7DCE5] transition-all"
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Desktop Sidebar */}
+      <aside
+        className={`hidden lg:block h-screen transition-all duration-300 z-30 flex-shrink-0 ${
+          isCollapsed ? 'w-20' : 'w-64'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Drawer Backdrop */}
       {isMobileOpen && (
-        <div 
-          className="md:hidden fixed inset-0 z-30 bg-surface-primary/80 backdrop-blur-sm transition-opacity"
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity"
           onClick={onMobileClose}
         />
       )}
 
-      <aside 
-        className={`
-          fixed md:relative inset-y-0 left-0 z-40
-          flex-shrink-0 flex flex-col border-r border-surface-border bg-surface-secondary text-text-primary select-none
-          transition-all duration-300 ease-in-out
-          ${isCollapsed ? 'md:w-16 w-64' : 'w-64'}
-          ${isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
-        `}
+      {/* Mobile Drawer Menu */}
+      <div
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
-        {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-surface-border bg-surface-primary">
-          <Link to="/" className="flex items-center gap-3 overflow-hidden cursor-pointer hover:opacity-90">
-            <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-primary/20 border border-brand-primary/30 text-brand-bright">
-              <Shield size={20} className="stroke-[2.2]" />
-            </div>
-            <div className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-[200px] opacity-100 md:max-w-0 md:opacity-0' : 'max-w-[200px] opacity-100'}`}>
-              <div className="text-sm font-bold tracking-wider text-text-primary uppercase flex items-center gap-1.5">
-                NetSecure <span className="text-brand-bright font-extrabold text-[11px] px-1.5 py-0.5 rounded bg-surface-panel border border-brand-primary/30">AI</span>
-              </div>
-              <div className="text-[10px] font-medium text-text-secondary tracking-wider uppercase">
-                Enterprise Security
-              </div>
-            </div>
-          </Link>
-          
-          {/* Mobile close button */}
-          <button 
-            className="md:hidden p-1.5 text-text-secondary hover:text-text-primary rounded hover:bg-surface-hover" 
-            onClick={onMobileClose}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Navigation Groups */}
-        <nav className="flex-1 py-4 space-y-6 overflow-y-auto no-scrollbar overflow-x-hidden">
-          {navGroups.map((group) => {
-            if (group.isMobileOnly && !isMobileOpen) return null;
-            return (
-            <div key={group.label} className={`space-y-1 ${group.isMobileOnly ? 'md:hidden' : ''}`}>
-              <div className={`px-4 pb-1.5 text-[10px] font-semibold tracking-wider text-text-secondary uppercase transition-all whitespace-nowrap ${isCollapsed ? 'md:text-center md:text-[9px] md:px-1' : ''}`}>
-                <span className={isCollapsed ? 'md:hidden' : ''}>{group.label}</span>
-                <span className={`hidden ${isCollapsed ? 'md:inline' : ''}`}>{group.label.substring(0,3)}</span>
-              </div>
-              <div className="space-y-1 px-2">
-                {group.items.map((item) => {
-                  // Only show My Profile in the SYSTEM group if we are in the mobile drawer
-                  if (item.key === 'profile' && !isMobileOpen) return null;
-                  
-                  const Icon = item.icon
-                  const isActive = currentPage === item.key
-
-                  return (
-                    <button
-                      key={item.key}
-                      onClick={() => { onNavigate(item.key); onMobileClose(); }}
-                      className={`w-full flex items-center px-2 py-2 rounded-md text-xs font-medium transition-colors group relative ${
-                        isActive
-                          ? 'bg-brand-primary/15 text-brand-bright border border-brand-primary/30 font-semibold'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover border border-transparent'
-                      } ${isCollapsed ? 'md:justify-center' : 'justify-between'}`}
-                      title={isCollapsed ? item.label : undefined}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <Icon
-                          size={18}
-                          className={`flex-shrink-0 ${isActive ? 'text-brand-bright' : 'text-text-secondary group-hover:text-text-primary'}`}
-                        />
-                        <span className={`whitespace-nowrap transition-all duration-300 overflow-hidden ${isCollapsed ? 'max-w-[200px] opacity-100 md:max-w-0 md:opacity-0' : 'max-w-[200px] opacity-100'}`}>
-                          {item.label}
-                        </span>
-                      </div>
-
-                      {item.badge !== undefined && (
-                        <span
-                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 transition-all ${isCollapsed ? 'md:hidden' : ''} ${
-                            item.badgeVariant === 'warning'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-brand-primary/20 text-brand-bright border border-brand-primary/30'
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-
-                      {/* Badge dot for collapsed state */}
-                      {item.badge !== undefined && (
-                        <span className={`absolute top-1.5 right-1.5 h-2 w-2 rounded-full hidden ${isCollapsed ? 'md:block' : ''} ${
-                            item.badgeVariant === 'warning' ? 'bg-amber-500' : 'bg-brand-primary'
-                        }`} />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-          )}
-        </nav>
-
-      {/* Sidebar Footer */}
-      <div className="p-3 border-t border-surface-border bg-surface-primary/70 relative flex flex-col gap-2">
-        <button 
-          onClick={() => { onNavigate('profile'); onMobileClose(); }}
-          className={`pt-2 mt-1 flex items-center justify-between transition-colors rounded p-1.5 hover:bg-surface-hover w-full text-left ${isCollapsed ? 'md:justify-center' : 'px-2'}`}
-        >
-          <div className={`flex flex-col truncate pr-2 ${isCollapsed ? 'md:hidden' : ''}`}>
-            <span className="text-[11px] font-medium text-text-primary truncate">{user?.name || 'User'}</span>
-            <span className="text-[9px] text-text-secondary truncate">{user?.email}</span>
-          </div>
-          
-          <div className={`h-6 w-6 rounded-full bg-brand-primary/20 text-brand-bright flex items-center justify-center font-bold text-[10px] ${isCollapsed ? 'hidden md:flex' : 'hidden'}`}>
-            {(user?.name || 'U').charAt(0).toUpperCase()}
-          </div>
-        </button>
-
-        {/* Desktop Collapse Toggle */}
-        <button 
-          onClick={onToggleCollapse}
-          className="hidden md:flex absolute -right-3 top-[-12px] h-6 w-6 items-center justify-center rounded-full bg-surface-panel border border-surface-border text-text-secondary hover:bg-surface-hover hover:text-text-primary z-50 shadow-lg"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
+        {sidebarContent}
       </div>
-    </aside>
     </>
   )
 }

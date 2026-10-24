@@ -1,575 +1,640 @@
 import React, { useEffect, useRef, useState } from 'react'
+import * as THREE from 'three'
+import { Shield, CheckCircle2, AlertTriangle, ArrowRight, Activity, Terminal, Lock } from 'lucide-react'
 
-interface Node3D {
+interface VendorNodeData {
   id: string
-  label: string
-  sublabel: string
-  type: 'cisco' | 'fortinet' | 'paloalto' | 'server' | 'cloud' | 'gateway' | 'remote' | 'compliance' | 'report' | 'finding'
-  x: number
-  y: number
-  z: number
-  baseX: number
-  baseY: number
-  baseZ: number
-  speed: number
-  color: string
-  bgColor: string
-  screenX: number
-  screenY: number
-  scale: number
-  alpha: number
-  status?: 'ok' | 'alert' | 'remediated'
+  name: string
+  vendor: string
+  os: string
+  role: string
+  status: 'compliant' | 'warning' | 'critical'
+  score: number
+  rulesPassed: number
+  rulesTotal: number
+  color: number
+  hexColor: string
+  pos: [number, number, number]
 }
 
-interface Particle {
-  sourceIndex: number
-  targetIndex: number // -1 = central core
-  progress: number
-  speed: number
-  type: 'network' | 'analysis' | 'finding' | 'compliant'
-  color: string
-}
+const VENDOR_NODES: VendorNodeData[] = [
+  {
+    id: 'cisco-core',
+    name: 'Core-RTR-01',
+    vendor: 'Cisco',
+    os: 'IOS-XE 17.9',
+    role: 'BGP/OSPF Spine',
+    status: 'compliant',
+    score: 96,
+    rulesPassed: 27,
+    rulesTotal: 28,
+    color: 0x0284c7, // cyan-blue
+    hexColor: '#0284C7',
+    pos: [-4.2, 1.8, 1.2],
+  },
+  {
+    id: 'fortinet-edge',
+    name: 'Edge-NGFW-01',
+    vendor: 'Fortinet',
+    os: 'FortiOS 7.4',
+    role: 'Perimeter Inspection',
+    status: 'warning',
+    score: 84,
+    rulesPassed: 24,
+    rulesTotal: 28,
+    color: 0xe11d48, // crimson
+    hexColor: '#E11D48',
+    pos: [-3.4, -2.2, 2.0],
+  },
+  {
+    id: 'paloalto-vpn',
+    name: 'Gateway-PAN-01',
+    vendor: 'Palo Alto',
+    os: 'PAN-OS 11.1',
+    role: 'Zero-Trust Gateway',
+    status: 'compliant',
+    score: 92,
+    rulesPassed: 26,
+    rulesTotal: 28,
+    color: 0xf97316, // orange
+    hexColor: '#F97316',
+    pos: [3.8, 2.0, 1.5],
+  },
+  {
+    id: 'juniper-core',
+    name: 'Spine-JUNOS-01',
+    vendor: 'Juniper',
+    os: 'Junos OS 23.2',
+    role: 'EVPN-VXLAN Fabric',
+    status: 'compliant',
+    score: 98,
+    rulesPassed: 28,
+    rulesTotal: 28,
+    color: 0x3db663, // potadot green
+    hexColor: '#3DB663',
+    pos: [4.4, -1.6, 0.8],
+  },
+  {
+    id: 'aruba-access',
+    name: 'Access-CX-01',
+    vendor: 'Aruba',
+    os: 'AOS-CX 10.12',
+    role: '802.1X Edge Port',
+    status: 'compliant',
+    score: 90,
+    rulesPassed: 25,
+    rulesTotal: 28,
+    color: 0xd97706, // amber
+    hexColor: '#D97706',
+    pos: [-1.4, -3.2, -1.8],
+  },
+  {
+    id: 'checkpoint-dc',
+    name: 'DC-FW-01',
+    vendor: 'Check Point',
+    os: 'Gaia R81.20',
+    role: 'Data Center Segmentation',
+    status: 'compliant',
+    score: 94,
+    rulesPassed: 26,
+    rulesTotal: 28,
+    color: 0x8b5cf6, // purple
+    hexColor: '#8B5CF6',
+    pos: [1.6, 3.4, -1.5],
+  },
+]
 
 export function Hero3DVisual() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
+  const mountRef = useRef<HTMLDivElement | null>(null)
+  const dotsCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [hoveredNode, setHoveredNode] = useState<VendorNodeData | null>(null)
+  const [activeStageIndex, setActiveStageIndex] = useState(0)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const [activeStoryStage, setActiveStoryStage] = useState(1)
+  const [webglSupported, setWebglSupported] = useState(true)
 
+  const stages = [
+    { label: 'Multi-Vendor Ingestion', status: 'Online · 6 Parsers Active' },
+    { label: 'Deterministic CIS Evaluation', status: 'Level 1 & Level 2 Benchmarks' },
+    { label: 'NIST SP 800-53 Mapping', status: 'Access Control & System Integrity' },
+    { label: 'AI Root-Cause Explanation', status: 'Gemini Technical Synthesizer' },
+    { label: 'Verified Remediation Staging', status: 'Closed-Loop CLI Dry Run' },
+  ]
+
+  // Cycle telemetry stages periodically
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveStoryStage((prev) => (prev % 7) + 1)
-    }, 4000)
-    return () => clearInterval(interval)
+    const timer = setInterval(() => {
+      setActiveStageIndex((prev) => (prev + 1) % stages.length)
+    }, 3800)
+    return () => clearInterval(timer)
+  }, [stages.length])
+
+  // Reduced motion preference
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', listener)
+    return () => mq.removeEventListener('change', listener)
   }, [])
 
+  // Dot Canvas background (inspired by Potadot #heroDots)
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
-  }, [])
-
-  useEffect(() => {
-    const canvas = canvasRef.current
+    const canvas = dotsCanvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d', { alpha: false }) // Optimize for solid bg
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    let animationFrameId: number
-    let time = 0
+    let animId: number
+    let width = (canvas.width = canvas.parentElement?.clientWidth || window.innerWidth)
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 600)
 
-    const resize = () => {
-      const container = containerRef.current
-      if (!container || !canvas) return
-      const rect = container.getBoundingClientRect()
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
-      ctx.scale(dpr, dpr)
+    const handleResize = () => {
+      if (!canvas.parentElement) return
+      width = canvas.width = canvas.parentElement.clientWidth
+      height = canvas.height = canvas.parentElement.clientHeight
+    }
+    window.addEventListener('resize', handleResize)
+
+    const mouse = { x: -1000, y: -1000, active: false }
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      mouse.x = e.clientX - rect.left
+      mouse.y = e.clientY - rect.top
+      mouse.active = true
+    }
+    const onMouseLeave = () => {
+      mouse.active = false
     }
 
-    resize()
-    window.addEventListener('resize', resize)
+    canvas.parentElement?.addEventListener('mousemove', onMouseMove)
+    canvas.parentElement?.addEventListener('mouseleave', onMouseLeave)
 
-    // Expanded 3D scene covering a wide area. 
-    // Left side: Network devices. Center: Analysis. Right: Compliance/Reports.
-    const nodes: Node3D[] = [
-      // Left side: Sources
-      { id: 'cisco-core', label: 'Cisco IOS-XE', sublabel: 'Core', type: 'cisco', baseX: -400, baseY: -80, baseZ: 100, speed: 0.001, color: '#38bdf8', bgColor: '#0c2238', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'ok' },
-      { id: 'fortinet-edge', label: 'FortiOS NGFW', sublabel: 'Perimeter', type: 'fortinet', baseX: -350, baseY: 120, baseZ: -50, speed: 0.0015, color: '#f87171', bgColor: '#2a1216', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'alert' },
-      { id: 'paloalto-vpn', label: 'PAN-OS Gateway', sublabel: 'VPN', type: 'paloalto', baseX: -250, baseY: -200, baseZ: 200, speed: 0.0012, color: '#fb923c', bgColor: '#2a190e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'remediated' },
-      { id: 'aws-vpc', label: 'AWS Transit Gateway', sublabel: 'Cloud', type: 'cloud', baseX: -150, baseY: 220, baseZ: -150, speed: 0.0018, color: '#a78bfa', bgColor: '#1e1435', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'ok' },
-      { id: 'aruba-switch', label: 'Aruba CX', sublabel: 'Access', type: 'gateway', baseX: -500, baseY: 40, baseZ: 50, speed: 0.0014, color: '#34d399', bgColor: '#0e291e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1, status: 'ok' },
+    const spacing = 36
+    const dots: { x: number; y: number; ox: number; oy: number; vx: number; vy: number }[] = []
 
-      // Center-ish top/bottom (Analysis context)
-      { id: 'policy-engine', label: 'Policy Engine', sublabel: 'Evaluating', type: 'server', baseX: 50, baseY: -250, baseZ: -200, speed: 0.002, color: '#60a5fa', bgColor: '#13233a', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
-      { id: 'remediation-bot', label: 'Auto-Remediation', sublabel: 'Fixing', type: 'server', baseX: 100, baseY: 250, baseZ: 100, speed: 0.002, color: '#34d399', bgColor: '#0e291e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
-
-      // Right side: Compliance & Output
-      { id: 'cis-benchmark', label: 'CIS Benchmark', sublabel: 'Framework', type: 'compliance', baseX: 250, baseY: -120, baseZ: 150, speed: 0.001, color: '#eab308', bgColor: '#2a220e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
-      { id: 'nist-800', label: 'NIST 800-53', sublabel: 'Framework', type: 'compliance', baseX: 300, baseY: 80, baseZ: -100, speed: 0.0015, color: '#fbbf24', bgColor: '#2a220e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
-      { id: 'iso-27001', label: 'ISO 27001', sublabel: 'Framework', type: 'compliance', baseX: 450, baseY: -40, baseZ: 50, speed: 0.0012, color: '#fbbf24', bgColor: '#2a220e', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
-      { id: 'pdf-report', label: 'Audit-Ready Report', sublabel: 'PDF Export', type: 'report', baseX: 550, baseY: 150, baseZ: 200, speed: 0.001, color: '#ec4899', bgColor: '#2a1222', x: 0, y: 0, z: 0, screenX: 0, screenY: 0, scale: 1, alpha: 1 },
-    ]
-
-    const particles: Particle[] = []
-    // Generate particles flowing from left -> center -> right
-    // Left to center
-    for (let i = 0; i < 5; i++) {
-      particles.push({ sourceIndex: i, targetIndex: -1, progress: Math.random(), speed: 0.003 + Math.random() * 0.003, type: 'network', color: nodes[i].color })
-      particles.push({ sourceIndex: i, targetIndex: -1, progress: Math.random(), speed: 0.003 + Math.random() * 0.003, type: 'analysis', color: '#60a5fa' })
-    }
-    // Center to right
-    for (let i = 7; i <= 10; i++) {
-      particles.push({ sourceIndex: -1, targetIndex: i, progress: Math.random(), speed: 0.003 + Math.random() * 0.003, type: 'compliant', color: nodes[i].color })
+    for (let x = spacing / 2; x < width; x += spacing) {
+      for (let y = spacing / 2; y < height; y += spacing) {
+        dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0 })
+      }
     }
 
     const render = () => {
-      const container = containerRef.current
-      if (!container || !canvas) return
-      const rect = container.getBoundingClientRect()
-      const width = rect.width
-      const height = rect.height
-      const centerX = width / 2
-      const centerY = height / 2
+      ctx.clearRect(0, 0, width, height)
 
-      // Solid background
-      ctx.fillStyle = '#03060a'
-      ctx.fillRect(0, 0, width, height)
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i]
 
-      // Smooth mouse parallax easing
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.04
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.04
-
-      const tiltX = (mouseRef.current.y / height - 0.5) * 0.3 + 0.2 // Pitch
-      const tiltY = (mouseRef.current.x / width - 0.5) * 0.4 // Yaw
-
-      if (!prefersReducedMotion) {
-        time += 0.008
-      }
-
-      const fov = Math.max(600, width * 0.6)
-      const cameraZ = 800
-
-      // Core position is offset slightly to the right to accommodate text on the left
-      // But we dynamically adjust based on screen width. On mobile, center it.
-      const isMobile = width < 768
-      const coreBaseX = isMobile ? 0 : width * 0.15 
-      const coreScreenX = centerX + coreBaseX
-      const coreScreenY = centerY
-
-      // 1. Grid Background (Floor)
-      ctx.save()
-      ctx.strokeStyle = '#1e293b40'
-      ctx.lineWidth = 1
-      for (let i = -800; i <= 800; i += 100) {
-        // Z lines
-        const lineNodes = [
-          { x: i, y: 300, z: -800 },
-          { x: i, y: 300, z: 800 }
-        ]
-        ctx.beginPath()
-        lineNodes.forEach((p, idx) => {
-          const rx1 = p.x * Math.cos(tiltY) + p.z * Math.sin(tiltY)
-          const rz1 = -p.x * Math.sin(tiltY) + p.z * Math.cos(tiltY)
-          const ry1 = p.y * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
-          const rz2 = p.y * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
-          const scale = fov / (cameraZ + rz2)
-          const sx = centerX + coreBaseX + rx1 * scale
-          const sy = centerY + ry1 * scale
-          if (idx === 0) ctx.moveTo(sx, sy)
-          else ctx.lineTo(sx, sy)
-        })
-        ctx.stroke()
-        
-        // X lines
-        const lineNodesX = [
-          { x: -800, y: 300, z: i },
-          { x: 800, y: 300, z: i }
-        ]
-        ctx.beginPath()
-        lineNodesX.forEach((p, idx) => {
-          const rx1 = p.x * Math.cos(tiltY) + p.z * Math.sin(tiltY)
-          const rz1 = -p.x * Math.sin(tiltY) + p.z * Math.cos(tiltY)
-          const ry1 = p.y * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
-          const rz2 = p.y * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
-          const scale = fov / (cameraZ + rz2)
-          const sx = centerX + coreBaseX + rx1 * scale
-          const sy = centerY + ry1 * scale
-          if (idx === 0) ctx.moveTo(sx, sy)
-          else ctx.lineTo(sx, sy)
-        })
-        ctx.stroke()
-      }
-      ctx.restore()
-
-      // 2. Project 3D Nodes
-      nodes.forEach((node) => {
-        // Floating motion
-        const floatY = prefersReducedMotion ? 0 : Math.sin(time * 2 + node.baseX) * 20
-        const floatX = prefersReducedMotion ? 0 : Math.cos(time * 1.5 + node.baseZ) * 15
-        
-        const rawX = node.baseX + floatX
-        const rawY = node.baseY + floatY
-        const rawZ = node.baseZ
-        
-        // Apply rotation/tilt around the core
-        const rx1 = rawX * Math.cos(tiltY) + rawZ * Math.sin(tiltY)
-        const rz1 = -rawX * Math.sin(tiltY) + rawZ * Math.cos(tiltY)
-        const ry1 = rawY * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
-        const rz2 = rawY * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
-
-        const scale = fov / (cameraZ + rz2)
-        node.x = rx1
-        node.y = ry1
-        node.z = rz2
-        
-        // On mobile, scale everything down proportionally to screen width
-        const globalScale = isMobile ? (width / 600) : 1
-        // Compress X spread on mobile
-        const xSpread = isMobile ? rx1 * 0.6 : rx1
-        node.screenX = coreScreenX + xSpread * scale * globalScale
-        node.screenY = coreScreenY + ry1 * scale * globalScale
-        node.scale = Math.max(0.3, Math.min(2, scale * globalScale))
-        
-        let targetAlpha = Math.max(0.1, Math.min(1, (rz2 + 600) / 1000))
-        if (isMobile && !['cisco-core', 'fortinet-edge', 'paloalto-vpn', 'cis-benchmark', 'nist-800'].includes(node.id)) {
-          targetAlpha = 0
-        }
-        node.alpha = targetAlpha
-      })
-
-      const sortedNodes = [...nodes].sort((a, b) => b.z - a.z)
-      const centerScale = (fov / cameraZ) * (isMobile ? (width / 900) : 1)
-
-      // 3. Draw connection lines to central core
-      nodes.forEach((node) => {
-        if (node.alpha <= 0) return
-        ctx.save()
-        const lineAlpha = (node.alpha * 0.3).toFixed(2)
-        ctx.strokeStyle = `${node.color}${Math.round(parseFloat(lineAlpha) * 255).toString(16).padStart(2, '0')}`
-        ctx.lineWidth = Math.max(1, 1.5 * node.scale)
-
-        const midX = (coreScreenX + node.screenX) / 2
-        const midY = (coreScreenY + node.screenY) / 2 - 40 * node.scale
-
-        ctx.beginPath()
-        ctx.moveTo(coreScreenX, coreScreenY)
-        ctx.quadraticCurveTo(midX, midY, node.screenX, node.screenY)
-        ctx.stroke()
-        ctx.restore()
-      })
-
-      // 4. Draw Particles
-      particles.forEach((packet) => {
-        let sourceX, sourceY, sourceScale, targetX, targetY
-
-        if (packet.sourceIndex === -1) {
-          sourceX = coreScreenX
-          sourceY = coreScreenY
-          sourceScale = centerScale
-        } else {
-          const n = nodes[packet.sourceIndex]
-          if (n.alpha <= 0) return
-          sourceX = n.screenX
-          sourceY = n.screenY
-          sourceScale = n.scale
+        if (mouse.active) {
+          const dx = mouse.x - d.x
+          const dy = mouse.y - d.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const maxDist = 90
+          if (dist < maxDist && dist > 0) {
+            const force = (1 - dist / maxDist) * 12
+            d.vx -= (dx / dist) * force * 0.1
+            d.vy -= (dy / dist) * force * 0.1
+          }
         }
 
-        if (packet.targetIndex === -1) {
-          targetX = coreScreenX
-          targetY = coreScreenY
-        } else {
-          const n = nodes[packet.targetIndex]
-          if (n.alpha <= 0) return
-          targetX = n.screenX
-          targetY = n.screenY
-        }
+        // Spring back to origin
+        d.vx += (d.ox - d.x) * 0.08
+        d.vy += (d.oy - d.y) * 0.08
+        d.vx *= 0.85
+        d.vy *= 0.85
+        d.x += d.vx
+        d.y += d.vy
 
-        if (!prefersReducedMotion) {
-          packet.progress += packet.speed
-          if (packet.progress > 1) packet.progress = 0
-        }
-
-        const t = packet.progress
-        const midX = (targetX + sourceX) / 2
-        const midY = (targetY + sourceY) / 2 - 40 * sourceScale
-
-        const px = (1 - t) * (1 - t) * sourceX + 2 * (1 - t) * t * midX + t * t * targetX
-        const py = (1 - t) * (1 - t) * sourceY + 2 * (1 - t) * t * midY + t * t * targetY
-
-        ctx.save()
-        ctx.fillStyle = packet.color
-        ctx.shadowColor = packet.color
-        ctx.shadowBlur = 8
+        // Draw dot
+        const distFromOrig = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2)
+        const alpha = Math.min(0.28 + distFromOrig * 0.08, 0.75)
+        ctx.fillStyle = distFromOrig > 1.5 ? 'rgba(61, 182, 99, ' + alpha + ')' : 'rgba(10, 40, 45, 0.12)'
         ctx.beginPath()
-        ctx.arc(px, py, 2.5 * Math.max(0.5, sourceScale), 0, Math.PI * 2)
+        ctx.arc(d.x, d.y, distFromOrig > 1.5 ? 2.2 : 1.4, 0, Math.PI * 2)
         ctx.fill()
-        
-        // Trail
-        ctx.shadowBlur = 0
-        ctx.globalAlpha = 0.5
-        const t2 = Math.max(0, t - 0.05)
-        const px2 = (1 - t2) * (1 - t2) * sourceX + 2 * (1 - t2) * t2 * midX + t2 * t2 * targetX
-        const py2 = (1 - t2) * (1 - t2) * sourceY + 2 * (1 - t2) * t2 * midY + t2 * t2 * targetY
-        ctx.strokeStyle = packet.color
-        ctx.lineWidth = 2 * Math.max(0.5, sourceScale)
-        ctx.beginPath()
-        ctx.moveTo(px, py)
-        ctx.lineTo(px2, py2)
-        ctx.stroke()
-        
-        ctx.restore()
-      })
-
-      // 5. Draw 3D Network Nodes
-      sortedNodes.forEach((node) => {
-        if (node.alpha <= 0) return
-        
-        ctx.save()
-        ctx.translate(node.screenX, node.screenY)
-        ctx.globalAlpha = node.alpha
-
-        // Hexagon or circle based on type
-        ctx.fillStyle = node.bgColor
-        ctx.strokeStyle = node.color
-        ctx.lineWidth = 1.5
-
-        if (node.type === 'compliance' || node.type === 'report') {
-          // Draw rect
-          ctx.beginPath()
-          ctx.rect(-16 * node.scale, -12 * node.scale, 32 * node.scale, 24 * node.scale)
-          ctx.fill()
-          ctx.stroke()
-        } else {
-          // Draw circle
-          ctx.beginPath()
-          ctx.arc(0, 0, 14 * node.scale, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.stroke()
-          
-          // Inner dot
-          ctx.fillStyle = node.color
-          ctx.beginPath()
-          ctx.arc(0, 0, 4 * node.scale, 0, Math.PI * 2)
-          ctx.fill()
-        }
-
-        // Status indicator
-        if (node.status === 'alert') {
-          ctx.fillStyle = '#ef4444' // red
-          ctx.shadowColor = '#ef4444'
-          ctx.shadowBlur = Math.sin(time * 10) * 10 + 10
-          ctx.beginPath()
-          ctx.arc(10 * node.scale, -10 * node.scale, 4 * node.scale, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.shadowBlur = 0
-        } else if (node.status === 'remediated') {
-          ctx.fillStyle = '#10b981' // green
-          ctx.beginPath()
-          ctx.arc(10 * node.scale, -10 * node.scale, 4 * node.scale, 0, Math.PI * 2)
-          ctx.fill()
-        }
-
-        // Floating config snippets
-        if (node.status === 'alert' && !prefersReducedMotion) {
-          ctx.font = `600 ${8 * node.scale}px "JetBrains Mono", monospace`
-          ctx.fillStyle = '#ef4444'
-          ctx.fillText("! TELNET PERMITTED", 16 * node.scale, -20 * node.scale)
-        } else if (node.status === 'remediated' && !prefersReducedMotion) {
-          ctx.font = `600 ${8 * node.scale}px "JetBrains Mono", monospace`
-          ctx.fillStyle = '#10b981'
-          ctx.fillText("✓ SSH v2 ENFORCED", 16 * node.scale, -20 * node.scale)
-        }
-
-        // Labels
-        ctx.font = `600 ${Math.max(10, 11 * node.scale)}px "Inter", sans-serif`
-        ctx.fillStyle = '#f8fafc'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'top'
-        ctx.fillText(node.label, 0, 18 * node.scale)
-
-        ctx.font = `500 ${Math.max(8, 9 * node.scale)}px "JetBrains Mono", monospace`
-        ctx.fillStyle = node.color
-        ctx.fillText(node.sublabel, 0, 32 * node.scale)
-
-        ctx.restore()
-      })
-
-      // 6. Central NetSecure AI Security Engine (The Core)
-      ctx.save()
-      ctx.translate(coreScreenX, coreScreenY)
-
-      const coreRot = prefersReducedMotion ? 0 : time * 0.4
-      const coreRadius = 45 * centerScale
-
-      // Glowing aura
-      const auraPulse = prefersReducedMotion ? 1 : (Math.sin(time * 3) + 1) / 2
-      ctx.fillStyle = `rgba(2, 132, 199, ${0.05 + auraPulse * 0.05})`
-      ctx.beginPath()
-      ctx.arc(0, 0, coreRadius * 2.5, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Outer rotating geometric frame (ring 1)
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'
-      ctx.lineWidth = 1.5
-      ctx.beginPath()
-      for (let i = 0; i < 6; i++) {
-        const ang = coreRot + (i * Math.PI) / 3
-        const px = Math.cos(ang) * (coreRadius * 1.6)
-        const py = Math.sin(ang) * (coreRadius * 1.6)
-        if (i === 0) ctx.moveTo(px, py)
-        else ctx.lineTo(px, py)
       }
-      ctx.closePath()
-      ctx.stroke()
 
-      // Rotating inner ring (opposite direction)
-      ctx.strokeStyle = 'rgba(14, 165, 233, 0.6)'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      for (let i = 0; i < 8; i++) {
-        const ang = -coreRot * 1.5 + (i * Math.PI) / 4
-        const px = Math.cos(ang) * (coreRadius * 1.3)
-        const py = Math.sin(ang) * (coreRadius * 1.3)
-        if (i === 0) ctx.moveTo(px, py)
-        else ctx.lineTo(px, py)
-      }
-      ctx.closePath()
-      ctx.stroke()
-
-      // Core Shield Base
-      ctx.fillStyle = '#0a1628'
-      ctx.strokeStyle = '#0ea5e9'
-      ctx.lineWidth = 2.5
-      ctx.shadowColor = '#0284c7'
-      ctx.shadowBlur = 15
-
-      ctx.beginPath()
-      ctx.moveTo(0, -coreRadius)
-      ctx.lineTo(coreRadius * 0.85, -coreRadius * 0.4)
-      ctx.lineTo(coreRadius * 0.7, coreRadius * 0.5)
-      ctx.lineTo(0, coreRadius * 1.1)
-      ctx.lineTo(-coreRadius * 0.7, coreRadius * 0.5)
-      ctx.lineTo(-coreRadius * 0.85, -coreRadius * 0.4)
-      ctx.closePath()
-      ctx.fill()
-      ctx.stroke()
-      ctx.shadowBlur = 0 // reset
-
-      // Faceted metallic shine lines
-      ctx.strokeStyle = 'rgba(125, 211, 252, 0.3)'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.moveTo(0, -coreRadius)
-      ctx.lineTo(0, coreRadius * 1.1)
-      ctx.moveTo(-coreRadius * 0.85, -coreRadius * 0.4)
-      ctx.lineTo(coreRadius * 0.85, -coreRadius * 0.4)
-      ctx.moveTo(-coreRadius * 0.7, coreRadius * 0.5)
-      ctx.lineTo(coreRadius * 0.7, coreRadius * 0.5)
-      ctx.stroke()
-
-      // Text inside core
-      ctx.fillStyle = '#ffffff'
-      ctx.font = `bold ${10 * centerScale}px "Inter", sans-serif`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('NETSECURE', 0, -4 * centerScale)
-
-      ctx.font = `bold ${8 * centerScale}px "JetBrains Mono", monospace`
-      ctx.fillStyle = '#38bdf8'
-      ctx.fillText('ENGINE', 0, 10 * centerScale)
-
-      ctx.restore()
-
-      animationFrameId = requestAnimationFrame(render)
+      animId = requestAnimationFrame(render)
     }
 
     render()
 
     return () => {
-      window.removeEventListener('resize', resize)
-      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('resize', handleResize)
+      canvas.parentElement?.removeEventListener('mousemove', onMouseMove)
+      canvas.parentElement?.removeEventListener('mouseleave', onMouseLeave)
+      cancelAnimationFrame(animId)
+    }
+  }, [])
+
+  // Three.js 3D Interactive Topology
+  useEffect(() => {
+    const container = mountRef.current
+    if (!container) return
+
+    // Scene, Camera, Renderer
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
+    camera.position.set(0, 0, 14)
+
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+      renderer.setSize(container.clientWidth, container.clientHeight)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+      renderer.toneMapping = THREE.ACESFilmicToneMapping
+      renderer.toneMappingExposure = 1.1
+      container.appendChild(renderer.domElement)
+    } catch {
+      setWebglSupported(false)
+      return
+    }
+
+    // Ambient and Directional Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2)
+    scene.add(ambientLight)
+
+    const dirLight1 = new THREE.DirectionalLight(0x3db663, 2.4)
+    dirLight1.position.set(5, 8, 5)
+    scene.add(dirLight1)
+
+    const dirLight2 = new THREE.DirectionalLight(0x0284c7, 1.8)
+    dirLight2.position.set(-6, -4, 4)
+    scene.add(dirLight2)
+
+    // CENTRAL SECURITY INTELLIGENCE ELEMENT
+    const coreGroup = new THREE.Group()
+    scene.add(coreGroup)
+
+    // Inner glowing faceted nucleus
+    const coreIcosaGeo = new THREE.IcosahedronGeometry(1.25, 1)
+    const coreIcosaMat = new THREE.MeshStandardMaterial({
+      color: 0x0a282d,
+      roughness: 0.15,
+      metalness: 0.85,
+      wireframe: false,
+    })
+    const coreMesh = new THREE.Mesh(coreIcosaGeo, coreIcosaMat)
+    coreGroup.add(coreMesh)
+
+    // Outer crystalline wireframe shield
+    const wireGeo = new THREE.IcosahedronGeometry(1.48, 1)
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: 0x3db663,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.85,
+    })
+    const wireMesh = new THREE.Mesh(wireGeo, wireMat)
+    coreGroup.add(wireMesh)
+
+    // Orbital Scan Rings (Representing CIS, NIST & Rule Boundaries)
+    const createRing = (radius: number, tube: number, color: number, rx: number, ry: number) => {
+      const ringGeo = new THREE.TorusGeometry(radius, tube, 16, 80)
+      const ringMat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.4,
+        roughness: 0.2,
+        metalness: 0.9,
+      })
+      const ring = new THREE.Mesh(ringGeo, ringMat)
+      ring.rotation.x = rx
+      ring.rotation.y = ry
+      return ring
+    }
+
+    const ring1 = createRing(2.1, 0.022, 0x3db663, Math.PI / 3, Math.PI / 6)
+    const ring2 = createRing(2.5, 0.018, 0x0284c7, -Math.PI / 4, Math.PI / 4)
+    const ring3 = createRing(2.9, 0.014, 0xf97316, Math.PI / 2.2, 0)
+    coreGroup.add(ring1)
+    coreGroup.add(ring2)
+    coreGroup.add(ring3)
+
+    // Radar Scanning Wave (Expanding disc/ring)
+    const radarGeo = new THREE.RingGeometry(0.2, 0.28, 64)
+    const radarMat = new THREE.MeshBasicMaterial({
+      color: 0x3db663,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.7,
+    })
+    const radarWave = new THREE.Mesh(radarGeo, radarMat)
+    radarWave.rotation.x = Math.PI / 2
+    scene.add(radarWave)
+
+    // VENDOR SATELLITE NODES & CONNECTIONS
+    const nodeMeshes: { mesh: THREE.Mesh; data: VendorNodeData; glow: THREE.Mesh }[] = []
+    const connectionLines: { line: THREE.Line; curve: THREE.QuadraticBezierCurve3 }[] = []
+    const nodeRaycastObjects: THREE.Object3D[] = []
+
+    VENDOR_NODES.forEach((n) => {
+      const nodeGroup = new THREE.Group()
+      nodeGroup.position.set(...n.pos)
+
+      // Solid sphere
+      const sphereGeo = new THREE.SphereGeometry(0.38, 32, 32)
+      const sphereMat = new THREE.MeshStandardMaterial({
+        color: n.color,
+        roughness: 0.25,
+        metalness: 0.8,
+        emissive: n.color,
+        emissiveIntensity: 0.35,
+      })
+      const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat)
+      sphereMesh.userData = { nodeData: n }
+      nodeGroup.add(sphereMesh)
+
+      // Outer glow shell
+      const glowGeo = new THREE.SphereGeometry(0.52, 24, 24)
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: n.color,
+        transparent: true,
+        opacity: 0.25,
+        wireframe: true,
+      })
+      const glowMesh = new THREE.Mesh(glowGeo, glowMat)
+      nodeGroup.add(glowMesh)
+
+      scene.add(nodeGroup)
+      nodeMeshes.push({ mesh: sphereMesh, data: n, glow: glowMesh })
+      nodeRaycastObjects.push(sphereMesh)
+
+      // Connection Curve to Core
+      const start = new THREE.Vector3(...n.pos)
+      const mid = new THREE.Vector3(n.pos[0] * 0.45, n.pos[1] * 0.45 + (n.pos[2] > 0 ? 0.6 : -0.6), n.pos[2] * 0.45)
+      const end = new THREE.Vector3(0, 0, 0)
+      const curve = new THREE.QuadraticBezierCurve3(start, mid, end)
+
+      const points = curve.getPoints(40)
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points)
+      const lineMat = new THREE.LineBasicMaterial({
+        color: n.color,
+        transparent: true,
+        opacity: 0.35,
+      })
+      const line = new THREE.Line(lineGeo, lineMat)
+      scene.add(line)
+      connectionLines.push({ line, curve })
+    })
+
+    // PACKET PARTICLES FLOWING ALONG CURVES
+    const packetCount = 28
+    const packetGeo = new THREE.SphereGeometry(0.065, 12, 12)
+    const packets: { mesh: THREE.Mesh; curveIndex: number; progress: number; speed: number }[] = []
+
+    for (let i = 0; i < packetCount; i++) {
+      const curveIndex = i % connectionLines.length
+      const vendorColor = VENDOR_NODES[curveIndex].color
+      const pMat = new THREE.MeshBasicMaterial({
+        color: vendorColor,
+        transparent: true,
+        opacity: 0.9,
+      })
+      const pMesh = new THREE.Mesh(packetGeo, pMat)
+      scene.add(pMesh)
+      packets.push({
+        mesh: pMesh,
+        curveIndex,
+        progress: (i / packetCount) * 1.0,
+        speed: 0.003 + Math.random() * 0.004,
+      })
+    }
+
+    // RAYCASTING & MOUSE INTERACTION
+    const raycaster = new THREE.Raycaster()
+    const mouseNorm = new THREE.Vector2(-999, -999)
+    const mousePos = { x: 0, y: 0, targetX: 0, targetY: 0 }
+
+    const onPointerMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect()
+      mouseNorm.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      mouseNorm.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+      mousePos.targetX = (e.clientX - rect.left - rect.width / 2) * 0.0018
+      mousePos.targetY = (e.clientY - rect.top - rect.height / 2) * 0.0018
+    }
+
+    const onPointerLeave = () => {
+      mouseNorm.x = -999
+      mouseNorm.y = -999
+      mousePos.targetX = 0
+      mousePos.targetY = 0
+      setHoveredNode(null)
+    }
+
+    container.addEventListener('mousemove', onPointerMove)
+    container.addEventListener('mouseleave', onPointerLeave)
+
+    // Handle Window Resize
+    const handleResize = () => {
+      if (!container) return
+      camera.aspect = container.clientWidth / container.clientHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(container.clientWidth, container.clientHeight)
+    }
+    window.addEventListener('resize', handleResize)
+
+    // ANIMATION LOOP
+    let animFrame: number
+    let radarScale = 0.5
+    let time = 0
+
+    const animate = () => {
+      time += 0.015
+
+      // Smooth camera parallax
+      mousePos.x += (mousePos.targetX - mousePos.x) * 0.05
+      mousePos.y += (mousePos.targetY - mousePos.y) * 0.05
+      camera.position.x = mousePos.x * 2.8
+      camera.position.y = -mousePos.y * 2.8
+      camera.lookAt(0, 0, 0)
+
+      if (!prefersReducedMotion) {
+        // Rotate Central Core
+        coreGroup.rotation.y = time * 0.35
+        coreGroup.rotation.x = Math.sin(time * 0.25) * 0.15
+
+        ring1.rotation.z = time * 0.6
+        ring2.rotation.z = -time * 0.5
+        ring3.rotation.z = time * 0.4
+
+        // Expand Radar Pulse
+        radarScale += 0.035
+        if (radarScale > 6.2) radarScale = 0.5
+        radarWave.scale.set(radarScale, radarScale, radarScale)
+        ;(radarWave.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.7 - radarScale / 7)
+
+        // Float Vendor Satellite Nodes
+        nodeMeshes.forEach((n, idx) => {
+          const hoverOffset = Math.sin(time * 1.5 + idx) * 0.12
+          n.mesh.parent!.position.y = n.data.pos[1] + hoverOffset
+          n.glow.rotation.y = time * 0.8
+        })
+
+        // Flow packets
+        packets.forEach((p) => {
+          p.progress += p.speed
+          if (p.progress > 1) p.progress = 0
+
+          const conn = connectionLines[p.curveIndex]
+          if (conn) {
+            const point = conn.curve.getPoint(p.progress)
+            p.mesh.position.copy(point)
+            const scale = 0.7 + Math.sin(p.progress * Math.PI) * 0.5
+            p.mesh.scale.set(scale, scale, scale)
+          }
+        })
+      }
+
+      // Raycast test
+      raycaster.setFromCamera(mouseNorm, camera)
+      const intersects = raycaster.intersectObjects(nodeRaycastObjects)
+
+      if (intersects.length > 0) {
+        const hit = intersects[0].object
+        const data = hit.userData?.nodeData as VendorNodeData
+        if (data && hoveredNode?.id !== data.id) {
+          setHoveredNode(data)
+          document.body.style.cursor = 'pointer'
+        }
+      } else if (hoveredNode !== null) {
+        setHoveredNode(null)
+        document.body.style.cursor = 'default'
+      }
+
+      renderer.render(scene, camera)
+      animFrame = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    // CLEANUP
+    return () => {
+      cancelAnimationFrame(animFrame)
+      window.removeEventListener('resize', handleResize)
+      container.removeEventListener('mousemove', onPointerMove)
+      container.removeEventListener('mouseleave', onPointerLeave)
+      document.body.style.cursor = 'default'
+
+      // Dispose Three.js objects
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose()
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose())
+          else obj.material.dispose()
+        }
+      })
+      renderer.dispose()
+      if (renderer.domElement && container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement)
+      }
     }
   }, [prefersReducedMotion])
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    mouseRef.current.targetX = e.clientX - rect.left
-    mouseRef.current.targetY = e.clientY - rect.top
-  }
-
-  const handleMouseLeave = () => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    mouseRef.current.targetX = rect.width / 2
-    mouseRef.current.targetY = rect.height / 2
-  }
-
   return (
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="absolute inset-0 bg-[#03060a] overflow-hidden select-none"
-    >
-      {/* Background Vignette & Grid Gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sky-900/10 via-[#03060a]/80 to-[#03060a] z-0 pointer-events-none" />
-
-      {/* 3D Canvas Layer */}
+    <div className="relative w-full h-[460px] md:h-[520px] lg:h-[560px] select-none overflow-hidden rounded-3xl bg-gradient-to-b from-[#F2F3F7]/50 via-[#E8EAF0]/40 to-[#F2F3F7]/80 border border-[#D7DCE5]/80 shadow-[0_20px_50px_rgba(10,40,45,0.06)]">
+      {/* 1. INTERACTIVE DOT-FIELD CANVAS (POTADOT SIGNATURE) */}
       <canvas
-        ref={canvasRef}
-        className="relative z-0 w-full h-full block"
-        style={{ touchAction: 'none' }}
+        ref={dotsCanvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-auto"
+        aria-hidden="true"
       />
 
-      {/* FLOATING UI PANELS - Hidden on small screens to reduce clutter, visible on lg+ */}
-      {/* Top Right: Compliance Stream */}
-      <div className="hidden lg:block absolute top-8 right-8 z-10 w-64 p-4 rounded-lg bg-[#070e1a]/80 border border-slate-800/80 shadow-2xl backdrop-blur-md pointer-events-none">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-700/80">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300 font-mono flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live Compliance
+      {/* 2. THREE.JS 3D WEBGL CONTAINER */}
+      <div
+        ref={mountRef}
+        className="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing"
+      />
+
+      {/* 3. FLOATING STATUS BADGES & TELEMETRY OVERLAYS */}
+      {/* Top Left: Live Security Engine State */}
+      <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-none">
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[#D7DCE5] shadow-xs">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3DB663] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3DB663]" />
           </span>
-          <span className="text-[10px] font-mono text-emerald-400">100%</span>
+          <span className="text-xs font-mono font-semibold text-[#0A282D]">
+            Multi-Vendor Topology Engine
+          </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB]">
+            6/6 Synchronized
+          </span>
         </div>
-        <div className="mt-3 space-y-2 font-mono text-[11px]">
-          <div className="flex items-center justify-between text-slate-400">
-            <span>CIS Benchmark</span>
-            <span className="text-emerald-400">PASSED</span>
+      </div>
+
+      {/* Top Right: Real-Time Cycle Indicator */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 pointer-events-none hidden sm:block">
+        <div className="px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-md border border-[#D7DCE5] shadow-xs text-right">
+          <div className="text-[10px] uppercase font-mono font-bold text-[#7E8F95] tracking-wider">
+            Deterministic Pipeline
           </div>
-          <div className="flex items-center justify-between text-slate-400">
-            <span>NIST 800-53</span>
-            <span className="text-emerald-400">PASSED</span>
+          <div className="text-xs font-sans font-bold text-[#0A282D] flex items-center gap-1.5 justify-end">
+            <span className="text-[#3DB663]">●</span>
+            {stages[activeStageIndex].label}
           </div>
-          <div className="flex items-center justify-between text-slate-400">
-            <span>ISO 27001</span>
-            <span className="text-emerald-400">PASSED</span>
+          <div className="text-[10px] text-[#4A5B60] font-mono mt-0.5">
+            {stages[activeStageIndex].status}
           </div>
         </div>
       </div>
 
-      {/* Bottom Right: Deterministic Remediation Tracker */}
-      <div className="hidden lg:block absolute bottom-8 right-8 z-10 w-72 p-4 rounded-lg bg-[#070e1a]/80 border border-slate-800/80 shadow-2xl backdrop-blur-md pointer-events-none">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-700/80">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400 font-mono">
-            Remediation Stream
-          </span>
-          <span className="text-[10px] font-mono text-sky-400">ACTIVE</span>
+      {/* Dynamic Hover Tooltip for 3D Node */}
+      {hoveredNode && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-fadeIn transition-all">
+          <div className="px-4 py-3 rounded-2xl bg-[#0A282D]/95 text-white backdrop-blur-md border border-[#3DB663]/40 shadow-xl flex items-center gap-4">
+            <div
+              className="w-3.5 h-3.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: hoveredNode.hexColor, boxShadow: `0 0 10px ${hoveredNode.hexColor}` }}
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-sans font-bold tracking-tight text-white">
+                  {hoveredNode.name}
+                </span>
+                <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/10 text-[#3DB663] font-bold">
+                  {hoveredNode.vendor}
+                </span>
+              </div>
+              <div className="text-[11px] font-mono text-[#A3B8BC] mt-0.5">
+                {hoveredNode.os} · {hoveredNode.role}
+              </div>
+            </div>
+            <div className="pl-3 border-l border-white/15 text-right font-mono">
+              <div className="text-base font-bold text-[#3DB663]">
+                {hoveredNode.score}%
+              </div>
+              <div className="text-[9px] uppercase tracking-wider text-[#A3B8BC]">
+                {hoveredNode.rulesPassed}/{hoveredNode.rulesTotal} Rules
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="mt-3 space-y-2 text-[10px] font-mono text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="text-sky-400">→</span>
-            <span>Parsing FortiOS v7.2 ruleset...</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sky-400">→</span>
-            <span>Identifying policy overlap [ID: #4921]</span>
-          </div>
-          <div className="flex items-center gap-2 text-emerald-400 font-medium">
-            <span>✓</span>
-            <span>Generated deterministic fix for Router-A</span>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Bottom Center: System Status */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 hidden md:flex items-center gap-6 px-4 py-2 rounded-full bg-[#070e1a]/80 border border-slate-800/80 backdrop-blur-md font-mono text-[10px] text-slate-400 pointer-events-none">
-        <div className="flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          <span>Core Engine: Online</span>
+      {/* Bottom Bar: Interactive Quick Telemetry Bar */}
+      <div className="absolute bottom-4 inset-x-4 md:bottom-6 md:inset-x-6 z-10 flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-xs pointer-events-auto">
+        <div className="flex items-center gap-4 text-xs font-mono text-[#4A5B60]">
+          <span className="flex items-center gap-1.5 font-semibold text-[#0A282D]">
+            <Shield size={14} className="text-[#3DB663]" />
+            CIS & NIST SP 800-53
+          </span>
+          <span className="hidden md:inline text-[#D7DCE5]">|</span>
+          <span className="hidden md:flex items-center gap-1.5">
+            <CheckCircle2 size={13} className="text-[#3DB663]" />
+            Zero Physical Device Modification
+          </span>
+          <span className="hidden lg:inline text-[#D7DCE5]">|</span>
+          <span className="hidden lg:flex items-center gap-1.5">
+            <Activity size={13} className="text-[#0284C7]" />
+            Deterministic Python Regex Core
+          </span>
         </div>
-        <div className="w-px h-3 bg-slate-700" />
+
         <div className="flex items-center gap-2">
-          <span className="text-sky-400">Nodes: 1,492</span>
-        </div>
-        <div className="w-px h-3 bg-slate-700" />
-        <div className="flex items-center gap-2">
-          <span className="text-amber-400">Analysis: Active</span>
+          <span className="text-[11px] font-mono text-[#7E8F95] hidden sm:inline">
+            Interactive 3D: Drag to tilt, hover nodes
+          </span>
         </div>
       </div>
     </div>

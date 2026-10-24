@@ -63,7 +63,6 @@ import {
 } from '../services/api'
 import { Sidebar, type PageKey } from '../components/Sidebar'
 import { Header } from '../components/Header'
-import { SecurityTopology3D } from '../components/SecurityTopology3D'
 import { LandingPage } from '../components/LandingPage'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -71,8 +70,6 @@ import { Login } from '../pages/Login'
 import { Register } from '../pages/Register'
 
 import { AuditResult, AuditSummaryItem, FrameworkSelection, VendorSelection } from '../types'
-
-
 
 import { RiskBadge, StatusPill, SeverityBadge, VendorBadge } from '../components/Shared'
 /* =========================================================================
@@ -118,7 +115,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const loc = useLocation()
   console.log(`[AUTH] ProtectedRoute evaluation. loading=${loading}, isAuthenticated=${isAuthenticated}, pathname=${loc.pathname}`);
   
-  if (loading) return <div className="flex h-screen items-center justify-center bg-surface-primary text-brand-bright"><Loader2 className="animate-spin" size={32} /></div>
+  if (loading) return <div className="flex h-screen items-center justify-center bg-canvas text-dark"><Loader2 className="animate-spin text-accent" size={32} /></div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
   return <>{children}</>
 }

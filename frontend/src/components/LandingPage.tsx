@@ -1,37 +1,31 @@
 import React, { useEffect, useState } from 'react'
 import {
-  Activity,
-  AlertTriangle,
+  Shield,
   ArrowRight,
   CheckCircle2,
-  ChevronRight,
-  Cpu,
-  Database,
-  Download,
-  ExternalLink,
+  AlertTriangle,
   FileCode2,
-  FileText,
-  GraduationCap,
-  HelpCircle,
-  Info,
+  Terminal,
+  Cpu,
   Layers,
   Lock,
-  Play,
-  RefreshCw,
-  Server,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Sliders,
-  Terminal,
-  UserCheck,
-  Wifi,
-  XCircle,
+  ChevronRight,
   Menu,
-  X
+  X,
+  Sliders,
+  Check,
+  RefreshCw,
+  FileText,
+  Activity,
+  Download,
+  AlertOctagon,
+  ExternalLink,
+  ChevronDown
 } from 'lucide-react'
-import { Hero3DVisual } from './Hero3DVisual'
 import type { PageKey } from './Sidebar'
+import { Link, useNavigate } from 'react-router-dom'
+import { VendorBadge, StatusPill, SeverityBadge } from './Shared'
+import { Hero3DVisual } from './Hero3DVisual'
 
 interface LandingPageProps {
   onNavigate: (page: PageKey) => void
@@ -39,8 +33,50 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
+  const navigate = useNavigate()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [activeServeTab, setActiveServeTab] = useState(0)
+  const [activeSxItem, setActiveSxItem] = useState(0)
+  const [activeFaq, setActiveFaq] = useState<number | null>(0)
+  const [sandboxRemediated, setSandboxRemediated] = useState(false)
+  const [loaderVisible, setLoaderVisible] = useState(false)
+  const [loaderProgress, setLoaderProgress] = useState(0)
+  const [loaderMessage, setLoaderMessage] = useState('Initializing multi-vendor security rules')
+
+  // Polished session entrance preloader inspired by Potadot
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) {
+      setLoaderVisible(false)
+      return
+    }
+
+    setLoaderVisible(true)
+    let progress = 0
+    const messages = [
+      'Collecting multi-vendor syntax grammars',
+      'Calibrating deterministic CIS & NIST engine',
+      'Connecting vendor topologies (Cisco, Fortinet, Palo Alto)',
+      'Synthesizing 3D security topology',
+      'Operational readiness verified',
+    ]
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 14) + 10
+      if (progress > 100) progress = 100
+      setLoaderProgress(progress)
+      const msgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1)
+      setLoaderMessage(messages[msgIdx])
+
+      if (progress === 100) {
+        clearInterval(interval)
+        setTimeout(() => {
+          setLoaderVisible(false)
+        }, 300)
+      }
+    }, 45)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,320 +93,732 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     }
   }
 
+  // Interactive Tabbed Ecosystem Data
+  const serveTabs = [
+    {
+      title: 'Perimeter Firewalls',
+      subtitle: 'Fortinet FortiOS & Palo Alto PAN-OS',
+      tag: 'Edge Security',
+      desc: 'Ingress packet filtering, TLS 1.3 decryption policies, zone security, and administrative lockouts verified against CIS standards.',
+      stats: [
+        { label: 'Ingress Filtering', val: 'Enforced' },
+        { label: 'Admin SSH Hardening', val: 'v2 Only' },
+        { label: 'DNS Sinkholing', val: 'Active' },
+      ],
+      sampleCode: `config system global\n  set admin-https-redirect enable\n  set admin-lockout-threshold 3\n  set admin-ssh-v1 disable\nend`,
+    },
+    {
+      title: 'Core Routing & Campus',
+      subtitle: 'Cisco IOS-XE & Juniper Junos',
+      tag: 'Backbone Fabric',
+      desc: 'Control Plane Policing (CoPP), BGP MD5 authentication, TACACS+ AAA server fallback, and cryptographic secret protection.',
+      stats: [
+        { label: 'CoPP Protection', val: 'Strict' },
+        { label: 'BGP Auth MD5', val: 'Active' },
+        { label: 'AAA TACACS+', val: 'Dual Server' },
+      ],
+      sampleCode: `service password-encryption\nno ip http server\nip ssh version 2\nline vty 0 4\n transport input ssh\n login authentication default`,
+    },
+    {
+      title: 'Zero-Trust Access Edge',
+      subtitle: 'Aruba CX & Check Point Gaia',
+      tag: 'Access Hardening',
+      desc: '802.1X port security, MAC address limits, dynamic VLAN assignment, and immutable syslog forwarding for regulatory non-repudiation.',
+      stats: [
+        { label: 'Port Security', val: '802.1X' },
+        { label: 'Syslog TLS', val: 'Encrypted' },
+        { label: 'Session Timeout', val: '10 Min' },
+      ],
+      sampleCode: `aaa authentication port-access dot1x\nport-access security 1/1/1-1/1/48\n violation shutdown\n max-mac-count 1`,
+    },
+    {
+      title: 'Multi-Cloud Gateways',
+      subtitle: 'AWS Transit & Hybrid IPsec',
+      tag: 'Hybrid Routing',
+      desc: 'IPsec tunnel cryptographic algorithms (AES-256-GCM, DH Group 14+), BGP transit filtering, and VPC peering segmentation audits.',
+      stats: [
+        { label: 'Phase 2 Cipher', val: 'AES-256-GCM' },
+        { label: 'PFS Group', val: 'Group 14' },
+        { label: 'Anti-Replay', val: 'Enabled' },
+      ],
+      sampleCode: `crypto ipsec transform-set SECURE-TS esp-gcm 256\ncrypto map SECURE-MAP 10 ipsec-isakmp\n set pfs group14\n set security-association lifetime seconds 28800`,
+    },
+  ]
+
+  // Interactive 4-step Audit Lifecycle Data
+  const sxItems = [
+    {
+      num: '01',
+      title: 'Multi-Vendor Configuration Ingestion',
+      sub: 'Ingest raw configurations without vendor lock-in or proprietary agents.',
+      features: [
+        'Supports Cisco, Fortinet, Palo Alto, Juniper, Aruba, Check Point',
+        'Automatic vendor & operating system detection',
+        'Zero production device modifications (strictly offline configuration audits)',
+        'Unknown syntax isolation for continuous engine learning',
+      ],
+      mockup: {
+        badge: 'Ingestion Engine',
+        filename: 'core-switch-cisco.cfg',
+        tokens: [
+          { key: 'Detected Vendor', val: 'Cisco IOS-XE 17.9' },
+          { key: 'Interfaces Parsed', val: '48 Physical, 4 SVI' },
+          { key: 'Security Directives', val: '142 Rules Isolated' },
+        ],
+      },
+    },
+    {
+      num: '02',
+      title: 'Deterministic Compliance Evaluation',
+      sub: 'Zero AI hallucinations: evaluated with pure deterministic code rules.',
+      features: [
+        'Authoritative CIS Benchmark Level 1 & Level 2 controls',
+        'NIST SP 800-53 security control family mapping',
+        'Deterministic regex logic executed directly in Python',
+        'Clear PASS, FAIL, and UNKNOWN findings with rule citations',
+      ],
+      mockup: {
+        badge: 'Compliance Core',
+        filename: 'cis_eval_matrix.json',
+        tokens: [
+          { key: 'CIS Level 1 Score', val: '92% Compliant' },
+          { key: 'Critical Violations', val: '0 Detected' },
+          { key: 'Controls Tested', val: '28 Deterministic Checks' },
+        ],
+      },
+    },
+    {
+      num: '03',
+      title: 'AI-Assisted Root Cause & Explanations',
+      sub: 'Contextual technical rationale powered by Google Gemini.',
+      features: [
+        'Translates raw CLI findings into auditor-friendly explanations',
+        'Cites relevant CVE vulnerabilities and real-world attack vectors',
+        'Identifies configuration interdependencies across features',
+        'Strict guardrails: AI never overrides deterministic compliance scores',
+      ],
+      mockup: {
+        badge: 'Gemini Synthesizer',
+        filename: 'ai_explanation_report.txt',
+        tokens: [
+          { key: 'Analysis Confidence', val: '99.4%' },
+          { key: 'CVE Reference', val: 'CVE-2023-20198' },
+          { key: 'Exploit Risk', val: 'Privilege Escalation' },
+        ],
+      },
+    },
+    {
+      num: '04',
+      title: 'Deterministic CLI Remediation & Re-Audit',
+      sub: 'Verified configuration fixes staged before deployment.',
+      features: [
+        'Synthesizes exact native CLI syntax for the specific device OS',
+        'Stages changes in an isolated working-configuration sandbox',
+        'Automated instant re-audit to verify the fix passes compliance',
+        'Exportable change-set scripts ready for human change-approval',
+      ],
+      mockup: {
+        badge: 'Remediation Staging',
+        filename: 'staged_remediation.diff',
+        tokens: [
+          { key: 'Commands Proposed', val: '3 Precise Directives' },
+          { key: 'Post-Fix Score', val: '100% PASS' },
+          { key: 'Human Approval', val: 'Required Prior to Apply' },
+        ],
+      },
+    },
+  ]
+
+  // FAQs
+  const faqs = [
+    {
+      q: 'Does NetSecure AI connect directly to or modify physical network devices?',
+      a: 'No. NetSecure AI maintains a strict, secure boundary: it audits uploaded or pasted offline configuration files. It never connects directly to or modifies live hardware. All proposed CLI fixes are staged in a working configuration for human review and approval.',
+    },
+    {
+      q: 'How does NetSecure AI prevent AI hallucinations in compliance scores?',
+      a: 'Compliance results (PASS, FAIL, UNKNOWN) are computed exclusively by a deterministic Python regex engine using official CIS and NIST SP 800-53 criteria. Gemini AI is strictly used as an analytical layer to explain technical implications and format remediation options; it can never alter or hallucinate a compliance score.',
+    },
+    {
+      q: 'Which network vendors and operating systems are supported?',
+      a: 'NetSecure AI includes specialized deterministic parsers for Cisco (IOS, IOS-XE, NX-OS), Fortinet (FortiOS), Palo Alto Networks (PAN-OS), Juniper (Junos OS), Aruba (AOS-CX), and Check Point (Gaia OS).',
+    },
+    {
+      q: 'Can we generate formal audit reports for compliance auditors?',
+      a: 'Yes. NetSecure AI features a formal PDF reporting engine that generates executive summaries, control breakdown charts, parameter audits, and line-by-line technical evidence formatted for board and regulatory submission.',
+    },
+    {
+      q: 'How does the Training Center handle unknown or proprietary commands?',
+      a: 'When an unmapped vendor command is detected in a configuration, NetSecure AI isolates it into the Training Center. Auditors can review AI-assisted parameter suggestions, set authoritative mappings, and permanently teach the engine for future audits.',
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-surface-primary text-text-primary font-sans selection:bg-brand-primary/30 selection:text-brand-bright antialiased">
-      {/* 1. COMPACT ENTERPRISE NAVBAR */}
-      <header
-        className={`sticky top-0 z-50 w-full transition-all duration-200 ${
-          isScrolled
-            ? 'bg-surface-primary/95 border-b border-surface-border shadow-md backdrop-blur-md'
-            : 'bg-surface-primary/80 border-b border-surface-border/60 backdrop-blur-sm'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
-          {/* Left: NetSecure AI Logo & Subtitle */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-brand-primary/20 border border-brand-primary/30 text-brand-bright">
-              <ShieldCheck size={18} className="stroke-[2.3]" />
+    <div className="min-h-screen bg-[#F2F3F7] text-[#0A282D] font-sans selection:bg-[#3DB663]/25 selection:text-[#0A282D]">
+      {/* 1. POTADOT-STYLE LOADER (Initial Session Entrance) */}
+      {loaderVisible && (
+        <div className="fixed inset-0 z-[100] flex flex-col justify-between p-6 sm:p-12 bg-[#0A282D] text-white transition-opacity duration-300 dark-dots relative overflow-hidden">
+          {/* Subtle glowing radial gradient in the center */}
+          <div className="absolute inset-0 bg-radial from-[#3DB663]/10 via-transparent to-transparent pointer-events-none" />
+
+          <div className="relative z-10 flex items-center justify-between font-mono text-xs text-[#8AA3A8] tracking-widest uppercase">
+            <span className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663] animate-pulse" />
+              NetSecure AI
+            </span>
+            <span className="hidden sm:inline text-[#3DB663]/80">Deterministic Compliance Engine</span>
+            <span>v0.1.0 · Ready</span>
+          </div>
+
+          <div className="relative z-10 max-w-xl mx-auto w-full text-center my-auto flex flex-col items-center">
+            {/* Animated Security Core Symbol */}
+            <div className="relative mb-8 flex items-center justify-center">
+              {/* Outer slow counter-rotating dashed ring */}
+              <div className="absolute w-24 h-24 rounded-full border border-dashed border-[#3DB663]/40 animate-spin" style={{ animationDuration: '14s' }} />
+              {/* Inner glowing ring */}
+              <div className="absolute w-20 h-20 rounded-full border border-[#3DB663]/60 animate-ping opacity-25" style={{ animationDuration: '3s' }} />
+              {/* Central shield badge */}
+              <div className="w-16 h-16 rounded-2xl bg-[#0F343A] border border-[#1E4950] flex items-center justify-center shadow-lg shadow-[#3DB663]/15">
+                <Shield size={28} className="text-[#3DB663] stroke-[2.2]" />
+              </div>
             </div>
-            <div>
-              <div className="text-xs sm:text-sm font-bold tracking-wider text-text-primary uppercase font-mono flex items-center gap-1">
-                <span>NETSECURE</span>
-                <span className="text-brand-primary">AI</span>
-              </div>
-              <div className="text-[9px] sm:text-[10px] tracking-wider text-text-secondary uppercase font-medium">
-                ENTERPRISE NETWORK SECURITY
-              </div>
+
+            {/* Large 3-Digit Counter */}
+            <div className="text-7xl sm:text-9xl font-display font-extrabold tracking-tight text-white mb-5 select-none">
+              {String(loaderProgress).padStart(3, '0')}
+              <span className="text-3xl sm:text-4xl text-[#3DB663] font-mono ml-1 font-semibold">%</span>
+            </div>
+
+            {/* Telemetry Stage Pill */}
+            <div className="inline-flex items-center gap-2.5 text-xs font-mono font-medium text-[#8AA3A8] bg-[#0F343A]/90 px-5 py-2.5 rounded-full border border-[#1E4950] shadow-md backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-ping" />
+              <span className="text-white/90">{loaderMessage}</span>
             </div>
           </div>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-text-secondary">
+          {/* Bottom Progress Bar */}
+          <div className="relative z-10 w-full bg-[#1E4950]/80 h-1.5 rounded-full overflow-hidden">
+            <div
+              className="bg-[#3DB663] h-full transition-all duration-75 ease-out shadow-[0_0_12px_rgba(61,182,99,0.8)]"
+              style={{ width: `${loaderProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 2. SITE HEADER & NAVIGATION (Inspired by Potadot) */}
+      <header
+        className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+          isScrolled
+            ? 'bg-[#F2F3F7]/95 border-b border-[#D7DCE5] backdrop-blur-md shadow-xs'
+            : 'bg-[#F2F3F7] border-b border-[#D7DCE5]/60'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          {/* Brand Identity */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0A282D] text-white shadow-sm transition-transform group-hover:scale-105">
+              <Shield size={20} className="text-[#3DB663] stroke-[2.4]" />
+            </div>
+            <div>
+              <div className="text-lg font-display font-bold tracking-tight text-[#0A282D] flex items-center gap-1.5">
+                <span>NetSecure</span>
+                <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded-full bg-[#3DB663] text-white uppercase tracking-wider">
+                  AI
+                </span>
+              </div>
+              <div className="text-[9px] tracking-widest text-[#7E8F95] uppercase font-mono font-semibold">
+                Multi-Vendor Network Security
+              </div>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-[#4A5B60]">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="text-brand-bright transition-colors"
+              className="text-[#0A282D] hover:text-[#3DB663] transition-colors"
             >
-              Home
+              Overview
             </button>
             <button
-              onClick={() => onNavigate('dashboard')}
-              className="hover:text-brand-primary text-text-secondary transition-colors"
+              onClick={() => scrollToSection('ecosystem')}
+              className="hover:text-[#0A282D] transition-colors"
             >
-              Platform
+              Multi-Vendor Ecosystem
             </button>
             <button
-              onClick={() => scrollToSection('capabilities')}
-              className="hover:text-brand-primary text-text-secondary transition-colors"
+              onClick={() => scrollToSection('lifecycle')}
+              className="hover:text-[#0A282D] transition-colors"
             >
-              Capabilities
+              Audit Lifecycle
             </button>
             <button
-              onClick={() => scrollToSection('solutions')}
-              className="hover:text-brand-primary text-text-secondary transition-colors"
+              onClick={() => scrollToSection('why-deterministic')}
+              className="hover:text-[#0A282D] transition-colors"
             >
-              Solutions
+              Why Deterministic
             </button>
             <button
-              onClick={() => scrollToSection('about')}
-              className="hover:text-brand-primary text-text-secondary transition-colors"
+              onClick={() => scrollToSection('sandbox')}
+              className="hover:text-[#0A282D] transition-colors"
             >
-              About
+              Live Demo
+            </button>
+            <button
+              onClick={() => scrollToSection('faq')}
+              className="hover:text-[#0A282D] transition-colors"
+            >
+              FAQ
             </button>
           </nav>
 
-          {/* Right Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Action CTAs */}
+          <div className="hidden sm:flex items-center gap-4">
+            <Link
+              to="/login"
+              className="text-xs font-bold font-mono tracking-wider uppercase text-[#4A5B60] hover:text-[#0A282D] px-3 py-2 transition-colors"
+            >
+              Auditor Sign In
+            </Link>
             <button
               onClick={() => onNavigate('dashboard')}
-              className="hidden md:inline-flex px-3 py-1.5 rounded text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
+              className="btn btn--green"
             >
-              Sign In
+              <span>Launch Console</span>
+              <span className="btn-ico">
+                <ArrowRight size={13} className="stroke-[2.5]" />
+              </span>
             </button>
-            <button
-              onClick={onStartAudit}
-              className="hidden sm:flex items-center gap-1 px-3.5 py-1.5 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs transition-colors shadow-sm"
-            >
-              <span>Get Started</span>
-              <ArrowRight size={13} className="stroke-[2.5]" />
-            </button>
+          </div>
+
+          {/* Mobile Menu Trigger */}
+          <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-1.5 text-text-secondary hover:text-text-primary rounded-md bg-surface-secondary border border-surface-border"
+              className="p-2.5 text-[#0A282D] rounded-full hover:bg-white border border-[#D7DCE5] transition-colors"
+              aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-14 left-0 w-full bg-surface-primary border-b border-surface-border shadow-xl py-4 px-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2">
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-              className="text-left font-semibold text-text-primary py-2 border-b border-surface-border/50"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); onNavigate('dashboard') }}
-              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
-            >
-              Platform
-            </button>
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); scrollToSection('capabilities') }}
-              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
-            >
-              Capabilities
-            </button>
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); scrollToSection('solutions') }}
-              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
-            >
-              Solutions
-            </button>
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); scrollToSection('about') }}
-              className="text-left font-semibold text-text-secondary hover:text-text-primary py-2 border-b border-surface-border/50"
-            >
-              About
-            </button>
-            <div className="pt-2 flex flex-col gap-3">
+          <div className="lg:hidden border-b border-[#D7DCE5] bg-white px-6 py-6 space-y-4 shadow-xl">
+            <div className="flex flex-col space-y-3 font-display font-semibold text-base text-[#0A282D]">
               <button
-                onClick={() => { setIsMobileMenuOpen(false); onStartAudit() }}
-                className="w-full flex justify-center items-center gap-2 px-4 py-3 rounded bg-brand-primary text-white font-bold text-sm"
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                  setIsMobileMenuOpen(false)
+                }}
+                className="text-left py-2 border-b border-[#F2F3F7]"
               >
-                <span>Get Started</span>
-                <ArrowRight size={14} />
+                <small className="text-xs font-mono text-[#7E8F95] mr-2">01</small>
+                Overview
               </button>
               <button
-                onClick={() => { setIsMobileMenuOpen(false); onNavigate('dashboard') }}
-                className="w-full text-center px-4 py-3 rounded bg-surface-secondary border border-surface-border text-text-primary font-semibold text-sm"
+                onClick={() => {
+                  scrollToSection('ecosystem')
+                  setIsMobileMenuOpen(false)
+                }}
+                className="text-left py-2 border-b border-[#F2F3F7]"
               >
-                Sign In
+                <small className="text-xs font-mono text-[#7E8F95] mr-2">02</small>
+                Multi-Vendor Ecosystem
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection('lifecycle')
+                  setIsMobileMenuOpen(false)
+                }}
+                className="text-left py-2 border-b border-[#F2F3F7]"
+              >
+                <small className="text-xs font-mono text-[#7E8F95] mr-2">03</small>
+                Audit Lifecycle
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection('why-deterministic')
+                  setIsMobileMenuOpen(false)
+                }}
+                className="text-left py-2 border-b border-[#F2F3F7]"
+              >
+                <small className="text-xs font-mono text-[#7E8F95] mr-2">04</small>
+                Why Deterministic
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection('sandbox')
+                  setIsMobileMenuOpen(false)
+                }}
+                className="text-left py-2 border-b border-[#F2F3F7]"
+              >
+                <small className="text-xs font-mono text-[#7E8F95] mr-2">05</small>
+                Interactive Demo
+              </button>
+              <button
+                onClick={() => {
+                  scrollToSection('faq')
+                  setIsMobileMenuOpen(false)
+                }}
+                className="text-left py-2"
+              >
+                <small className="text-xs font-mono text-[#7E8F95] mr-2">06</small>
+                FAQ
+              </button>
+            </div>
+
+            <div className="pt-4 border-t border-[#D7DCE5] flex flex-col gap-3">
+              <Link
+                to="/login"
+                className="text-center py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#0A282D] bg-[#F2F3F7] rounded-full border border-[#D7DCE5]"
+              >
+                Auditor Sign In
+              </Link>
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="btn btn--green w-full"
+              >
+                <span>Launch Console</span>
+                <span className="btn-ico">
+                  <ArrowRight size={13} className="stroke-[2.5]" />
+                </span>
               </button>
             </div>
           </div>
         )}
       </header>
 
-      {/* 2. HERO SECTION */}
-      <section className="relative min-h-[calc(100vh-4rem)] flex flex-col md:flex-row items-center md:items-stretch overflow-hidden border-b border-surface-border/80 bg-surface-primary pt-6 md:pt-10 pb-10">
-        
-        {/* Foreground Content */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-20 flex flex-col justify-center h-full order-1 md:order-none pointer-events-none">
-          <div className="md:w-1/2 lg:w-[45%] space-y-6 pointer-events-auto flex flex-col justify-center text-center md:text-left items-center md:items-start">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-secondary/80 backdrop-blur-sm border border-surface-border/80 text-[10px] sm:text-[11px] font-mono text-brand-bright font-semibold tracking-widest uppercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-bright animate-pulse" />
-              <span>DETERMINISTIC SECURITY</span>
-            </div>
+      {/* 3. HERO EXPERIENCE (Potadot Benchmark) */}
+      <section className="relative pt-6 pb-12 lg:pt-10 lg:pb-20 overflow-hidden light-dots" id="overview">
+        {/* Subtle decorative background glow */}
+        <div className="orb orb--ring w-[540px] h-[540px] -right-24 -top-24 pointer-events-none" />
 
-            {/* Main Heading */}
-            <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-text-primary leading-[1.05] drop-shadow-xl w-full">
-              <span className="block">SECURE EVERY</span>
-              <span className="block">NETWORK.</span>
-              <span className="block text-text-secondary">PROVE EVERY</span>
-              <span className="block text-text-secondary">CONTROL.</span>
-              <span className="block text-brand-primary whitespace-nowrap">AUTOMATE</span>
-              <span className="block text-brand-primary">COMPLIANCE.</span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-sm sm:text-base text-text-secondary leading-relaxed max-w-md drop-shadow-md">
-              NetSecure AI analyzes heterogeneous network configurations, evaluates security controls against industry frameworks, identifies configuration gaps, and provides deterministic remediation guidance with audit-ready reporting.
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 w-full sm:w-auto">
-              <button
-                onClick={() => onNavigate('dashboard')}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(22,131,216,0.3)] hover:shadow-[0_0_30px_rgba(22,131,216,0.5)] w-full sm:w-auto"
-              >
-                <span>Explore Platform</span>
-                <ArrowRight size={14} className="stroke-[2.5]" />
-              </button>
-
-              <button
-                onClick={() => scrollToSection('how-it-works')}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded bg-surface-secondary/80 hover:bg-surface-hover backdrop-blur-sm border border-surface-border/80 text-text-primary font-semibold text-sm transition-colors w-full sm:w-auto"
-              >
-                <Play size={13} className="fill-current text-brand-bright" />
-                <span>See How It Works</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Full-screen 3D Background (Desktop) / Foreground Visual (Mobile) */}
-        <div className="absolute inset-0 z-0 opacity-40 md:opacity-100 md:block hidden">
-          <Hero3DVisual />
-        </div>
-        
-        {/* Mobile Visual Container (Ordered below the text) */}
-        <div className="relative w-full h-[45vh] mt-8 z-0 block md:hidden order-2 border-t border-surface-border/50 bg-gradient-to-b from-surface-primary to-surface-secondary/50">
-          <Hero3DVisual />
-        </div>
-      </section>
-
-      {/* 3. SECTION: ABOUT NETSECURE AI */}
-      <section id="about" className="py-16 lg:py-20 border-b border-surface-border bg-surface-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <span className="text-xs font-bold uppercase tracking-widest text-brand-bright font-mono">
-              Enterprise Platform Overview
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary mt-2">
-              What is NetSecure AI?
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary mt-3 leading-relaxed">
-              NetSecure AI is an enterprise network security and compliance platform designed for heterogeneous network environments. It analyzes network configurations, evaluates security controls, identifies security gaps, provides deterministic remediation guidance, and generates auditable compliance reports.
-            </p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* The Operational Challenge */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-6 shadow-sm space-y-3">
-              <div className="flex items-center gap-2 text-status-critical text-xs font-bold uppercase tracking-wider font-mono">
-                <AlertTriangle size={15} />
-                <span>The Challenge</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left Column: Hero Editorial Copy */}
+            <div className="lg:col-span-5 flex flex-col justify-center">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-xs font-mono font-bold text-[#0A282D] w-fit mb-5 shadow-xs">
+                <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-pulse" />
+                <span>MULTI-VENDOR DETERMINISTIC COMPLIANCE</span>
               </div>
-              <h3 className="text-base font-bold text-text-primary">
-                Heterogeneous Configurations & Manual Audits
-              </h3>
-              <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                Enterprise networks contain equipment from many vendors and operating systems. Security teams must continuously verify configurations against multiple security frameworks, but manual review is slow, inconsistent, and difficult to scale across global fleets.
+
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.08]">
+                Enterprise network security,{' '}
+                <span className="text-[#3DB663] underline decoration-[#3DB663]/30 underline-offset-4">
+                  verified with mathematical certainty.
+                </span>
+              </h1>
+
+              <p className="mt-5 text-base sm:text-lg text-[#4A5B60] leading-relaxed font-normal">
+                Deterministic regex compliance parsing across Cisco, Fortinet, Palo Alto, Juniper, Aruba, and Check Point configurations. Verified against CIS Benchmarks and NIST SP 800-53 before changes touch production.
               </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-3.5">
+                <button
+                  onClick={onStartAudit}
+                  className="btn btn--green text-sm px-6 py-3"
+                >
+                  <span>Start Configuration Audit</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={14} className="stroke-[2.5]" />
+                  </span>
+                </button>
+                <button
+                  onClick={() => onNavigate('dashboard')}
+                  className="btn btn--soft text-sm px-6 py-3"
+                >
+                  <span>Live Dashboard</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={14} className="stroke-[2.5]" />
+                  </span>
+                </button>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="mt-8 pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2.5 text-[11px] font-mono text-[#4A5B60]">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
+                  CIS & NIST SP 800-53
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
+                  Zero Physical Modification
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D7DCE5]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663]" />
+                  6 Vendor Parsers
+                </span>
+              </div>
             </div>
 
-            {/* The Deterministic Solution */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-6 shadow-sm space-y-3">
-              <div className="flex items-center gap-2 text-status-success text-xs font-bold uppercase tracking-wider font-mono">
-                <ShieldCheck size={15} />
-                <span>The Solution</span>
-              </div>
-              <h3 className="text-base font-bold text-text-primary">
-                Unified Deterministic & Adaptive Pipeline
-              </h3>
-              <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                NetSecure AI combines deterministic configuration parsing, compliance evaluation, administrator-approved learning, deterministic remediation guidance, and reporting into one unified workflow.
-              </p>
+            {/* Right Column: Hero 3D Interactive Topology Visual (ABOVE THE FOLD) */}
+            <div className="lg:col-span-7 w-full">
+              <Hero3DVisual />
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. SECTION: HOW IT WORKS (Five-Stage Workflow) */}
-      <section id="how-it-works" className="py-16 lg:py-20 border-b border-surface-border bg-surface-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-brand-bright font-mono">
-              Audit Pipeline Architecture
+      {/* 4. EDITORIAL STATEMENT SECTION (Potadot pad style) */}
+      <section className="py-20 lg:py-28 relative overflow-hidden bg-white border-y border-[#D7DCE5]">
+        <div className="orb orb--ring w-[440px] h-[440px] -left-32 top-10" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <span className="eyebrow mb-4">The Compliance Dilemma</span>
+          <p className="font-display text-2xl sm:text-3xl lg:text-4xl text-[#0A282D] font-bold leading-snug tracking-tight">
+            Still auditing multi-vendor routers, firewalls, and switches with{' '}
+            <span className="text-[#B07040] underline decoration-[#B07040]/30 underline-offset-8">
+              manual checklists
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary mt-2">
-              How NetSecure AI Works
-            </h2>
-            <p className="text-xs sm:text-sm text-text-secondary mt-2">
-              A five-stage technical pipeline turning raw device configurations into audit evidence.
-            </p>
-          </div>
+            , fragmented spreadsheets, and slow guess-and-check CLI? NetSecure AI delivers the{' '}
+            <span className="accent underline decoration-[#3DB663]/30 underline-offset-8">
+              one deterministic platform
+            </span>{' '}
+            your network engineering and security teams can trust with zero doubt.
+          </p>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 relative">
-            {[
-              {
-                step: '01',
-                label: 'DISCOVER',
-                title: 'Identify Devices',
-                desc: 'Identify network devices and ingest raw running configurations.',
-              },
-              {
-                step: '02',
-                label: 'ANALYZE',
-                title: 'Analyze Posture',
-                desc: 'Analyze configuration security posture via deterministic parsing engines.',
-              },
-              {
-                step: '03',
-                label: 'EVALUATE',
-                title: 'Evaluate Controls',
-                desc: 'Evaluate against CIS and NIST security controls to isolate gaps.',
-              },
-              {
-                step: '04',
-                label: 'REMEDIATE',
-                title: 'Generate Remediation',
-                desc: 'Generate exact deterministic vendor-specific CLI remediation playbooks.',
-              },
-              {
-                step: '05',
-                label: 'PROVE',
-                title: 'Generate Reports',
-                desc: 'Generate auditable compliance reports and executive documentation.',
-              },
-            ].map((stage, idx) => (
-              <div
-                key={stage.step}
-                className="rounded-xl border border-surface-border bg-surface-panel p-5 flex flex-col justify-between hover:border-brand-primary/50 transition-colors shadow-sm"
-              >
+          <div className="mt-8">
+            <button
+              onClick={() => scrollToSection('ecosystem')}
+              className="inline-flex items-center gap-2 font-semibold text-sm text-[#0A282D] hover:text-[#3DB663] transition-colors"
+            >
+              <span>Explore supported multi-vendor architectures</span>
+              <ArrowRight size={14} className="stroke-[2.5]" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. MULTI-VENDOR ECOSYSTEM (Potadot serve section with tabbed stages) */}
+      <section className="py-20 lg:py-28" id="ecosystem">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            {/* Left Column: Side Tabs */}
+            <div className="lg:col-span-5 space-y-6">
+              <div>
+                <span className="eyebrow mb-3">Multi-Vendor Ecosystem</span>
+                <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+                  Normalized security across your entire fleet.
+                </h2>
+                <p className="mt-3 text-sm text-[#4A5B60] leading-relaxed">
+                  Different vendors use entirely different CLI grammars, syntax flags, and configuration paradigms. NetSecure AI parses each device natively and evaluates unified compliance.
+                </p>
+              </div>
+
+              {/* Tabs List */}
+              <div className="space-y-3 pt-2">
+                {serveTabs.map((tab, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveServeTab(idx)}
+                    className={`w-full text-left p-4 rounded-2xl border transition-all ${
+                      activeServeTab === idx
+                        ? 'bg-white border-[#3DB663] shadow-md ring-1 ring-[#3DB663]/20'
+                        : 'bg-white/60 hover:bg-white border-[#D7DCE5] text-[#4A5B60]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-[#7E8F95] uppercase">
+                        0{idx + 1} · {tab.tag}
+                      </span>
+                      {activeServeTab === idx && (
+                        <span className="h-2 w-2 rounded-full bg-[#3DB663]" />
+                      )}
+                    </div>
+                    <div className="font-display text-base font-bold text-[#0A282D] mt-1">
+                      {tab.title}
+                    </div>
+                    <div className="text-xs text-[#7E8F95] font-mono mt-0.5">
+                      {tab.subtitle}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => onNavigate('dashboard')}
+                  className="btn btn--soft"
+                >
+                  <span>View Fleet Compliance Posture</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={13} className="stroke-[2.5]" />
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right Column: Live Simulated Stage */}
+            <div className="lg:col-span-7 bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-8 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between pb-5 border-b border-[#D7DCE5]">
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-extrabold font-mono text-brand-bright">
-                      {stage.step}
-                    </span>
-                    <span className="text-[10px] font-mono text-text-secondary px-1.5 py-0.5 rounded bg-surface-primary border border-surface-border">
-                      {stage.label}
-                    </span>
+                  <div className="text-xs font-mono font-bold uppercase text-[#3DB663]">
+                    {serveTabs[activeServeTab].tag}
                   </div>
-                  <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider">
-                    {stage.title}
+                  <h3 className="font-display text-xl font-bold text-[#0A282D] mt-0.5">
+                    {serveTabs[activeServeTab].title}
                   </h3>
-                  <p className="text-[11px] text-text-secondary mt-2 leading-relaxed">
-                    {stage.desc}
-                  </p>
+                  <div className="text-xs text-[#7E8F95] font-mono">
+                    {serveTabs[activeServeTab].subtitle}
+                  </div>
                 </div>
-                {idx < 4 && (
-                  <div className="hidden lg:block mt-4 pt-2 text-right text-text-secondary font-mono text-xs">
-                    &rarr;
+                <span className="px-3 py-1 rounded-full bg-[#EDF8F1] text-[#1E6E37] text-xs font-mono font-bold border border-[#BFE7CB]">
+                  CIS Compliant
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[#4A5B60] mt-4 leading-relaxed">
+                {serveTabs[activeServeTab].desc}
+              </p>
+
+              {/* KPI Badges */}
+              <div className="grid grid-cols-3 gap-3 my-6">
+                {serveTabs[activeServeTab].stats.map((s, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-2xl bg-[#F2F3F7] border border-[#D7DCE5] text-center"
+                  >
+                    <div className="text-[10px] font-mono text-[#7E8F95] uppercase">
+                      {s.label}
+                    </div>
+                    <div className="text-xs sm:text-sm font-sans font-bold text-[#0A282D] mt-1">
+                      {s.val}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Native Configuration Preview */}
+              <div className="rounded-2xl bg-[#0A282D] p-4 text-[#A3B8BC] font-mono text-xs overflow-x-auto shadow-inner border border-[#1E4950]">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 text-[10px] text-[#7E8F95] uppercase">
+                  <span>Device Running Configuration</span>
+                  <span className="text-[#3DB663]">Validated Regex Match</span>
+                </div>
+                <pre className="text-white leading-relaxed">
+                  {serveTabs[activeServeTab].sampleCode}
+                </pre>
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-[#D7DCE5] flex items-center justify-between text-xs font-mono text-[#7E8F95]">
+                <span>Deterministic Check: PASS (100% Match)</span>
+                <span className="text-[#3DB663] font-bold">Zero Security Anomalies</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. AUDIT LIFECYCLE (Potadot sx-sec accordion cards) */}
+      <section className="py-20 lg:py-28 bg-white border-y border-[#D7DCE5]" id="lifecycle">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mb-12">
+            <span className="eyebrow mb-3">Deterministic Pipeline</span>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+              The four stages of verifiable audit integrity.
+            </h2>
+            <p className="mt-3 text-sm text-[#4A5B60] leading-relaxed">
+              From raw configuration ingestion to verified staged CLI remediation, every step follows strict deterministic logic with complete auditability.
+            </p>
+          </div>
+
+          {/* Accordion Cards Grid */}
+          <div className="space-y-4">
+            {sxItems.map((item, idx) => (
+              <div
+                key={idx}
+                className={`rounded-3xl border transition-all overflow-hidden ${
+                  activeSxItem === idx
+                    ? 'bg-[#F2F3F7] border-[#3DB663] shadow-md ring-1 ring-[#3DB663]/20'
+                    : 'bg-white hover:bg-[#F2F3F7]/50 border-[#D7DCE5]'
+                }`}
+              >
+                {/* Accordion Header */}
+                <button
+                  onClick={() => setActiveSxItem(activeSxItem === idx ? -1 : idx)}
+                  className="w-full p-6 sm:p-8 flex items-center justify-between text-left"
+                >
+                  <div className="flex items-center gap-6">
+                    <span className="font-display text-2xl sm:text-3xl font-extrabold text-[#0A282D]">
+                      {item.num}
+                    </span>
+                    <div>
+                      <h3 className="font-display text-lg sm:text-xl font-bold text-[#0A282D]">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[#7E8F95] mt-0.5">
+                        {item.sub}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`w-8 h-8 rounded-full border border-[#D7DCE5] flex items-center justify-center transition-transform ${
+                      activeSxItem === idx ? 'rotate-180 bg-[#3DB663] text-white border-transparent' : 'bg-white text-[#0A282D]'
+                    }`}
+                  >
+                    <ChevronDown size={16} />
+                  </span>
+                </button>
+
+                {/* Accordion Expanded Body */}
+                {activeSxItem === idx && (
+                  <div className="px-6 pb-8 sm:px-8 sm:pb-8 pt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center border-t border-[#D7DCE5]/60 animate-fadeIn">
+                    <div className="lg:col-span-6 space-y-4">
+                      <div className="text-xs font-mono font-bold uppercase text-[#3DB663]">
+                        {item.num} / 04 Pipeline Stage
+                      </div>
+                      <p className="text-sm text-[#4A5B60] leading-relaxed">
+                        {item.sub}
+                      </p>
+                      <ul className="space-y-2.5 text-xs sm:text-sm text-[#0A282D]">
+                        {item.features.map((f, fIdx) => (
+                          <li key={fIdx} className="flex items-start gap-2.5">
+                            <span className="h-5 w-5 rounded-full bg-[#EDF8F1] text-[#3DB663] flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Check size={12} className="stroke-[3]" />
+                            </span>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="pt-2">
+                        <button
+                          onClick={onStartAudit}
+                          className="btn btn--green"
+                        >
+                          <span>Execute Stage in Ingestion Console</span>
+                          <span className="btn-ico">
+                            <ArrowRight size={13} className="stroke-[2.5]" />
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Stage Visual Card */}
+                    <div className="lg:col-span-6 bg-white rounded-2xl border border-[#D7DCE5] p-5 shadow-xs font-mono text-xs">
+                      <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
+                        <span className="font-bold text-[#0A282D]">{item.mockup.filename}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] text-[10px] font-bold">
+                          {item.mockup.badge}
+                        </span>
+                      </div>
+                      <div className="space-y-2.5 py-4">
+                        {item.mockup.tokens.map((t, tIdx) => (
+                          <div
+                            key={tIdx}
+                            className="flex items-center justify-between p-2 rounded-xl bg-[#F2F3F7] text-[11px]"
+                          >
+                            <span className="text-[#7E8F95]">{t.key}</span>
+                            <span className="font-bold text-[#0A282D]">{t.val}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="pt-3 border-t border-[#D7DCE5] text-[10px] text-[#7E8F95] flex items-center justify-between">
+                        <span>State: Deterministic Verified</span>
+                        <span className="text-[#3DB663] font-bold">100% Cryptographic Match</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -379,335 +827,379 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         </div>
       </section>
 
-      {/* 5. SECTION: MULTI-VENDOR NETWORK ARCHITECTURE */}
-      <section id="solutions" className="py-16 lg:py-20 border-b border-surface-border bg-surface-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-brand-bright font-mono">
-              Multi-Vendor Normalization
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary mt-2">
-              Multi-Vendor Architecture
+      {/* 7. WHY DETERMINISTIC SECURITY (Potadot on-dark section with glowing rings) */}
+      <section className="py-20 lg:py-28 bg-[#0A282D] text-white relative overflow-hidden" id="why-deterministic">
+        <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
+        <div className="orb orb--dark-ring w-[500px] h-[500px] -right-32 top-10" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="max-w-2xl mb-14">
+            <span className="eyebrow eyebrow-dark mb-3">Guaranteed Safety</span>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+              Security built on proof, not probabilistic guessing.
             </h2>
-            <p className="text-xs sm:text-sm text-text-secondary mt-2 leading-relaxed">
-              NetSecure AI normalizes vendor-specific configuration syntax across heterogeneous infrastructure into a unified compliance model.
+            <p className="mt-3 text-sm text-[#A3B8BC] leading-relaxed">
+              We never guess compliance or run generative AI loops on physical infrastructure. Deterministic rules dictate facts; AI explains them.
             </p>
           </div>
 
-          {/* Conceptual Flow Diagram */}
-          <div className="rounded-xl border border-surface-border bg-surface-panel p-6 mb-8 text-center shadow-sm">
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono">
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border text-text-primary">Cisco</span>
-              <span className="text-text-muted">&bull;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border text-text-primary">Fortinet</span>
-              <span className="text-text-muted">&bull;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border text-text-primary">Palo Alto</span>
-              <span className="text-text-muted">&bull;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border text-text-primary">Check Point</span>
-              <span className="text-text-muted">&bull;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border text-text-primary">Juniper</span>
-            </div>
-
-            <div className="py-2 text-brand-primary font-mono text-xs">&darr;</div>
-
-            <div className="inline-flex px-4 py-1.5 rounded bg-brand-primary/20 text-brand-bright font-mono font-bold text-xs border border-brand-primary/40">
-              NETSECURE AI
-            </div>
-
-            <div className="py-2 text-brand-primary font-mono text-xs">&darr;</div>
-
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono text-text-secondary">
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border">Security Analysis</span>
-              <span className="text-text-muted">&rarr;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border">Compliance</span>
-              <span className="text-text-muted">&rarr;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border">Remediation</span>
-              <span className="text-text-muted">&rarr;</span>
-              <span className="px-2.5 py-1 rounded bg-surface-primary border border-surface-border">Reporting</span>
-            </div>
-          </div>
-
-          {/* Supported Multi-Vendor Syntax Breakdown */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Cisco */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-400" />
-                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Cisco IOS / IOS-XE</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-blue-950 text-[10px] font-mono text-blue-300 border border-blue-800/60">
-                  Routers & Switches
-                </span>
+          {/* Numbered Rings Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
+                01
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Extracts SSH version, Telnet status, HTTP/HTTPS server settings, syslog forwarding, NTP synchronization, and login timeouts.
+              <h3 className="font-display text-xl font-bold text-white mb-2">
+                Zero Hallucination Compliance
+              </h3>
+              <p className="text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
+                Rules are evaluated by strict deterministic Python regular expressions based on official CIS Benchmarks and NIST SP 800-53 controls. Generative AI never determines whether a check passes or fails.
               </p>
-              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
-                ip ssh version 2&#10;no ip http server&#10;line vty 0 4&#10; transport input ssh
-              </pre>
             </div>
 
-            {/* Fortinet */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-red-400" />
-                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Fortinet FortiOS</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-red-950 text-[10px] font-mono text-red-300 border border-red-800/60">
-                  FortiGate NGFW
-                </span>
+            <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
+                02
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Parses global admin timeouts, SSH v2 port policies, administrator lockout thresholds, and remote logging configurations.
+              <h3 className="font-display text-xl font-bold text-white mb-2">
+                Safe Boundary Isolation
+              </h3>
+              <p className="text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
+                NetSecure AI audits uploaded configuration text files. It contains zero active network probes and zero device write permissions. Your physical infrastructure is completely isolated from live risks.
               </p>
-              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
-                config system global&#10;  set admintimeout 10&#10;  set ssh-version 2&#10;end
-              </pre>
             </div>
 
-            {/* Palo Alto */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-orange-400" />
-                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Palo Alto PAN-OS</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-orange-950 text-[10px] font-mono text-orange-300 border border-orange-800/60">
-                  Firewall & Panorama
-                </span>
+            <div className="p-8 rounded-3xl bg-[#0F343A]/80 border border-[#1E4950] relative backdrop-blur-sm group hover:border-[#3DB663]/50 transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-[#3DB663]/20 border border-[#3DB663]/40 text-[#3DB663] font-display font-extrabold text-xl flex items-center justify-center mb-6">
+                03
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Evaluates system management interface profiles, permitted IP ranges, telnet prohibition, and secure NTP server configuration.
+              <h3 className="font-display text-xl font-bold text-white mb-2">
+                Closed-Loop Verification
+              </h3>
+              <p className="text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
+                Proposed CLI fixes are staged directly into an isolated working-configuration sandbox. You can re-audit the staged configuration immediately to mathematically confirm that all findings pass.
               </p>
-              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
-                set deviceconfig system&#10;  service disable-telnet yes&#10;  ntp-servers primary ...
-              </pre>
-            </div>
-
-            {/* Juniper */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Juniper Junos</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-[10px] font-mono text-emerald-300 border border-emerald-800/60">
-                  Aggregation & Core
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Analyzes system services, root authentication methods, telnet prohibition, and logging settings for comprehensive coverage.
-              </p>
-              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
-                set system services ssh protocol-version v2&#10;delete system services telnet
-              </pre>
-            </div>
-
-            {/* Aruba */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-orange-400" />
-                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Aruba AOS-CX</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-orange-950 text-[10px] font-mono text-orange-300 border border-orange-800/60">
-                  Switching Fabric
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Checks SSH configurations, password requirements, secure management planes, and AAA server alignment across switches.
-              </p>
-              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
-                ssh server vrf mgmt&#10;no telnet server
-              </pre>
-            </div>
-
-            {/* Check Point */}
-            <div className="rounded-xl border border-surface-border bg-surface-panel p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-surface-border">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-pink-400" />
-                  <span className="font-bold text-xs text-text-primary uppercase font-mono">Check Point Gaia</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-pink-950 text-[10px] font-mono text-pink-300 border border-pink-800/60">
-                  Security Gateways
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Extracts management interface rules, API configurations, lockout threshold settings, and secure password standards.
-              </p>
-              <pre className="font-mono text-[10px] text-text-secondary bg-surface-primary p-2.5 rounded border border-surface-border overflow-x-auto">
-                set user admin shell /bin/bash&#10;set inactivity-timeout 10
-              </pre>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 6. SECTION: COMPLIANCE FRAMEWORKS */}
-      <section id="capabilities" className="py-16 lg:py-20 border-b border-surface-border bg-surface-primary">
+      {/* 8. INTERACTIVE FINDINGS & REMEDIATION PLAYGROUND */}
+      <section className="py-20 lg:py-28" id="sandbox">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-brand-bright font-mono">
-              Regulatory Alignment
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary mt-2">
-              Supported Security & Compliance Frameworks
+          <div className="max-w-2xl mb-12">
+            <span className="eyebrow mb-3">Live Interactive Demonstration</span>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+              Test deterministic remediation in real time.
             </h2>
-            <p className="text-xs sm:text-sm text-text-secondary mt-2">
-              Evaluates configurations against applicable security and compliance controls without ambiguity.
+            <p className="mt-3 text-sm text-[#4A5B60] leading-relaxed">
+              Experience how NetSecure AI isolates a failed CIS control, generates native CLI remediation syntax, and confirms the fix in the staged working configuration.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* CIS */}
-            <div className="p-5 rounded-xl bg-surface-panel border border-surface-border shadow-sm space-y-2">
-              <div className="text-xs font-bold font-mono text-brand-bright">CIS Benchmarks</div>
-              <div className="text-sm font-bold text-text-primary">Network Device v1.0</div>
-              <p className="text-[11px] text-text-secondary leading-relaxed">
-                Hardening baselines for enterprise routers, firewalls, and switches including SSH, Telnet, HTTP, and timeout controls.
-              </p>
-              <div className="pt-2 text-[10px] font-mono text-status-success font-bold">
-                ✓ Implemented Baseline
+          <div className="bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-10 shadow-sm">
+            {/* Header with Posture Meter */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#D7DCE5]">
+              <div>
+                <span className="text-xs font-mono uppercase text-[#7E8F95] font-semibold">
+                  Device: Cisco-Catalyst-9300-Core
+                </span>
+                <div className="font-display text-2xl font-bold text-[#0A282D] mt-0.5">
+                  CIS Cisco IOS 15 Benchmark Audit
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right font-mono">
+                  <div className="text-xs text-[#7E8F95] uppercase">Compliance Posture</div>
+                  <div className={`text-2xl font-bold ${sandboxRemediated ? 'text-[#3DB663]' : 'text-[#E11D48]'}`}>
+                    {sandboxRemediated ? '100% Compliant' : '75% Non-Compliant'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSandboxRemediated(!sandboxRemediated)}
+                  className={`btn ${sandboxRemediated ? 'btn--soft' : 'btn--green'}`}
+                >
+                  <RefreshCw size={14} className={sandboxRemediated ? '' : 'animate-spin'} />
+                  <span>{sandboxRemediated ? 'Reset Demo State' : 'Apply Staged Remediation'}</span>
+                </button>
               </div>
             </div>
 
-            {/* NIST */}
-            <div className="p-5 rounded-xl bg-surface-panel border border-surface-border shadow-sm space-y-2">
-              <div className="text-xs font-bold font-mono text-status-success">NIST SP 800-53</div>
-              <div className="text-sm font-bold text-text-primary">Revision 5 Controls</div>
-              <p className="text-[11px] text-text-secondary leading-relaxed">
-                Access control (AC-2/AC-17), transmission confidentiality (SC-8), and audit accountability (AU-2/AU-12) controls.
-              </p>
-              <div className="pt-2 text-[10px] font-mono text-status-success font-bold">
-                ✓ Implemented Baseline
+            {/* Findings Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+              {/* Control 1: Telnet Hardening */}
+              <div className="p-5 rounded-2xl border border-[#D7DCE5] bg-[#F2F3F7]/50 space-y-3 font-mono text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0A282D]">CIS 1.1.1: Ensure Telnet is Disabled</span>
+                  {sandboxRemediated ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB]">
+                      PASS
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FEECEC] text-[#9F1239] font-bold border border-[#FCA5A5]">
+                      FAIL
+                    </span>
+                  )}
+                </div>
+                <p className="font-sans text-xs text-[#4A5B60]">
+                  {sandboxRemediated
+                    ? 'Transport input is set strictly to SSH. Plaintext telnet daemon is disabled.'
+                    : 'Cleartext Telnet credentials transmission detected across VTY lines 0 through 4.'}
+                </p>
+                <div className="p-3 rounded-xl bg-white border border-[#D7DCE5] text-[11px]">
+                  <span className="text-[#7E8F95]">Config Line: </span>
+                  <span className={sandboxRemediated ? 'text-[#3DB663] font-bold' : 'text-[#E11D48] font-bold line-through'}>
+                    {sandboxRemediated ? 'transport input ssh' : 'transport input telnet ssh'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Control 2: SSH Protocol Version 2 */}
+              <div className="p-5 rounded-2xl border border-[#D7DCE5] bg-[#F2F3F7]/50 space-y-3 font-mono text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0A282D]">CIS 1.1.2: Enforce SSH Version 2</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB]">
+                    PASS
+                  </span>
+                </div>
+                <p className="font-sans text-xs text-[#4A5B60]">
+                  Legacy SSH v1 protocol disabled. 2048-bit RSA keys negotiated for cryptographic transport.
+                </p>
+                <div className="p-3 rounded-xl bg-white border border-[#D7DCE5] text-[11px]">
+                  <span className="text-[#7E8F95]">Config Line: </span>
+                  <span className="text-[#3DB663] font-bold">ip ssh version 2</span>
+                </div>
               </div>
             </div>
 
-            {/* DISA STIG */}
-            <div className="p-5 rounded-xl bg-surface-panel border border-surface-border shadow-sm space-y-2">
-              <div className="text-xs font-bold font-mono text-text-secondary">DISA STIG</div>
-              <div className="text-sm font-bold text-text-primary">Infrastructure Guidelines</div>
-              <p className="text-[11px] text-text-secondary leading-relaxed">
-                Security technical implementation guidelines for perimeter routing, management plane access, and encryption.
-              </p>
-              <div className="pt-2 text-[10px] font-mono text-text-secondary">
-                Comparable Architecture
+            {/* CLI Staged Remediation Box */}
+            <div className="rounded-2xl bg-[#0A282D] text-white p-6 font-mono text-xs border border-[#1E4950]">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Terminal size={14} className="text-[#3DB663]" />
+                  <span className="font-bold">Deterministic Staged Remediation Script</span>
+                </div>
+                <span className="text-[10px] text-[#A3B8BC] uppercase">
+                  {sandboxRemediated ? 'Verified in Sandbox' : 'Staged for Review'}
+                </span>
               </div>
-            </div>
-
-            {/* ISO 27001 */}
-            <div className="p-5 rounded-xl bg-surface-panel border border-surface-border shadow-sm space-y-2">
-              <div className="text-xs font-bold font-mono text-text-secondary">ISO/IEC 27001</div>
-              <div className="text-sm font-bold text-text-primary">Security Management</div>
-              <p className="text-[11px] text-text-secondary leading-relaxed">
-                Annex A controls for network security management, boundary protection, and administrative segregation.
-              </p>
-              <div className="pt-2 text-[10px] font-mono text-text-secondary">
-                Comparable Architecture
-              </div>
+              <pre className="text-[#3DB663] leading-relaxed">
+{`configure terminal
+line vty 0 4
+ transport input ssh
+ exit
+write memory`}
+              </pre>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 7. SECTION: FINAL CALL TO ACTION */}
-      <section className="py-16 lg:py-24 bg-surface-primary border-b border-surface-border relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-surface-secondary border border-surface-border text-xs font-mono text-brand-bright font-semibold">
-            <ShieldCheck size={14} />
-            <span>ENTERPRISE NETWORK COMPLIANCE PLATFORM</span>
-          </div>
-
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary tracking-tight leading-tight">
-            Turn Network Complexity<br />
-            Into Compliance Confidence.
-          </h2>
-
-          <p className="text-xs sm:text-sm text-text-secondary max-w-xl mx-auto leading-relaxed">
-            Understand your security posture, identify compliance gaps, and move from findings to deterministic remediation.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <button
-              onClick={onStartAudit}
-              className="flex items-center gap-2 px-5 py-2.5 rounded bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs sm:text-sm transition-colors shadow-sm"
-            >
-              <span>Get Started</span>
-              <ArrowRight size={14} className="stroke-[2.5]" />
-            </button>
-
-            <button
-              onClick={() => onNavigate('dashboard')}
-              className="flex items-center gap-2 px-5 py-2.5 rounded bg-surface-secondary hover:bg-surface-hover border border-surface-border text-text-primary font-semibold text-xs sm:text-sm transition-colors"
-            >
-              <span>Explore Platform</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
+      {/* 9. MARQUEE BANNER (Potadot big-marquee) */}
+      <section className="py-8 bg-white border-y border-[#D7DCE5] overflow-hidden" aria-hidden="true">
+        <div className="marquee-track flex items-center gap-8 text-sm sm:text-base font-display font-extrabold uppercase tracking-wider text-[#0A282D]">
+          <span>Cisco IOS-XE</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Fortinet FortiOS</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Palo Alto PAN-OS</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Juniper Junos</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Aruba AOS-CX</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Check Point Gaia</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>CIS Benchmark Certified</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>NIST SP 800-53</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Zero Hallucination</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Cisco IOS-XE</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Fortinet FortiOS</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Palo Alto PAN-OS</span>
+          <span className="text-[#3DB663]">●</span>
+          <span>Juniper Junos</span>
         </div>
       </section>
 
-      {/* 8. ENTERPRISE FOOTER */}
-      <footer className="py-12 bg-[#020305] text-xs text-text-secondary">
+      {/* 10. FREQUENTLY ASKED QUESTIONS (Potadot faq) */}
+      <section className="py-20 lg:py-28" id="faq">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-8 border-b border-surface-border/80">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-text-primary font-mono">
-                <ShieldCheck size={16} className="text-brand-primary" />
-                <span>NETSECURE AI</span>
-              </div>
-              <div className="text-[11px] text-text-secondary mt-1">
-                Enterprise Network Security &amp; Compliance Platform
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            <div className="lg:col-span-5 space-y-4">
+              <span className="eyebrow mb-3">Straight Answers</span>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+                Frequently asked technical questions.
+              </h2>
+              <p className="text-sm text-[#4A5B60] leading-relaxed">
+                Everything you need to know about our deterministic rules, multi-vendor parsers, and zero-touch security boundary.
+              </p>
+              <div className="pt-2">
+                <button
+                  onClick={onStartAudit}
+                  className="btn btn--green"
+                >
+                  <span>Launch Ingestion Console</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={13} className="stroke-[2.5]" />
+                  </span>
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 font-medium">
-              <button
-                onClick={() => onNavigate('dashboard')}
-                className="hover:text-text-primary transition-colors"
-              >
+            <div className="lg:col-span-7 space-y-3">
+              {faqs.map((f, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-[#D7DCE5] bg-white overflow-hidden transition-all"
+                >
+                  <button
+                    onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
+                    className="w-full p-5 text-left flex items-center justify-between font-display font-bold text-base text-[#0A282D]"
+                  >
+                    <span>{f.q}</span>
+                    <span
+                      className={`w-6 h-6 rounded-full border border-[#D7DCE5] flex items-center justify-center text-xs flex-shrink-0 ml-3 transition-transform ${
+                        activeFaq === idx ? 'rotate-180 bg-[#3DB663] text-white border-transparent' : 'bg-[#F2F3F7]'
+                      }`}
+                    >
+                      <ChevronDown size={14} />
+                    </span>
+                  </button>
+                  {activeFaq === idx && (
+                    <div className="px-5 pb-5 text-xs sm:text-sm text-[#4A5B60] leading-relaxed border-t border-[#D7DCE5]/60 pt-3 animate-fadeIn">
+                      {f.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 11. HIGH-IMPACT DARK CALL TO ACTION BANNER (Potadot cta) */}
+      <section className="py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="p-8 sm:p-14 lg:p-16 rounded-3xl bg-[#0A282D] text-white relative overflow-hidden shadow-2xl">
+            <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
+            <div className="orb orb--dark-ring w-[400px] h-[400px] -right-20 -bottom-20" />
+
+            <div className="relative z-10 max-w-3xl space-y-6">
+              <span className="eyebrow eyebrow-dark">Get Started Immediately</span>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+                Have network configurations that need deterministic compliance?
+              </h2>
+              <p className="text-sm sm:text-base text-[#A3B8BC] leading-relaxed">
+                Upload raw device configuration files now to generate instant CIS & NIST audit evaluations, AI explanations, and verified CLI remediation scripts.
+              </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <button
+                  onClick={onStartAudit}
+                  className="btn btn--green text-sm sm:text-base px-6 py-3"
+                >
+                  <span>Launch Configuration Audit</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={14} className="stroke-[2.5]" />
+                  </span>
+                </button>
+                <Link
+                  to="/login"
+                  className="btn btn--light text-sm sm:text-base px-6 py-3"
+                >
+                  <span>Auditor Sign In</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={14} className="stroke-[2.5]" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 12. ARCHITECTURAL SITE FOOTER (Potadot site-footer) */}
+      <footer className="pt-16 pb-12 bg-[#0A282D] text-white border-t border-[#1E4950] relative overflow-hidden">
+        <div className="dark-dots absolute inset-0 opacity-25 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-white/10">
+            {/* Brand Column */}
+            <div className="col-span-2 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3DB663] text-white">
+                  <Shield size={18} className="stroke-[2.4]" />
+                </div>
+                <div className="text-lg font-display font-bold tracking-tight text-white">
+                  NetSecure AI
+                </div>
+              </div>
+              <p className="text-xs text-[#A3B8BC] leading-relaxed max-w-sm">
+                Deterministic Multi-Vendor Network Security Compliance, Adaptive Rule Learning, and Verified Remediation Engine.
+              </p>
+              <div className="flex items-center gap-2 pt-2 text-xs font-mono text-[#3DB663]">
+                <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-ping" />
+                <span>Deterministic Core Active</span>
+              </div>
+            </div>
+
+            {/* Column: Platform */}
+            <div className="space-y-3">
+              <div className="text-xs font-mono font-bold uppercase text-[#7E8F95] tracking-wider">
                 Platform
-              </button>
-              <button
-                onClick={() => scrollToSection('capabilities')}
-                className="hover:text-text-primary transition-colors"
-              >
-                Capabilities
-              </button>
-              <button
-                onClick={() => scrollToSection('solutions')}
-                className="hover:text-text-primary transition-colors"
-              >
-                Solutions
-              </button>
-              <button
-                onClick={() => scrollToSection('about')}
-                className="hover:text-text-primary transition-colors"
-              >
-                About
-              </button>
-              <button
-                onClick={() => onNavigate('settings')}
-                className="hover:text-text-primary transition-colors"
-              >
-                Contact
-              </button>
+              </div>
+              <ul className="space-y-2 text-xs text-[#A3B8BC]">
+                <li><button onClick={() => onNavigate('dashboard')} className="hover:text-white transition-colors">Fleet Dashboard</button></li>
+                <li><button onClick={onStartAudit} className="hover:text-white transition-colors">Configuration Audits</button></li>
+                <li><button onClick={() => onNavigate('results')} className="hover:text-white transition-colors">Audit Findings</button></li>
+                <li><button onClick={() => onNavigate('training')} className="hover:text-white transition-colors">Training Center</button></li>
+                <li><button onClick={() => onNavigate('reports')} className="hover:text-white transition-colors">PDF Reports Archive</button></li>
+              </ul>
+            </div>
+
+            {/* Column: Vendors */}
+            <div className="space-y-3">
+              <div className="text-xs font-mono font-bold uppercase text-[#7E8F95] tracking-wider">
+                Vendors
+              </div>
+              <ul className="space-y-2 text-xs text-[#A3B8BC]">
+                <li><span>Cisco IOS / IOS-XE</span></li>
+                <li><span>Fortinet FortiOS</span></li>
+                <li><span>Palo Alto PAN-OS</span></li>
+                <li><span>Juniper Junos OS</span></li>
+                <li><span>Aruba AOS-CX</span></li>
+                <li><span>Check Point Gaia</span></li>
+              </ul>
+            </div>
+
+            {/* Column: Standards */}
+            <div className="space-y-3">
+              <div className="text-xs font-mono font-bold uppercase text-[#7E8F95] tracking-wider">
+                Compliance
+              </div>
+              <ul className="space-y-2 text-xs text-[#A3B8BC]">
+                <li><span>CIS Benchmark L1 & L2</span></li>
+                <li><span>NIST SP 800-53 Rev 5</span></li>
+                <li><span>Zero-Touch Security Boundary</span></li>
+                <li><span>Deterministic Regex Proofs</span></li>
+                <li><span>Staged Remediation Sandbox</span></li>
+              </ul>
             </div>
           </div>
 
-          <div className="pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-[11px] text-text-secondary font-mono">
+          {/* Bottom Copyright & Disclaimer */}
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-[#7E8F95]">
             <div>
-              &copy; {new Date().getFullYear()} NetSecure AI. All rights reserved. Deterministic Engine v2.4.
+              © {new Date().getFullYear()} NetSecure AI Platform. All rights reserved.
             </div>
-            <div className="flex items-center gap-4">
-              <span>Security</span>
-              <span>&bull;</span>
-              <span>Privacy</span>
-              <span>&bull;</span>
-              <span>Terms</span>
+            <div>
+              Offline Configuration Auditing · Zero Direct Production Write Access
             </div>
           </div>
         </div>

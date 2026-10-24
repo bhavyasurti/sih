@@ -5,9 +5,16 @@ import {
   Upload,
   Play,
   Loader2,
-  Activity,
   Search,
   Download,
+  FileText,
+  Sliders,
+  Check,
+  ChevronDown,
+  ArrowRight,
+  Shield,
+  Activity,
+  Sparkles
 } from 'lucide-react'
 import { VendorSelection, FrameworkSelection, AuditSummaryItem } from '../types'
 import { StatusPill } from '../components/Shared'
@@ -54,7 +61,6 @@ export function AuditPage({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [inputMode, setInputMode] = useState<'upload' | 'paste'>('upload')
   const [searchFilter, setSearchFilter] = useState('')
-  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const filteredAudits = useMemo(() => {
     return audits.filter(
@@ -65,412 +71,333 @@ export function AuditPage({
     )
   }, [audits, searchFilter])
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      onFilePicked(e.dataTransfer.files[0])
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Top Section: Audit Ingestion Console */}
-      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* 1. EDITORIAL HEADER */}
+      <div className="pb-4 border-b border-[#D7DCE5]">
+        <div className="eyebrow mb-2">Ingestion Console</div>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#0A282D] tracking-tight">
+          Configuration Audits
+        </h1>
+        <p className="text-xs sm:text-sm text-[#4A5B60] mt-1">
+          Ingest raw device running configurations for deterministic rule parsing, syntax isolation, and regulatory compliance evaluation.
+        </p>
+      </div>
+
+      {/* 2. MAIN INGESTION CONSOLE */}
+      <div className="bg-white border border-[#D7DCE5] rounded-3xl p-6 sm:p-8 shadow-xs">
+        {/* Console Header & Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#D7DCE5]">
           <div>
-            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
-              <FileCode2 size={16} className="text-brand-bright" />
-              Ingest Configuration for Compliance Audit
+            <h2 className="text-base font-display font-bold text-[#0A282D]">
+              Select Ingestion Method
             </h2>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Upload or paste running configurations to evaluate against CIS / NIST / STIG / ISO benchmarks
+            <p className="text-xs text-[#7E8F95] mt-0.5">
+              Choose between raw file upload (.cfg, .txt, .conf) or direct CLI buffer input.
             </p>
           </div>
 
-          {/* Mode Switcher */}
-          <div className="flex rounded bg-surface-secondary p-1 border border-surface-border">
+          <div className="inline-flex p-1 rounded-full bg-[#F2F3F7] border border-[#D7DCE5] text-xs font-mono">
             <button
               onClick={() => setInputMode('upload')}
-              className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
+              className={`px-4 py-1.5 rounded-full font-bold uppercase transition-all ${
                 inputMode === 'upload'
-                  ? 'bg-surface-border text-brand-bright shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'bg-[#0A282D] text-white shadow-xs'
+                  : 'text-[#4A5B60] hover:text-[#0A282D]'
               }`}
             >
-              File Upload
+              Upload Config File
             </button>
             <button
               onClick={() => setInputMode('paste')}
-              className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
+              className={`px-4 py-1.5 rounded-full font-bold uppercase transition-all ${
                 inputMode === 'paste'
-                  ? 'bg-surface-border text-brand-bright shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'bg-[#0A282D] text-white shadow-xs'
+                  : 'text-[#4A5B60] hover:text-[#0A282D]'
               }`}
             >
-              Raw CLI Editor
+              Paste CLI Buffer
             </button>
           </div>
         </div>
 
+        {/* Input Zones */}
+        <div className="py-6">
+          {inputMode === 'upload' ? (
+            <div
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-[#D7DCE5] hover:border-[#3DB663] bg-[#F2F3F7]/40 hover:bg-[#F2F3F7]/80 rounded-3xl p-10 text-center cursor-pointer transition-all group"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".txt,.cfg,.conf,.json,.log"
+                onChange={(e) => onFilePicked(e.target.files?.[0] || null)}
+              />
+              <div className="w-14 h-14 rounded-2xl bg-white border border-[#D7DCE5] text-[#3DB663] flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-xs">
+                <Upload size={24} className="stroke-[2.5]" />
+              </div>
+              <h3 className="text-base font-display font-bold text-[#0A282D]">
+                {uploadedFile ? uploadedFile.name : 'Drop device configuration file here'}
+              </h3>
+              <p className="text-xs text-[#7E8F95] mt-1 max-w-sm mx-auto font-mono">
+                {uploadedFile
+                  ? `${(uploadedFile.size / 1024).toFixed(1)} KB · Ready for deterministic audit`
+                  : 'Supports Cisco IOS/NX-OS, Fortinet FortiOS, PAN-OS, Junos OS, Aruba CX, and Gaia (.cfg, .txt, .conf)'}
+              </p>
+              <div className="mt-4">
+                <span className="btn btn--soft text-xs">
+                  Browse Local Files
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono text-[#7E8F95]">
+                <span>Paste running-configuration buffer</span>
+                <span>{configText.length} characters</span>
+              </div>
+              <textarea
+                rows={10}
+                value={configText}
+                onChange={(e) => setConfigText(e.target.value)}
+                placeholder={`! Sample Cisco IOS Configuration\nhostname CORE-RTR-01\n!\nservice password-encryption\nno ip http server\nip ssh version 2\n!\nline vty 0 4\n transport input ssh\n login authentication default\n!`}
+                className="w-full font-mono text-xs bg-[#0A282D] text-white p-4 rounded-2xl border border-[#1E4950] focus:outline-none focus:border-[#3DB663] focus:ring-1 focus:ring-[#3DB663] leading-relaxed resize-y shadow-inner"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Configuration Parameters & Framework Options */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-[#D7DCE5]">
+          {/* Target Vendor */}
+          <div className="space-y-2">
+            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#0A282D]">
+              Target Vendor Family
+            </label>
+            <div className="relative">
+              <select
+                value={selectedVendor}
+                onChange={(e) => setSelectedVendor(e.target.value as VendorSelection)}
+                className="w-full appearance-none bg-[#F2F3F7] border border-[#D7DCE5] text-[#0A282D] text-xs font-mono rounded-full px-4 py-2.5 pr-8 focus:outline-none focus:border-[#3DB663]"
+              >
+                <option value="auto">Auto-Detect Grammar (Recommended)</option>
+                <option value="cisco">Cisco Systems (IOS / IOS-XE / NX-OS)</option>
+                <option value="fortinet">Fortinet (FortiOS)</option>
+                <option value="paloalto">Palo Alto Networks (PAN-OS)</option>
+                <option value="juniper">Juniper Networks (Junos OS)</option>
+                <option value="aruba">Aruba Networks (AOS-CX)</option>
+                <option value="checkpoint">Check Point (Gaia OS)</option>
+              </select>
+              <ChevronDown
+                size={14}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7E8F95] pointer-events-none"
+              />
+            </div>
+          </div>
+
+          {/* Regulatory Baseline */}
+          <div className="space-y-2">
+            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#0A282D]">
+              Regulatory Baseline
+            </label>
+            <div className="relative">
+              <select
+                value={selectedFramework}
+                onChange={(e) => setSelectedFramework(e.target.value as FrameworkSelection)}
+                className="w-full appearance-none bg-[#F2F3F7] border border-[#D7DCE5] text-[#0A282D] text-xs font-mono rounded-full px-4 py-2.5 pr-8 focus:outline-none focus:border-[#3DB663]"
+              >
+                <option value="CIS">CIS Benchmark (Level 1 & Level 2)</option>
+                <option value="NIST">NIST SP 800-53 (Rev 5 Security Controls)</option>
+              </select>
+              <ChevronDown
+                size={14}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#7E8F95] pointer-events-none"
+              />
+            </div>
+          </div>
+
+          {/* AI Explanations Toggle */}
+          <div className="space-y-2">
+            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-[#0A282D]">
+              Analysis Engine Mode
+            </label>
+            <button
+              type="button"
+              onClick={() => setAiEnabled(!aiEnabled)}
+              className={`w-full flex items-center justify-between px-4 py-2 rounded-full border text-xs font-mono font-bold transition-all ${
+                aiEnabled
+                  ? 'bg-[#EDF8F1] border-[#BFE7CB] text-[#1E6E37]'
+                  : 'bg-[#F2F3F7] border-[#D7DCE5] text-[#4A5B60]'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <Sparkles size={14} className={aiEnabled ? 'text-[#3DB663]' : 'text-[#7E8F95]'} />
+                <span>{aiEnabled ? 'AI Rationale: Enabled' : 'Deterministic Only'}</span>
+              </span>
+              <span className={`h-2.5 w-2.5 rounded-full ${aiEnabled ? 'bg-[#3DB663]' : 'bg-[#7E8F95]'}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Error Notification */}
         {error && (
-          <div className="mt-4 p-3 rounded bg-status-critical/10 border border-status-critical/30 text-status-critical text-xs flex items-center gap-2">
-            <AlertOctagon size={14} className="flex-shrink-0" />
+          <div className="mt-6 p-4 rounded-2xl bg-[#FFF1F2] border border-[#FECDD3] text-[#E11D48] text-xs font-mono flex items-center gap-3">
+            <AlertOctagon size={16} className="flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left Area (2 Cols): File Upload Zone or CLI Text Area */}
-          <div className="lg:col-span-2 space-y-4">
-            {inputMode === 'upload' ? (
-              <div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={(e) => onFilePicked(e.target.files?.[0] ?? null)}
-                  className="hidden"
-                  accept=".cfg,.conf,.config,.txt,.log"
-                />
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-surface-border hover:border-brand-primary bg-surface-primary hover:bg-surface-secondary rounded-lg p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px]"
-                >
-                  <Upload size={28} className="text-text-secondary mb-2 stroke-[1.8]" />
-                  <div className="text-xs font-semibold text-text-primary">
-                    {uploadedFile ? uploadedFile.name : 'Click to upload configuration file'}
-                  </div>
-                  <div className="text-[11px] text-text-secondary mt-1">
-                    Supports Cisco IOS (.cfg), FortiOS (.conf), PAN-OS (.txt), Junos, AOS-CX, Gaia text configs up to 2MB
-                  </div>
-                  {uploadedFile && (
-                    <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded bg-surface-secondary text-brand-bright text-xs font-mono border border-surface-border">
-                      <span>{(uploadedFile.size / 1024).toFixed(1)} KB</span>
-                      <span className="text-text-secondary">&bull;</span>
-                      <span className="text-status-success">Ready to audit</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-                  Paste Configuration Text
-                </label>
-                <textarea
-                  value={configText}
-                  onChange={(e) => setConfigText(e.target.value)}
-                  placeholder="! Paste running-config or device configuration here...&#10;hostname CORE-RTR-01&#10;ip ssh version 2&#10;line vty 0 4&#10; transport input ssh"
-                  className="w-full h-56 rounded-lg bg-surface-secondary border border-surface-border p-3 font-mono text-xs text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary placeholder:text-text-secondary resize-y"
-                />
-                <div className="flex items-center justify-between text-[11px] text-text-secondary mt-1">
-                  <span>Lines: {configText ? configText.split('\n').length : 0}</span>
-                  <span>Characters: {configText.length}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Area (1 Col): Audit Parameters */}
-          <div className="space-y-4 rounded-lg bg-surface-panel border border-surface-border p-4 h-fit">
-            
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider">Analysis Settings</h3>
-              <button 
-                type="button" 
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-[10px] font-semibold text-brand-primary hover:text-brand-bright transition-colors"
-              >
-                {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
-              </button>
-            </div>
-
-            {showAdvanced && (
-              <div className="space-y-4 pt-2 border-t border-surface-border/50">
-                {/* Vendor Selection */}
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-text-primary mb-1.5">
-                    Target Vendor Architecture
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { id: 'auto' as VendorSelection, label: 'Auto-Detect' },
-                      { id: 'cisco' as VendorSelection, label: 'Cisco IOS' },
-                      { id: 'fortinet' as VendorSelection, label: 'Fortinet' },
-                      { id: 'paloalto' as VendorSelection, label: 'Palo Alto' },
-                      { id: 'juniper' as VendorSelection, label: 'Juniper' },
-                      { id: 'aruba' as VendorSelection, label: 'Aruba AOS-CX' },
-                      { id: 'checkpoint' as VendorSelection, label: 'Check Point' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setSelectedVendor(opt.id)}
-                        className={`px-2 py-1 rounded text-[11px] font-medium border text-left transition-colors ${
-                          selectedVendor === opt.id
-                            ? 'bg-brand-primary/10 border-brand-primary/50 text-brand-bright font-semibold'
-                            : 'bg-surface-secondary border-surface-border text-text-secondary hover:text-text-primary'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Framework Selection */}
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-text-primary mb-1.5">
-                    Compliance Framework
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { id: 'CIS' as FrameworkSelection, label: 'CIS Benchmark' },
-                      { id: 'NIST' as FrameworkSelection, label: 'NIST SP 800-53' },
-                      { id: 'STIG' as FrameworkSelection, label: 'DISA STIG' },
-                      { id: 'ISO' as FrameworkSelection, label: 'ISO 27001' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setSelectedFramework(opt.id)}
-                        className={`px-2 py-1 rounded text-[11px] font-medium border text-left transition-colors ${
-                          selectedFramework === opt.id
-                            ? 'bg-brand-primary/10 border-brand-primary/50 text-brand-bright font-semibold'
-                            : 'bg-surface-secondary border-surface-border text-text-secondary hover:text-text-primary'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* AI Normalization Option */}
-                <div className="pt-2 border-t border-surface-border">
-                  <label className="flex items-start gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={aiEnabled}
-                      onChange={(e) => setAiEnabled(e.target.checked)}
-                      className="mt-0.5 h-3.5 w-3.5 rounded border-surface-border bg-surface-primary text-brand-primary focus:ring-0"
-                    />
-                    <div>
-                      <div className="text-[11px] font-semibold text-text-primary">
-                        AI-Assisted Normalization (Gemini)
-                      </div>
-                      <div className="text-[10px] text-text-secondary">
-                        Suggest normalized security parameters for unparsed commands. Deterministic engine remains authoritative.
-                      </div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Run Audit Action */}
-            <div className="pt-3 border-t border-surface-border">
-              <button
-                type="button"
-                onClick={onAnalyze}
-                disabled={isAnalyzing || (!configText.trim() && !uploadedFile)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-brand-primary hover:bg-brand-bright disabled:opacity-50 text-white font-bold text-xs transition-colors shadow-sm"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 size={15} className="animate-spin" />
-                    <span>Executing Compliance Pipeline...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play size={14} className="fill-current" />
-                    <span>Run Compliance Audit</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Analysis Progress Tracker */}
+        {/* Progress Pipeline Stages (When Analyzing) */}
         {isAnalyzing && (
-          <div className="mt-6 pt-5 border-t border-surface-border">
-            <div className="text-xs font-semibold uppercase tracking-wider text-brand-bright mb-3 flex items-center gap-2">
-              <Activity size={14} className="animate-pulse" />
-              Audit Execution Pipeline
+          <div className="mt-6 p-6 rounded-2xl bg-[#F2F3F7] border border-[#D7DCE5] space-y-4">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="font-bold text-[#0A282D] flex items-center gap-2">
+                <Loader2 size={14} className="animate-spin text-[#3DB663]" />
+                Executing Deterministic Ingestion Pipeline...
+              </span>
+              <span className="text-[#3DB663] font-bold">Live Execution</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
               {progressStages.map((stage, idx) => (
                 <div
-                  key={stage.label}
-                  className="p-2 rounded bg-surface-secondary border border-surface-border text-center"
+                  key={idx}
+                  className={`p-2.5 rounded-xl text-center text-[10px] font-mono border transition-all ${
+                    stage.active
+                      ? 'bg-white border-[#3DB663] text-[#0A282D] shadow-2xs font-bold'
+                      : 'bg-white/40 border-[#D7DCE5] text-[#7E8F95]'
+                  }`}
                 >
-                  <div className="text-[10px] font-mono text-text-secondary">Stage {idx + 1}</div>
-                  <div className="text-[11px] font-semibold text-text-primary mt-0.5 truncate">
-                    {stage.label}
-                  </div>
+                  <div className="mb-1 text-[9px] text-[#7E8F95]">0{idx + 1}</div>
+                  <div className="truncate">{stage.label}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Execution CTA Action */}
+        <div className="mt-8 pt-6 border-t border-[#D7DCE5] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-xs text-[#7E8F95] font-mono">
+            Pure offline configuration parsing · Zero direct production equipment modifications
+          </div>
+
+          <button
+            onClick={onAnalyze}
+            disabled={isAnalyzing || (!configText.trim() && !uploadedFile)}
+            className="btn btn--green text-sm px-6 py-3 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Running Audit Pipeline...</span>
+              </>
+            ) : (
+              <>
+                <Play size={15} className="stroke-[2.5]" />
+                <span>Execute Compliance Audit</span>
+                <span className="btn-ico">
+                  <ArrowRight size={13} className="stroke-[2.5]" />
+                </span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Bottom Section: Audit History Archive */}
-      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-surface-border">
+      {/* 3. HISTORICAL INGESTIONS TABLE */}
+      <div className="bg-white border border-[#D7DCE5] rounded-3xl shadow-xs overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
-              Audits History Archive
+            <h2 className="text-base font-display font-bold text-[#0A282D]">
+              Historical Ingestion Records
             </h2>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Historical network configuration audits and evaluated findings
+            <p className="text-xs text-[#4A5B60] mt-0.5">
+              Select any past configuration audit to inspect findings or export reports.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search
-                size={13}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary"
-              />
-              <input
-                type="text"
-                placeholder="Filter audits..."
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                className="pl-8 pr-3 py-1 rounded bg-surface-secondary border border-surface-border text-xs text-text-primary placeholder:text-text-secondary focus:border-brand-primary focus:outline-none w-48"
-              />
-            </div>
+          <div className="relative">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7E8F95]" />
+            <input
+              type="text"
+              placeholder="Search previous audits..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="pl-9 pr-3.5 py-1.5 text-xs font-mono bg-[#F2F3F7] border border-[#D7DCE5] rounded-full text-[#0A282D] placeholder:text-[#7E8F95] focus:outline-none focus:border-[#3DB663] w-full sm:w-64"
+            />
           </div>
         </div>
 
-        <div className="mt-4 overflow-x-auto">
-          {filteredAudits.length === 0 ? (
-            <div className="py-8 text-center text-text-secondary text-xs">
-              No matching audit records found.
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View */}
-              <table className="hidden md:table w-full min-w-[700px] whitespace-nowrap text-left text-xs border-collapse">
+        {filteredAudits.length === 0 ? (
+          <div className="p-10 text-center text-[#7E8F95] font-mono text-xs">
+            No previous configuration records match your search filter.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-surface-border text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
-                  <th className="pb-2.5 font-medium">Audit ID</th>
-                  <th className="pb-2.5 font-medium">Configuration File</th>
-                  <th className="pb-2.5 font-medium">Framework</th>
-                  <th className="pb-2.5 font-medium">Status</th>
-                  <th className="pb-2.5 font-medium">Score</th>
-                  <th className="pb-2.5 font-medium text-right">Actions</th>
+                <tr className="border-b border-[#D7DCE5] bg-[#F2F3F7] font-mono text-[11px] font-bold uppercase tracking-wider text-[#7E8F95]">
+                  <th className="py-3.5 px-5">ID</th>
+                  <th className="py-3.5 px-5">Config Title</th>
+                  <th className="py-3.5 px-5">Framework</th>
+                  <th className="py-3.5 px-5 text-center">Score</th>
+                  <th className="py-3.5 px-5 text-center">Status</th>
+                  <th className="py-3.5 px-5 text-right">Inspect</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-border">
-                {filteredAudits.map((audit) => {
-                  const score = audit.compliance_score
-                  return (
-                    <tr key={audit.id} className="hover:bg-surface-secondary transition-colors">
-                      <td className="py-3 font-mono text-text-secondary">#{audit.id}</td>
-                      <td className="py-3 font-semibold text-text-primary">{audit.title}</td>
-                      <td className="py-3">
-                        <span className="px-1.5 py-0.5 rounded bg-surface-secondary border border-surface-border text-text-primary font-mono text-[10px]">
-                          {audit.framework || 'CIS'}
+              <tbody className="divide-y divide-[#D7DCE5] font-mono">
+                {filteredAudits.slice(0, 10).map((a) => (
+                  <tr key={a.id} className="hover:bg-[#F2F3F7]/50 transition-colors">
+                    <td className="py-3 px-5 font-bold text-[#0A282D]">#{a.id}</td>
+                    <td className="py-3 px-5 font-sans font-semibold text-[#0A282D] truncate max-w-xs">
+                      {a.title}
+                    </td>
+                    <td className="py-3 px-5">
+                      <span className="px-2 py-0.5 rounded-full bg-[#F2F3F7] border border-[#D7DCE5] text-[#4A5B60] text-[10px] font-bold">
+                        {a.framework || 'CIS'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-5 text-center font-bold">
+                      {a.compliance_score !== null ? (
+                        <span className={a.compliance_score >= 70 ? 'text-[#3DB663]' : 'text-[#E11D48]'}>
+                          {a.compliance_score}%
                         </span>
-                      </td>
-                      <td className="py-3">
-                        <StatusPill status={audit.status} />
-                      </td>
-                      <td className="py-3">
-                        {score !== null ? (
-                          <span
-                            className={`font-mono font-bold ${
-                              score >= 80
-                                ? 'text-status-success'
-                                : score >= 50
-                                ? 'text-amber-500'
-                                : 'text-status-critical'
-                            }`}
-                          >
-                            {Math.round(score)}%
-                          </span>
-                        ) : (
-                          <span className="text-text-secondary font-mono">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => onViewAudit(audit.id, audit.framework)}
-                            className="px-2.5 py-1 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-text-primary text-[11px] font-medium transition-colors"
-                          >
-                            View Results
-                          </button>
-                          <button
-                            onClick={() => onDownloadReport(audit.id)}
-                            disabled={isDownloading}
-                            className="p-1 rounded bg-surface-secondary hover:bg-surface-border border border-surface-border text-brand-bright transition-colors disabled:opacity-50"
-                            title="Download PDF Report"
-                          >
-                            <Download size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
+                      ) : (
+                        <span className="text-[#7E8F95]">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-5 text-center">
+                      <StatusPill status={a.status} />
+                    </td>
+                    <td className="py-3 px-5 text-right">
+                      <button
+                        onClick={() => onViewAudit(a.id, a.framework || 'CIS')}
+                        className="px-3 py-1 bg-white hover:bg-[#F2F3F7] border border-[#D7DCE5] rounded-full text-[#0A282D] font-bold text-[11px] uppercase transition-colors"
+                      >
+                        Inspect
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-              
-              {/* Mobile Card View */}
-              <div className="md:hidden space-y-3">
-                {filteredAudits.map((audit) => {
-                  const score = audit.compliance_score
-                  return (
-                    <div key={audit.id} className="rounded border border-surface-border bg-surface-secondary p-3 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-text-secondary text-[11px]">#{audit.id}</span>
-                        <StatusPill status={audit.status} />
-                      </div>
-                      
-                      <div className="font-semibold text-text-primary text-sm truncate">{audit.title}</div>
-                      
-                      <div className="flex items-center justify-between mt-1">
-                        <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.5 rounded bg-surface-primary border border-surface-border text-text-primary font-mono text-[10px]">
-                            {audit.framework || 'CIS'}
-                          </span>
-                          {score !== null ? (
-                            <span
-                              className={`font-mono font-bold text-xs ${
-                                score >= 80
-                                  ? 'text-status-success'
-                                  : score >= 50
-                                  ? 'text-amber-500'
-                                  : 'text-status-critical'
-                              }`}
-                            >
-                              {Math.round(score)}%
-                            </span>
-                          ) : (
-                            <span className="text-text-secondary font-mono text-xs">—</span>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => onViewAudit(audit.id, audit.framework)}
-                            className="px-2.5 py-1 rounded bg-surface-primary hover:bg-surface-border border border-surface-border text-text-primary text-[11px] font-medium transition-colors"
-                          >
-                            View Results
-                          </button>
-                          <button
-                            onClick={() => onDownloadReport(audit.id)}
-                            disabled={isDownloading}
-                            className="p-1 rounded bg-surface-primary hover:bg-surface-border border border-surface-border text-brand-bright transition-colors disabled:opacity-50"
-                            title="Download PDF Report"
-                          >
-                            <Download size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

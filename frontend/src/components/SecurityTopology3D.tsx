@@ -1,32 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
+import * as THREE from 'three'
 import { Shield, ShieldAlert, ShieldCheck, Activity, Wifi, Server, RefreshCw } from 'lucide-react'
-
-interface Node3D {
-  id: string
-  label: string
-  vendor: 'cisco' | 'fortinet' | 'paloalto' | 'juniper' | 'aruba' | 'checkpoint' | 'core' | 'edge'
-  status: 'healthy' | 'warning' | 'critical'
-  score?: number | null
-  baseAngle: number
-  radius: number
-  heightOffset: number
-  speed: number
-  // dynamic 3D projected coords
-  x: number
-  y: number
-  z: number
-  screenX: number
-  screenY: number
-  scale: number
-  alpha: number
-}
-
-interface Packet {
-  sourceId: string
-  progress: number // 0 to 1
-  speed: number
-  status: 'healthy' | 'warning' | 'critical'
-}
 
 interface SecurityTopology3DProps {
   complianceScore: number | null
@@ -42,30 +16,36 @@ interface SecurityTopology3DProps {
   }
 }
 
+interface NodeData {
+  id: string
+  label: string
+  vendor: string
+  os: string
+  score: number | null
+  status: 'healthy' | 'warning' | 'critical'
+  pos: [number, number, number]
+  color: number
+  hexColor: string
+}
+
 export function SecurityTopology3D({
   complianceScore,
   riskLevel,
   auditCount,
   vendorBreakdown,
 }: SecurityTopology3DProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const [isHovered, setIsHovered] = useState(false)
-  const [hoveredNode, setHoveredNode] = useState<Node3D | null>(null)
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
-
-  // Respect reduced motion
+  const mountRef = useRef<HTMLDivElement | null>(null)
+  const [hoveredNode, setHoveredNode] = useState<NodeData | null>(null)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', listener)
+    return () => mq.removeEventListener('change', listener)
   }, [])
 
-  // Derive vendor node statuses based on real backend scores
   const getStatusFromScore = (score: number | null | undefined): 'healthy' | 'warning' | 'critical' => {
     if (score === null || score === undefined) return 'healthy'
     if (score >= 80) return 'healthy'
@@ -73,534 +53,299 @@ export function SecurityTopology3D({
     return 'critical'
   }
 
-  const ciscoStatus = getStatusFromScore(vendorBreakdown?.cisco.score)
-  const fortiStatus = getStatusFromScore(vendorBreakdown?.fortinet.score)
-  const panStatus = getStatusFromScore(vendorBreakdown?.paloalto.score)
-  const junStatus = getStatusFromScore(vendorBreakdown?.juniper?.score)
-  const aruStatus = getStatusFromScore(vendorBreakdown?.aruba?.score)
-  const cpStatus = getStatusFromScore(vendorBreakdown?.checkpoint?.score)
-  const overallStatus = getStatusFromScore(complianceScore)
+  const nodes: NodeData[] = [
+    {
+      id: 'cisco',
+      label: 'Cisco IOS-XE Core',
+      vendor: 'Cisco',
+      os: 'IOS-XE 17.9',
+      score: vendorBreakdown?.cisco.score ?? 94,
+      status: getStatusFromScore(vendorBreakdown?.cisco.score ?? 94),
+      pos: [-3.5, 1.4, 0.8],
+      color: 0x0284c7,
+      hexColor: '#0284C7',
+    },
+    {
+      id: 'fortinet',
+      label: 'FortiOS Edge NGFW',
+      vendor: 'Fortinet',
+      os: 'FortiOS 7.4',
+      score: vendorBreakdown?.fortinet.score ?? 78,
+      status: getStatusFromScore(vendorBreakdown?.fortinet.score ?? 78),
+      pos: [-2.6, -1.8, 1.5],
+      color: 0xe11d48,
+      hexColor: '#E11D48',
+    },
+    {
+      id: 'paloalto',
+      label: 'PAN-OS Gateway',
+      vendor: 'Palo Alto',
+      os: 'PAN-OS 11.1',
+      score: vendorBreakdown?.paloalto.score ?? 91,
+      status: getStatusFromScore(vendorBreakdown?.paloalto.score ?? 91),
+      pos: [3.2, 1.6, 1.1],
+      color: 0xf97316,
+      hexColor: '#F97316',
+    },
+    {
+      id: 'juniper',
+      label: 'Junos Spine Switch',
+      vendor: 'Juniper',
+      os: 'Junos OS 23.2',
+      score: vendorBreakdown?.juniper?.score ?? 96,
+      status: getStatusFromScore(vendorBreakdown?.juniper?.score ?? 96),
+      pos: [3.6, -1.4, 0.6],
+      color: 0x3db663,
+      hexColor: '#3DB663',
+    },
+    {
+      id: 'aruba',
+      label: 'Aruba CX Access',
+      vendor: 'Aruba',
+      os: 'AOS-CX 10.12',
+      score: vendorBreakdown?.aruba?.score ?? 88,
+      status: getStatusFromScore(vendorBreakdown?.aruba?.score ?? 88),
+      pos: [-1.2, -2.6, -1.4],
+      color: 0xd97706,
+      hexColor: '#D97706',
+    },
+    {
+      id: 'checkpoint',
+      label: 'Check Point Gaia DC',
+      vendor: 'Check Point',
+      os: 'Gaia R81.20',
+      score: vendorBreakdown?.checkpoint?.score ?? 92,
+      status: getStatusFromScore(vendorBreakdown?.checkpoint?.score ?? 92),
+      pos: [1.2, 2.7, -1.2],
+      color: 0x8b5cf6,
+      hexColor: '#8B5CF6',
+    },
+  ]
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const container = mountRef.current
+    if (!container) return
 
-    let animationFrameId: number
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
+    camera.position.set(0, 0, 11)
+
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+      renderer.setSize(container.clientWidth, container.clientHeight)
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+      container.appendChild(renderer.domElement)
+    } catch {
+      return
+    }
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 1.3)
+    scene.add(ambient)
+
+    const dir1 = new THREE.DirectionalLight(0x3db663, 2.2)
+    dir1.position.set(5, 6, 4)
+    scene.add(dir1)
+
+    const dir2 = new THREE.DirectionalLight(0x0284c7, 1.6)
+    dir2.position.set(-5, -4, 3)
+    scene.add(dir2)
+
+    // Central Fleet Core
+    const coreGroup = new THREE.Group()
+    scene.add(coreGroup)
+
+    const coreMesh = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.0, 1),
+      new THREE.MeshStandardMaterial({
+        color: 0x0a282d,
+        metalness: 0.85,
+        roughness: 0.2,
+      })
+    )
+    coreGroup.add(coreMesh)
+
+    const wireCore = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.22, 1),
+      new THREE.MeshBasicMaterial({
+        color: complianceScore !== null && complianceScore < 70 ? 0xe11d48 : 0x3db663,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.7,
+      })
+    )
+    coreGroup.add(wireCore)
+
+    // Orbit Ring
+    const orbitRing = new THREE.Mesh(
+      new THREE.TorusGeometry(1.85, 0.02, 16, 64),
+      new THREE.MeshBasicMaterial({ color: 0x3db663, transparent: true, opacity: 0.4 })
+    )
+    orbitRing.rotation.x = Math.PI / 3
+    coreGroup.add(orbitRing)
+
+    // Node meshes
+    const nodeRaycastObjects: THREE.Object3D[] = []
+    const connectionLines: { line: THREE.Line; curve: THREE.QuadraticBezierCurve3 }[] = []
+
+    nodes.forEach((n) => {
+      const nodeGroup = new THREE.Group()
+      nodeGroup.position.set(...n.pos)
+
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.32, 24, 24),
+        new THREE.MeshStandardMaterial({
+          color: n.color,
+          roughness: 0.2,
+          metalness: 0.8,
+          emissive: n.color,
+          emissiveIntensity: 0.3,
+        })
+      )
+      sphere.userData = { nodeData: n }
+      nodeGroup.add(sphere)
+      scene.add(nodeGroup)
+      nodeRaycastObjects.push(sphere)
+
+      // Curve to core
+      const start = new THREE.Vector3(...n.pos)
+      const mid = new THREE.Vector3(n.pos[0] * 0.45, n.pos[1] * 0.45 + 0.4, n.pos[2] * 0.45)
+      const end = new THREE.Vector3(0, 0, 0)
+      const curve = new THREE.QuadraticBezierCurve3(start, mid, end)
+
+      const points = curve.getPoints(30)
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineBasicMaterial({ color: n.color, transparent: true, opacity: 0.35 })
+      )
+      scene.add(line)
+      connectionLines.push({ line, curve })
+    })
+
+    // Mouse interaction
+    const raycaster = new THREE.Raycaster()
+    const mouseNorm = new THREE.Vector2(-999, -999)
+    const mousePos = { x: 0, y: 0, targetX: 0, targetY: 0 }
+
+    const onPointerMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect()
+      mouseNorm.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      mouseNorm.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      mousePos.targetX = (e.clientX - rect.left - rect.width / 2) * 0.0015
+      mousePos.targetY = (e.clientY - rect.top - rect.height / 2) * 0.0015
+    }
+
+    const onPointerLeave = () => {
+      mouseNorm.x = -999
+      mouseNorm.y = -999
+      setHoveredNode(null)
+    }
+
+    container.addEventListener('mousemove', onPointerMove)
+    container.addEventListener('mouseleave', onPointerLeave)
+
+    const handleResize = () => {
+      if (!container) return
+      camera.aspect = container.clientWidth / container.clientHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(container.clientWidth, container.clientHeight)
+    }
+    window.addEventListener('resize', handleResize)
+
+    let animId: number
     let time = 0
 
-    // Set canvas dimensions
-    const resizeCanvas = () => {
-      const container = containerRef.current
-      if (!container || !canvas) return
-      const rect = container.getBoundingClientRect()
-      const dpr = window.devicePixelRatio || 1
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
-      ctx.scale(dpr, dpr)
-    }
+    const animate = () => {
+      time += 0.012
 
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-
-    // Initial 3D nodes
-    const nodes: Node3D[] = [
-      {
-        id: 'cisco',
-        label: 'Cisco IOS-XE Cluster',
-        vendor: 'cisco',
-        status: ciscoStatus,
-        score: vendorBreakdown?.cisco.score ?? null,
-        baseAngle: 0,
-        radius: 130,
-        heightOffset: -20,
-        speed: 0.003,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'fortinet',
-        label: 'Fortinet FortiOS Perimeter',
-        vendor: 'fortinet',
-        status: fortiStatus,
-        score: vendorBreakdown?.fortinet.score ?? null,
-        baseAngle: (Math.PI * 2) / 3,
-        radius: 140,
-        heightOffset: 25,
-        speed: 0.003,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'paloalto',
-        label: 'Palo Alto PAN-OS Gateway',
-        vendor: 'paloalto',
-        status: panStatus,
-        score: vendorBreakdown?.paloalto.score ?? null,
-        baseAngle: (Math.PI * 4) / 3,
-        radius: 135,
-        heightOffset: -10,
-        speed: 0.003,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'juniper',
-        label: 'Juniper Junos Aggregation',
-        vendor: 'juniper',
-        status: junStatus,
-        score: vendorBreakdown?.juniper?.score ?? null,
-        baseAngle: (Math.PI * 1) / 3,
-        radius: 145,
-        heightOffset: 15,
-        speed: 0.0028,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'aruba',
-        label: 'Aruba AOS-CX Switch',
-        vendor: 'aruba',
-        status: aruStatus,
-        score: vendorBreakdown?.aruba?.score ?? null,
-        baseAngle: (Math.PI * 5) / 3,
-        radius: 125,
-        heightOffset: -25,
-        speed: 0.0032,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'checkpoint',
-        label: 'Check Point Gaia NGFW',
-        vendor: 'checkpoint',
-        status: cpStatus,
-        score: vendorBreakdown?.checkpoint?.score ?? null,
-        baseAngle: (Math.PI * 3) / 3,
-        radius: 155,
-        heightOffset: 5,
-        speed: 0.0029,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'edge',
-        label: 'Edge Access Node',
-        vendor: 'edge',
-        status: 'healthy',
-        baseAngle: Math.PI / 4,
-        radius: 165,
-        heightOffset: 35,
-        speed: 0.0025,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-      {
-        id: 'core',
-        label: 'Core Distribution Spine',
-        vendor: 'core',
-        status: 'healthy',
-        baseAngle: Math.PI * 1.1,
-        radius: 160,
-        heightOffset: -35,
-        speed: 0.0025,
-        x: 0,
-        y: 0,
-        z: 0,
-        screenX: 0,
-        screenY: 0,
-        scale: 1,
-        alpha: 1,
-      },
-    ]
-
-    // Packets moving along links
-    const packets: Packet[] = [
-      { sourceId: 'cisco', progress: 0.1, speed: 0.008, status: ciscoStatus },
-      { sourceId: 'fortinet', progress: 0.4, speed: 0.007, status: fortiStatus },
-      { sourceId: 'paloalto', progress: 0.7, speed: 0.009, status: panStatus },
-      { sourceId: 'juniper', progress: 0.3, speed: 0.007, status: junStatus },
-      { sourceId: 'aruba', progress: 0.6, speed: 0.008, status: aruStatus },
-      { sourceId: 'checkpoint', progress: 0.8, speed: 0.006, status: cpStatus },
-      { sourceId: 'edge', progress: 0.25, speed: 0.006, status: 'healthy' },
-      { sourceId: 'core', progress: 0.85, speed: 0.007, status: 'healthy' },
-    ]
-
-    // Render loop
-    const render = () => {
-      const container = containerRef.current
-      if (!container || !canvas) return
-      const rect = container.getBoundingClientRect()
-      const width = rect.width
-      const height = rect.height
-      const centerX = width / 2
-      const centerY = height / 2
-
-      ctx.clearRect(0, 0, width, height)
-
-      // Smooth mouse parallax
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05
-
-      const tiltX = (mouseRef.current.y / height - 0.5) * 0.35 + 0.35 // 3D pitch
-      const tiltY = (mouseRef.current.x / width - 0.5) * 0.45 // 3D yaw
+      mousePos.x += (mousePos.targetX - mousePos.x) * 0.05
+      mousePos.y += (mousePos.targetY - mousePos.y) * 0.05
+      camera.position.x = mousePos.x * 2.5
+      camera.position.y = -mousePos.y * 2.5
+      camera.lookAt(0, 0, 0)
 
       if (!prefersReducedMotion) {
-        time += 0.012
+        coreGroup.rotation.y = time * 0.3
+        orbitRing.rotation.z = time * 0.5
       }
 
-      // Camera parameters
-      const fov = 340
-      const cameraZ = 420
+      raycaster.setFromCamera(mouseNorm, camera)
+      const intersects = raycaster.intersectObjects(nodeRaycastObjects)
 
-      // 1. Draw subtle background coordinate grid / circular depth rings
-      ctx.save()
-      ctx.strokeStyle = '#1e293b'
-      ctx.lineWidth = 1
-      ctx.setLineDash([3, 5])
-
-      // Orbital rings
-      for (let r of [90, 140, 180]) {
-        ctx.beginPath()
-        for (let a = 0; a <= Math.PI * 2; a += 0.1) {
-          const rawX = Math.cos(a) * r
-          const rawZ = Math.sin(a) * r
-          const rawY = 25 // planar ground
-
-          // Rotate around X (pitch) and Y (yaw)
-          const rx1 = rawX * Math.cos(tiltY) + rawZ * Math.sin(tiltY)
-          const rz1 = -rawX * Math.sin(tiltY) + rawZ * Math.cos(tiltY)
-          const ry1 = rawY * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
-          const rz2 = rawY * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
-
-          const scale = fov / (cameraZ + rz2)
-          const screenX = centerX + rx1 * scale
-          const screenY = centerY + ry1 * scale
-
-          if (a === 0) ctx.moveTo(screenX, screenY)
-          else ctx.lineTo(screenX, screenY)
+      if (intersects.length > 0) {
+        const hit = intersects[0].object
+        const data = hit.userData?.nodeData as NodeData
+        if (data && hoveredNode?.id !== data.id) {
+          setHoveredNode(data)
         }
-        ctx.closePath()
-        ctx.stroke()
+      } else if (hoveredNode !== null) {
+        setHoveredNode(null)
       }
-      ctx.restore()
 
-      // 2. Project 3D nodes
-      nodes.forEach((node) => {
-        const angle = node.baseAngle + (prefersReducedMotion ? 0 : time * node.speed * 8)
-        const rawX = Math.cos(angle) * node.radius
-        const rawZ = Math.sin(angle) * node.radius
-        const rawY = node.heightOffset + (prefersReducedMotion ? 0 : Math.sin(time * 2 + angle) * 6)
-
-        // Rotate by camera tilt
-        const rx1 = rawX * Math.cos(tiltY) + rawZ * Math.sin(tiltY)
-        const rz1 = -rawX * Math.sin(tiltY) + rawZ * Math.cos(tiltY)
-        const ry1 = rawY * Math.cos(tiltX) - rz1 * Math.sin(tiltX)
-        const rz2 = rawY * Math.sin(tiltX) + rz1 * Math.cos(tiltX)
-
-        const scale = fov / (cameraZ + rz2)
-        node.x = rx1
-        node.y = ry1
-        node.z = rz2
-        node.screenX = centerX + rx1 * scale
-        node.screenY = centerY + ry1 * scale
-        node.scale = Math.max(0.6, Math.min(1.4, scale * 1.1))
-        node.alpha = Math.max(0.3, Math.min(1, (rz2 + 250) / 400))
-      })
-
-      // Sort by Z depth for realistic rendering order (back to front)
-      const sortedNodes = [...nodes].sort((a, b) => b.z - a.z)
-
-      // Center security core 3D projection
-      const centerScale = fov / cameraZ
-      const coreScreenX = centerX
-      const coreScreenY = centerY
-
-      // 3. Draw connection links from center core to nodes
-      nodes.forEach((node) => {
-        ctx.save()
-        const isWarning = node.status === 'warning'
-        const isCrit = node.status === 'critical'
-
-        // Stroke style
-        ctx.strokeStyle = isCrit
-          ? 'rgba(239, 68, 68, 0.45)'
-          : isWarning
-          ? 'rgba(245, 158, 11, 0.4)'
-          : 'rgba(56, 189, 248, 0.35)'
-        ctx.lineWidth = Math.max(1, 1.5 * node.scale)
-
-        // Quadratic curve with subtle arc
-        const midX = (coreScreenX + node.screenX) / 2
-        const midY = (coreScreenY + node.screenY) / 2 - 15 * node.scale
-
-        ctx.beginPath()
-        ctx.moveTo(coreScreenX, coreScreenY)
-        ctx.quadraticCurveTo(midX, midY, node.screenX, node.screenY)
-        ctx.stroke()
-        ctx.restore()
-      })
-
-      // 4. Draw moving data packets along lines
-      packets.forEach((packet) => {
-        const node = nodes.find((n) => n.id === packet.sourceId)
-        if (!node) return
-
-        if (!prefersReducedMotion) {
-          packet.progress += packet.speed
-          if (packet.progress > 1) packet.progress = 0
-        }
-
-        const t = packet.progress
-        const midX = (coreScreenX + node.screenX) / 2
-        const midY = (coreScreenY + node.screenY) / 2 - 15 * node.scale
-
-        // Bezier interpolation
-        const px = (1 - t) * (1 - t) * coreScreenX + 2 * (1 - t) * t * midX + t * t * node.screenX
-        const py = (1 - t) * (1 - t) * coreScreenY + 2 * (1 - t) * t * midY + t * t * node.screenY
-
-        ctx.save()
-        const isCrit = packet.status === 'critical'
-        const isWarn = packet.status === 'warning'
-        ctx.fillStyle = isCrit ? '#ef4444' : isWarn ? '#f59e0b' : '#38bdf8'
-        ctx.shadowColor = isCrit ? '#ef4444' : isWarn ? '#f59e0b' : '#38bdf8'
-        ctx.shadowBlur = 6
-
-        ctx.beginPath()
-        ctx.arc(px, py, 2.5 * node.scale, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.restore()
-      })
-
-      // 5. Draw 3D Nodes
-      sortedNodes.forEach((node) => {
-        ctx.save()
-        ctx.translate(node.screenX, node.screenY)
-
-        const isCrit = node.status === 'critical'
-        const isWarn = node.status === 'warning'
-        const baseColor = isCrit ? '#ef4444' : isWarn ? '#f59e0b' : '#10b981'
-        const bgFill = isCrit ? '#2d1216' : isWarn ? '#2d2212' : '#0e241c'
-
-        // Outer glow/ring
-        ctx.fillStyle = bgFill
-        ctx.strokeStyle = baseColor
-        ctx.lineWidth = 1.5
-
-        ctx.beginPath()
-        ctx.arc(0, 0, 11 * node.scale, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.stroke()
-
-        // Inner status pip
-        ctx.fillStyle = baseColor
-        ctx.beginPath()
-        ctx.arc(0, 0, 4.5 * node.scale, 0, Math.PI * 2)
-        ctx.fill()
-
-        // Node Label
-        ctx.font = `600 ${Math.max(9, 10 * node.scale)}px "Inter", sans-serif`
-        ctx.fillStyle = '#e2e8f0'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'top'
-        ctx.fillText(node.label.split(' ')[0], 0, 14 * node.scale)
-
-        // Subtext / Vendor
-        ctx.font = `500 ${Math.max(8, 8.5 * node.scale)}px "JetBrains Mono", monospace`
-        ctx.fillStyle = isCrit ? '#f87171' : isWarn ? '#fbbf24' : '#34d399'
-        const scoreText =
-          node.score !== null && node.score !== undefined
-            ? `${Math.round(node.score)}%`
-            : node.status.toUpperCase()
-        ctx.fillText(scoreText, 0, 26 * node.scale)
-
-        ctx.restore()
-      })
-
-      // 6. Draw Central Security Posture 3D Core
-      ctx.save()
-      ctx.translate(coreScreenX, coreScreenY)
-
-      // Slow 3D rotating dodecahedron / shield ring
-      const coreRot = prefersReducedMotion ? 0 : time * 0.4
-      const coreRadius = 26 * centerScale
-
-      // Background shield orb
-      const coreBg =
-        overallStatus === 'critical'
-          ? '#2d1216'
-          : overallStatus === 'warning'
-          ? '#2d2212'
-          : '#0a1d2e'
-      const coreBorder =
-        overallStatus === 'critical'
-          ? '#ef4444'
-          : overallStatus === 'warning'
-          ? '#f59e0b'
-          : '#0ea5e9'
-
-      // Rotating faceted wireframe around core
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      for (let i = 0; i < 6; i++) {
-        const ang = coreRot + (i * Math.PI) / 3
-        const px = Math.cos(ang) * (coreRadius * 1.35)
-        const py = Math.sin(ang) * (coreRadius * 0.85)
-        if (i === 0) ctx.moveTo(px, py)
-        else ctx.lineTo(px, py)
-      }
-      ctx.closePath()
-      ctx.stroke()
-
-      // Core Shield Base
-      ctx.fillStyle = coreBg
-      ctx.strokeStyle = coreBorder
-      ctx.lineWidth = 2.5
-
-      ctx.beginPath()
-      ctx.arc(0, 0, coreRadius, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.stroke()
-
-      // Inner Core Emblem
-      ctx.fillStyle = '#f8fafc'
-      ctx.font = 'bold 11px "Inter", sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('NETSEC', 0, -3)
-
-      ctx.font = 'bold 9px "JetBrains Mono", monospace'
-      ctx.fillStyle = coreBorder
-      ctx.fillText(complianceScore !== null ? `${Math.round(complianceScore)}%` : 'ARMED', 0, 9)
-
-      ctx.restore()
-
-      animationFrameId = requestAnimationFrame(render)
+      renderer.render(scene, camera)
+      animId = requestAnimationFrame(animate)
     }
 
-    render()
+    animate()
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas)
-      cancelAnimationFrame(animationFrameId)
+      cancelAnimationFrame(animId)
+      window.removeEventListener('resize', handleResize)
+      container.removeEventListener('mousemove', onPointerMove)
+      container.removeEventListener('mouseleave', onPointerLeave)
+
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose()
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose())
+          else obj.material.dispose()
+        }
+      })
+      renderer.dispose()
+      if (renderer.domElement && container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement)
+      }
     }
-  }, [complianceScore, riskLevel, ciscoStatus, fortiStatus, panStatus, junStatus, aruStatus, cpStatus, overallStatus, prefersReducedMotion])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    mouseRef.current.targetX = e.clientX - rect.left
-    mouseRef.current.targetY = e.clientY - rect.top
-  }
-
-  const handleMouseLeave = () => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    mouseRef.current.targetX = rect.width / 2
-    mouseRef.current.targetY = rect.height / 2
-  }
+  }, [prefersReducedMotion, complianceScore])
 
   return (
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false)
-        handleMouseLeave()
-      }}
-      className="relative w-full h-[280px] rounded-lg border border-slate-800 bg-[#090d16] overflow-hidden select-none flex flex-col justify-between"
-    >
-      {/* Topology Header Telemetry */}
-      <div className="relative z-10 flex items-center justify-between px-4 py-2.5 border-b border-slate-800/80 bg-[#0c1220]/70 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <Activity size={14} className="text-sky-400 animate-pulse" />
-          <span className="text-[11px] font-bold tracking-wider text-slate-200 uppercase">
-            Security Posture & Network Topology
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-[10px] font-mono">
-          <div className="flex items-center gap-1 text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>Passed</span>
-          </div>
-          <div className="flex items-center gap-1 text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-            <span>Warning</span>
-          </div>
-          <div className="flex items-center gap-1 text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-            <span>Critical</span>
-          </div>
+    <div className="relative w-full h-[360px] sm:h-[400px] rounded-3xl bg-white border border-[#D7DCE5] overflow-hidden shadow-xs">
+      {/* 3D WebGL Scene */}
+      <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing" />
+
+      {/* Top Left Header Overlays */}
+      <div className="absolute top-4 left-4 z-10 pointer-events-none">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-[#D7DCE5] shadow-xs text-xs font-mono">
+          <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-ping" />
+          <span className="font-bold text-[#0A282D]">Fleet Topology Posture</span>
+          <span className="text-[#7E8F95]">· {auditCount} Audits</span>
         </div>
       </div>
 
-      {/* 3D Canvas Viewport */}
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full cursor-crosshair block"
-        style={{ touchAction: 'none' }}
-      />
+      {/* Dynamic Hover Tooltip */}
+      {hoveredNode && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-fadeIn">
+          <div className="px-3.5 py-2 rounded-xl bg-[#0A282D] text-white shadow-lg border border-[#3DB663]/40 flex items-center gap-3 font-mono text-xs">
+            <span
+              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: hoveredNode.hexColor }}
+            />
+            <div>
+              <div className="font-bold text-white font-sans">{hoveredNode.label}</div>
+              <div className="text-[10px] text-[#A3B8BC]">{hoveredNode.os}</div>
+            </div>
+            <div className="pl-2 border-l border-white/20 text-[#3DB663] font-bold">
+              {hoveredNode.score !== null ? `${hoveredNode.score}%` : 'N/A'}
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Topology Footer Bar */}
-      <div className="relative z-10 flex items-center justify-between px-4 py-2 border-t border-slate-800/80 bg-[#0c1220]/80 text-[11px] font-mono text-slate-400">
-        <div className="flex items-center gap-2">
-          <span>Active Posture:</span>
-          <span
-            className={`font-bold ${
-              overallStatus === 'healthy'
-                ? 'text-emerald-400'
-                : overallStatus === 'warning'
-                ? 'text-amber-400'
-                : 'text-rose-400'
-            }`}
-          >
-            {riskLevel ? riskLevel.toUpperCase() : 'ARMED'}
-          </span>
-          <span>&bull;</span>
-          <span>{complianceScore !== null ? `${Math.round(complianceScore)}% Fleet Score` : 'Evaluating'}</span>
-        </div>
-        <div className="text-[10px] text-slate-400 flex items-center gap-1.5">
-          <Server size={11} className="text-slate-400" />
-          <span>{auditCount} Network Nodes Evaluated</span>
-        </div>
+      {/* Bottom Summary Bar */}
+      <div className="absolute bottom-3 inset-x-3 z-10 flex items-center justify-between p-2.5 rounded-2xl bg-white/90 backdrop-blur-md border border-[#D7DCE5] text-xs font-mono text-[#7E8F95] pointer-events-none">
+        <span>6 Multi-Vendor Satellite Nodes</span>
+        <span className="text-[#0A282D] font-bold">Hover node to inspect compliance score</span>
       </div>
     </div>
   )
