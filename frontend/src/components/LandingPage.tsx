@@ -871,7 +871,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                   }}
                   className="btn btn--green w-full text-xs py-3"
                 >
-                  <span>Start Configuration Audit</span>
+                  <span>Start Free Audit</span>
                   <span className="btn-ico">
                     <ArrowRight size={13} className="stroke-[2.5]" />
                   </span>
@@ -883,7 +883,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                   }}
                   className="btn btn--soft w-full text-xs py-3"
                 >
-                  <span>Fleet Security Dashboard</span>
+                  <span>Explore the Platform</span>
                   <span className="btn-ico">
                     <ArrowRight size={13} className="stroke-[2.5]" />
                   </span>
@@ -901,82 +901,71 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         )}
       </div>
 
-      {/* 3. HERO EXPERIENCE (Fluid Typography & 3D Interactive Topology) */}
-      <section className="relative pt-4 sm:pt-8 pb-14 sm:pb-20 lg:pt-12 lg:pb-24 overflow-hidden bg-[#F2F3F7]" id="overview">
-        {/* Full-Bleed Interactive Spring-Dot Canvas */}
-        <canvas
-          ref={heroDotsCanvasRef}
-          className="hero-canvas spring-dots-canvas"
-          id="heroDots"
-          aria-hidden="true"
-        />
+      {/* 3. HERO EXPERIENCE (Cinematic Luminous Particle Field & Flowing Waves) */}
+      <section className="relative min-h-[90vh] lg:min-h-screen pt-12 sm:pt-16 pb-10 sm:pb-14 overflow-hidden bg-[#020506] text-white flex flex-col justify-center items-center" id="overview">
+        {/* Full-Bleed Interactive 3D Particle Text & Flowing Waves Canvas */}
+        <Hero3DVisual fullScreenBackground={true} />
 
-        <div className="orb orb--ring w-[380px] sm:w-[540px] h-[380px] sm:h-[540px] -right-24 -top-24 pointer-events-none" />
+        {/* Foreground Editorial Content Layer */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pointer-events-none flex flex-col items-center text-center my-auto">
+          {/* Reserved visual apex for particle-formed "NetSecure AI" */}
+          <div className="h-52 sm:h-36 md:h-44 w-full" aria-hidden="true" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Hero Editorial Copy */}
-            <div className="lg:col-span-5 flex flex-col justify-center">
-              <div className="hero-anim-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-[11px] sm:text-xs font-mono font-bold text-[#0A282D] w-fit mb-4 sm:mb-5 shadow-xs">
-                <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-pulse flex-shrink-0" />
-                <span className="truncate">MULTI-VENDOR DETERMINISTIC COMPLIANCE</span>
-              </div>
+          {/* Badge */}
+          <div className="hero-anim-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#051417]/90 border border-[#14383D] text-[10px] min-[360px]:text-[11px] sm:text-xs font-mono font-medium text-[#99F6E4] max-w-[92vw] sm:max-w-none mb-3 sm:mb-4 shadow-lg backdrop-blur-md pointer-events-auto">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#10B981] animate-ping" />
+            <span className="truncate">Deterministic Network Security Architecture</span>
+          </div>
 
-              <h1 className="hero-anim-title font-display text-[2rem] xs:text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.08]">
-                Enterprise network security,{' '}
-                <span className="text-[#3DB663] underline decoration-[#3DB663]/30 underline-offset-4">
-                  verified with mathematical certainty.
-                </span>
-              </h1>
+          {/* Editorial Headline */}
+          <h1 className="hero-anim-title font-display text-2xl min-[420px]:text-3xl sm:text-4xl lg:text-[3.25rem] text-white font-extrabold tracking-tight leading-[1.15] max-w-3xl drop-shadow-md">
+            From Configurations <br className="hidden sm:inline" />
+            <span className="text-[#10B981]">to Compliance.</span>
+          </h1>
 
-              <p className="hero-anim-desc mt-4 sm:mt-5 text-sm sm:text-base lg:text-lg text-[#4A5B60] leading-relaxed font-normal">
-                Deterministic regex compliance parsing across Cisco, Fortinet, Palo Alto, Juniper, Aruba, and Check Point configurations. Verified against CIS Benchmarks and NIST SP 800-53 before changes touch production.
-              </p>
+          {/* Supporting Copy */}
+          <p className="hero-anim-desc mt-3 sm:mt-4 text-xs sm:text-sm lg:text-base text-[#94A3B8] leading-relaxed font-normal max-w-xl drop-shadow-sm">
+            Automated, deterministic, and explainable security audits for enterprise networks.
+          </p>
 
-              <div className="hero-anim-cta mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <button
-                  onClick={onStartAudit}
-                  className="btn btn--green text-xs sm:text-sm px-5 sm:px-6 py-3"
-                >
-                  <span>Start Configuration Audit</span>
-                  <span className="btn-ico">
-                    <ArrowRight size={14} className="stroke-[2.5]" />
-                  </span>
-                </button>
-                <button
-                  onClick={() => onNavigate('dashboard')}
-                  className="btn btn--soft text-xs sm:text-sm px-5 sm:px-6 py-3"
-                >
-                  <span>Live Dashboard</span>
-                  <span className="btn-ico">
-                    <ArrowRight size={14} className="stroke-[2.5]" />
-                  </span>
-                </button>
-              </div>
+          {/* Action CTAs */}
+          <div className="hero-anim-cta mt-5 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pointer-events-auto">
+            <button
+              onClick={onStartAudit}
+              className="btn btn--green text-xs sm:text-sm px-6 py-3 shadow-lg shadow-[#10B981]/25 hover:shadow-[#10B981]/40"
+            >
+              <span>Start Free Audit</span>
+              <span className="btn-ico">
+                <ArrowRight size={14} className="stroke-[2.5]" />
+              </span>
+            </button>
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="btn btn--light text-xs sm:text-sm px-6 py-3 border-white/20 hover:border-white/40"
+            >
+              <span>Explore the Platform</span>
+              <span className="btn-ico">
+                <ArrowRight size={14} className="stroke-[2.5]" />
+              </span>
+            </button>
+          </div>
 
-              {/* Potadot Signature Pill Tags */}
-              <div className="hero-anim-cta mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2 sm:gap-2.5">
-                <span className="tag text-[10px] sm:text-[11px]">
-                  <i></i>CIS Benchmark L1 & L2
-                </span>
-                <span className="tag text-[10px] sm:text-[11px]">
-                  <i></i>Zero Physical Device Modification
-                </span>
-                <span className="tag text-[10px] sm:text-[11px]">
-                  <i></i>6 Native Vendor Parsers
-                </span>
-              </div>
+          {/* Potadot Signature Pill Tags */}
+          <div className="hero-anim-cta mt-5 sm:mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 pointer-events-auto">
+            <span className="tag bg-[#051417]/85 border-[#14383D] text-[#E2E8F0] text-[10px] sm:text-[11px] backdrop-blur-md">
+              <i className="bg-[#10B981]" />CIS Benchmark L1 & L2
+            </span>
+            <span className="tag bg-[#051417]/80 border-[#14383D] text-[#E2E8F0] text-[10px] sm:text-[11px] backdrop-blur-md">
+              <i className="bg-[#10B981]" />Zero Physical Device Modification
+            </span>
+            <span className="tag bg-[#051417]/80 border-[#14383D] text-[#E2E8F0] text-[10px] sm:text-[11px] backdrop-blur-md">
+              <i className="bg-[#10B981]" />6 Native Vendor Parsers
+            </span>
+          </div>
 
-              <div className="mt-5 flex items-center gap-2 text-xs font-mono text-[#7E8F95]">
-                <div className="hero-hint">
-                  <b></b>Scroll to explore ecosystem
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Hero 3D Interactive Topology Visual */}
-            <div className="hero-anim-visual lg:col-span-7 w-full">
-              <Hero3DVisual />
+          <div className="mt-4 flex items-center gap-2 text-xs font-mono text-[#64748B]">
+            <div className="hero-hint text-[#64748B]">
+              <b className="bg-[#10B981]" />Scroll to explore ecosystem
             </div>
           </div>
         </div>
