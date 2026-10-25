@@ -20,7 +20,8 @@ import {
   Download,
   AlertOctagon,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Sparkles
 } from 'lucide-react'
 import type { PageKey } from './Sidebar'
 import { Link, useNavigate } from 'react-router-dom'
@@ -47,13 +48,12 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   const [navDropOpen, setNavDropOpen] = useState(false)
   const [activeServeTab, setActiveServeTab] = useState(0)
   const [activeSxItem, setActiveSxItem] = useState(0)
-  const [activeFaq, setActiveFaq] = useState<number | null>(0)
   const [sandboxRemediated, setSandboxRemediated] = useState(false)
   const [loaderVisible, setLoaderVisible] = useState(true)
   const [loaderProgress, setLoaderProgress] = useState(0)
-  const [loaderMessage, setLoaderMessage] = useState('Collecting multi-vendor syntax grammars')
+  const [loaderMessage, setLoaderMessage] = useState('Establishing secure deterministic runtime')
 
-  // 1. Session Entrance Preloader (Potadot Benchmark)
+  // 1. Session Entrance Preloader (Choreographed ~3.8s–4.2s Timeline)
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReduced) {
@@ -61,80 +61,167 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       return
     }
 
+    const hasSeenIntro = sessionStorage.getItem('netsecure_intro_seen')
+    if (hasSeenIntro) {
+      // Returning session: short smooth entrance without 4-second wait
+      setLoaderVisible(true)
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setLoaderVisible(false)
+          ScrollTrigger.refresh()
+        },
+      })
+      if (preloaderRef.current) {
+        tl.to(preloaderRef.current, {
+          yPercent: -100,
+          duration: 0.6,
+          ease: 'power3.inOut',
+        })
+      } else {
+        setLoaderVisible(false)
+      }
+      return
+    }
+
+    // First visit: Choreographed 3.8s–4.2s sequence
     setLoaderVisible(true)
-    let progress = 0
     const messages = [
-      'Collecting multi-vendor syntax grammars',
-      'Calibrating deterministic CIS & NIST engine',
-      'Connecting vendor topologies (Cisco, Fortinet, Palo Alto)',
-      'Synthesizing 3D security topology',
-      'Operational readiness verified',
+      'Establishing secure deterministic runtime',
+      'Initialising multi-vendor AST syntax grammars',
+      'Calibrating deterministic CIS Benchmarks (L1 & L2)',
+      'Validating NIST SP 800-53 Rev 5 control matrix',
+      'Synthesising 3D network security topology',
+      'Cryptographic integrity verified · System ready',
     ]
 
-    const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 14) + 10
-      if (progress > 100) progress = 100
-      setLoaderProgress(progress)
-      const msgIdx = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1)
-      setLoaderMessage(messages[msgIdx])
+    const progressObj = { value: 0 }
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setLoaderVisible(false)
+        sessionStorage.setItem('netsecure_intro_seen', 'true')
+        ScrollTrigger.refresh()
+      },
+    })
 
-      if (progress >= 100) {
-        clearInterval(interval)
-        if (preloaderRef.current) {
-          const tl = gsap.timeline({
-            onComplete: () => {
-              setLoaderVisible(false)
-            },
-          })
+    // Phase 1 (0.0s - 0.7s): Establish dark surface, brand shield reveals, status line
+    tl.fromTo(
+      '.preloader-brand-icon',
+      { scale: 0.82, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.65, ease: 'back.out(1.6)' },
+      0.1
+    )
+    tl.fromTo(
+      '.preloader-meta-top',
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
+      0.25
+    )
 
-          // Slide curtain up
-          tl.to(preloaderRef.current, {
-            yPercent: -100,
-            duration: 0.85,
-            ease: 'power4.inOut',
-          })
+    // Phase 2 (0.7s - 2.5s): Smooth percentage progress from 0% to 100% (1.8s duration)
+    tl.to(
+      progressObj,
+      {
+        value: 100,
+        duration: 1.8,
+        ease: 'power1.inOut',
+        onUpdate: () => {
+          const p = Math.round(progressObj.value)
+          setLoaderProgress(p)
+          const msgIdx = Math.min(Math.floor((p / 100) * messages.length), messages.length - 1)
+          setLoaderMessage(messages[msgIdx])
+        },
+      },
+      0.7
+    )
 
-          // Staggered hero entrance
-          tl.fromTo(
-            '.hero-anim-badge',
-            { opacity: 0, y: 15 },
-            { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
-            '-=0.35'
-          )
-          tl.fromTo(
-            '.hero-anim-title',
-            { opacity: 0, y: 30 },
-            { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' },
-            '-=0.4'
-          )
-          tl.fromTo(
-            '.hero-anim-desc',
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
-            '-=0.35'
-          )
-          tl.fromTo(
-            '.hero-anim-cta',
-            { opacity: 0, y: 15, scale: 0.95 },
-            { opacity: 1, y: 0, scale: 1, stagger: 0.1, duration: 0.5, ease: 'back.out(1.5)' },
-            '-=0.3'
-          )
-          tl.fromTo(
-            '.hero-anim-visual',
-            { opacity: 0, scale: 0.94, y: 25 },
-            { opacity: 1, scale: 1, y: 0, duration: 0.85, ease: 'power3.out' },
-            '-=0.55'
-          )
-        } else {
-          setLoaderVisible(false)
-        }
-      }
-    }, 45)
+    // Phase 3 (2.5s - 3.4s): Curtain slides up
+    if (preloaderRef.current) {
+      tl.to(
+        preloaderRef.current,
+        {
+          yPercent: -100,
+          duration: 0.9,
+          ease: 'power4.inOut',
+        },
+        2.5
+      )
+    }
 
-    return () => clearInterval(interval)
+    // Phase 4 (2.7s - 3.8s): Staggered hero entrance begins as curtain reaches top
+    tl.fromTo(
+      '.floating-pill-nav',
+      { opacity: 0, y: -25 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+      2.7
+    )
+    tl.fromTo(
+      '.hero-anim-badge',
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
+      2.85
+    )
+    tl.fromTo(
+      '.hero-anim-title',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' },
+      2.95
+    )
+    tl.fromTo(
+      '.hero-anim-desc',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' },
+      3.1
+    )
+    tl.fromTo(
+      '.hero-anim-cta',
+      { opacity: 0, y: 15, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, stagger: 0.08, duration: 0.5, ease: 'back.out(1.4)' },
+      3.2
+    )
+    tl.fromTo(
+      '.hero-anim-visual',
+      { opacity: 0, scale: 0.94, y: 25 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.85, ease: 'power3.out' },
+      3.15
+    )
+
+    // Safety timeout: dismiss after 5.5s unconditionally to guarantee no stuck overlay
+    const safetyTimer = setTimeout(() => {
+      setLoaderVisible(false)
+      ScrollTrigger.refresh()
+    }, 5500)
+
+    return () => {
+      clearTimeout(safetyTimer)
+      tl.kill()
+    }
   }, [])
 
-  // 2. Full-Bleed Interactive Hero Dot Field (#heroDots)
+  // 2. Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false)
+        setNavDropOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // 3. Full-Bleed Interactive Hero Dot Field (#heroDots)
   useEffect(() => {
     if (loaderVisible) return
     const canvas = heroDotsCanvasRef.current
@@ -223,7 +310,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     }
   }, [loaderVisible])
 
-  // 3. GSAP ScrollTrigger section animations
+  // 4. GSAP ScrollTrigger section animations across the entire landing page
   useEffect(() => {
     if (loaderVisible) return
 
@@ -233,21 +320,20 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReduced) return
 
-    // Small delay to ensure layout has settled after preloader curtain lifts
     const timer = setTimeout(() => {
       ScrollTrigger.refresh()
-    }, 100)
+    }, 150)
 
     const ctx = gsap.context(() => {
       const revealElements = container.querySelectorAll('.gsap-reveal')
       revealElements.forEach((el) => {
         gsap.fromTo(
           el,
-          { opacity: 0, y: 24 },
+          { opacity: 0, y: 26 },
           {
             opacity: 1,
             y: 0,
-            duration: 0.6,
+            duration: 0.65,
             ease: 'power3.out',
             clearProps: 'all',
             scrollTrigger: {
@@ -263,12 +349,12 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       cardGrids.forEach((grid) => {
         gsap.fromTo(
           grid.children,
-          { opacity: 0, y: 20 },
+          { opacity: 0, y: 22 },
           {
             opacity: 1,
             y: 0,
             stagger: 0.08,
-            duration: 0.5,
+            duration: 0.55,
             ease: 'power3.out',
             clearProps: 'all',
             scrollTrigger: {
@@ -292,8 +378,8 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     if (tabsContentRef.current) {
       gsap.fromTo(
         tabsContentRef.current,
-        { opacity: 0.3, y: 12 },
-        { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+        { opacity: 0.35, y: 10 },
+        { opacity: 1, y: 0, duration: 0.32, ease: 'power2.out' }
       )
     }
   }, [activeServeTab])
@@ -302,7 +388,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
     }
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -476,80 +562,83 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
   return (
     <div
       ref={pageContainerRef}
-      className="min-h-screen bg-[#F2F3F7] text-[#0A282D] font-sans selection:bg-[#3DB663]/25 selection:text-[#0A282D]"
+      className="min-h-screen bg-[#F2F3F7] text-[#0A282D] font-sans selection:bg-[#3DB663]/25 selection:text-[#0A282D] overflow-x-hidden"
     >
-      {/* 1. SESSION ENTRANCE PRELOADER (Potadot Benchmark) */}
+      {/* 1. SESSION ENTRANCE PRELOADER (Choreographed ~3.8s–4.2s Master Sequence) */}
       {loaderVisible && (
         <div
           ref={preloaderRef}
-          className="fixed inset-0 z-[100] flex flex-col justify-between p-6 sm:p-12 bg-[#0A282D] text-white dark-dots relative overflow-hidden"
+          className="fixed inset-0 w-full h-full z-[100] flex flex-col justify-between p-6 sm:p-12 bg-[#081F23] text-white dark-dots overflow-hidden"
+          role="status"
+          aria-live="polite"
         >
-          <div className="absolute inset-0 bg-radial from-[#3DB663]/10 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-radial from-[#3DB663]/12 via-transparent to-transparent pointer-events-none" />
 
-          <div className="relative z-10 flex items-center justify-between font-mono text-xs text-[#8AA3A8] tracking-widest uppercase">
+          {/* Top Telemetry Line */}
+          <div className="preloader-meta-top relative z-10 flex items-center justify-between font-mono text-xs text-[#8AA3A8] tracking-widest uppercase">
             <span className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#3DB663] animate-pulse" />
-              NetSecure AI
+              <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-ping" />
+              <span>NetSecure AI Operational Runtime</span>
             </span>
-            <span className="hidden sm:inline text-[#3DB663]/80">Deterministic Compliance Engine</span>
-            <span>v0.1.0 · Ready</span>
+            <span className="text-[#3DB663] font-bold">CIS & NIST Baseline Engine</span>
           </div>
 
-          <div className="relative z-10 max-w-xl mx-auto w-full text-center my-auto flex flex-col items-center">
-            {/* Animated Security Core Symbol */}
-            <div className="relative mb-8 flex items-center justify-center">
+          {/* Centerpiece: Spinning Ring, Large Counter & Telemetry Message */}
+          <div className="relative z-10 flex flex-col items-center justify-center my-auto text-center">
+            {/* Animated Brand Shield Mark */}
+            <div className="preloader-brand-icon relative mb-7 sm:mb-8 flex items-center justify-center">
               <div
-                className="absolute w-24 h-24 rounded-full border border-dashed border-[#3DB663]/40 animate-spin"
-                style={{ animationDuration: '14s' }}
+                className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full border border-dashed border-[#3DB663]/40 animate-spin"
+                style={{ animationDuration: '16s' }}
               />
               <div
-                className="absolute w-20 h-20 rounded-full border border-[#3DB663]/60 animate-ping opacity-25"
-                style={{ animationDuration: '3s' }}
+                className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-[#3DB663]/60 animate-ping opacity-25"
+                style={{ animationDuration: '3.5s' }}
               />
-              <div className="w-16 h-16 rounded-2xl bg-[#0F343A] border border-[#1E4950] flex items-center justify-center shadow-lg shadow-[#3DB663]/15">
-                <Shield size={28} className="text-[#3DB663] stroke-[2.2]" />
+              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-[#0F343A] border border-[#1E4950] flex items-center justify-center shadow-lg shadow-[#3DB663]/20">
+                <Shield size={30} className="text-[#3DB663] stroke-[2.3]" />
               </div>
             </div>
 
             {/* Large 3-Digit Counter */}
-            <div className="text-7xl sm:text-9xl font-display font-extrabold tracking-tight text-white mb-5 select-none">
+            <div className="text-7xl sm:text-9xl font-display font-extrabold tracking-tight text-white mb-4 sm:mb-5 select-none leading-none">
               {String(loaderProgress).padStart(3, '0')}
               <span className="text-3xl sm:text-4xl text-[#3DB663] font-mono ml-1 font-semibold">%</span>
             </div>
 
             {/* Telemetry Stage Pill */}
-            <div className="inline-flex items-center gap-2.5 text-xs font-mono font-medium text-[#8AA3A8] bg-[#0F343A]/90 px-5 py-2.5 rounded-full border border-[#1E4950] shadow-md backdrop-blur-md">
-              <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-ping" />
-              <span className="text-white/90">{loaderMessage}</span>
+            <div className="inline-flex items-center gap-2.5 text-xs font-mono font-medium text-[#8AA3A8] bg-[#0F343A]/90 px-4 sm:px-5 py-2.5 rounded-full border border-[#1E4950] shadow-md backdrop-blur-md max-w-[90vw] truncate">
+              <span className="h-2 w-2 rounded-full bg-[#3DB663] flex-shrink-0 animate-ping" />
+              <span className="text-white/90 truncate">{loaderMessage}</span>
             </div>
           </div>
 
           {/* Bottom Progress Bar */}
-          <div className="relative z-10 w-full bg-[#1E4950]/80 h-1.5 rounded-full overflow-hidden">
+          <div className="relative z-10 w-full bg-[#1E4950]/80 h-1.5 sm:h-2 rounded-full overflow-hidden">
             <div
-              className="bg-[#3DB663] h-full transition-all duration-75 ease-out shadow-[0_0_12px_rgba(61,182,99,0.8)]"
+              className="bg-[#3DB663] h-full transition-all duration-100 ease-out shadow-[0_0_14px_rgba(61,182,99,0.85)]"
               style={{ width: `${loaderProgress}%` }}
             />
           </div>
         </div>
       )}
 
-      {/* 2. FLOATING NAVIGATION BAR (Potadot Floating Pill with Dropdown Preview) */}
-      <div className="sticky top-4 z-50 w-full px-4 sm:px-6 lg:px-8 pointer-events-none">
-        <header className="floating-pill-nav max-w-6xl mx-auto h-16 sm:h-20 px-5 sm:px-7 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-[0_10px_35px_rgba(10,40,45,0.08)] flex items-center justify-between pointer-events-auto transition-all">
+      {/* 2. FLOATING NAVIGATION BAR (Potadot Floating Pill with Responsive Drawer) */}
+      <div className="sticky top-3 sm:top-4 z-50 w-full px-3 sm:px-6 lg:px-8 pointer-events-none">
+        <header className="floating-pill-nav max-w-6xl mx-auto h-16 sm:h-20 px-4 sm:px-7 rounded-full bg-white/95 backdrop-blur-md border border-[#D7DCE5] shadow-[0_10px_35px_rgba(10,40,45,0.08)] flex items-center justify-between pointer-events-auto transition-all">
           {/* Brand Identity */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0A282D] text-white shadow-sm transition-transform group-hover:scale-105">
-              <Shield size={20} className="text-[#3DB663] stroke-[2.4]" />
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-2xl bg-[#0A282D] text-white shadow-xs transition-transform group-hover:scale-105">
+              <Shield size={18} className="text-[#3DB663] stroke-[2.4]" />
             </div>
             <div>
-              <div className="text-lg font-display font-bold tracking-tight text-[#0A282D] flex items-center gap-1.5 leading-none">
+              <div className="text-base sm:text-lg font-display font-bold tracking-tight text-[#0A282D] flex items-center gap-1.5 leading-none">
                 <span>NetSecure</span>
-                <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded-full bg-[#3DB663] text-white uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded-full bg-[#3DB663] text-white uppercase tracking-wider">
                   AI
                 </span>
               </div>
-              <div className="text-[9px] tracking-widest text-[#7E8F95] uppercase font-mono font-semibold mt-1">
+              <div className="text-[8px] sm:text-[9px] tracking-widest text-[#7E8F95] uppercase font-mono font-semibold mt-1">
                 Multi-Vendor Security
               </div>
             </div>
@@ -573,6 +662,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               <button
                 onClick={() => scrollToSection('ecosystem')}
                 className="hover:text-[#0A282D] transition-colors flex items-center gap-1.5 py-2"
+                aria-expanded={navDropOpen}
               >
                 <span>Ecosystem</span>
                 <ChevronDown
@@ -581,7 +671,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 />
               </button>
 
-              {/* Potadot Mega-Dropdown Card */}
+              {/* Mega-Dropdown Card */}
               {navDropOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[620px] rounded-3xl bg-white border border-[#D7DCE5] shadow-[0_20px_50px_rgba(10,40,45,0.12)] p-6 grid grid-cols-12 gap-6 z-50 pointer-events-auto">
                   <div className="col-span-7 space-y-2">
@@ -659,7 +749,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           </nav>
 
           {/* Action Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2.5 sm:gap-3">
             <Link
               to="/login"
               className="text-xs font-bold font-mono tracking-wider uppercase text-[#4A5B60] hover:text-[#0A282D] px-3.5 py-2 transition-colors"
@@ -682,102 +772,137 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-[#0A282D] rounded-full hover:bg-[#F2F3F7] transition-colors"
-              aria-label="Toggle menu"
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isMobileMenuOpen}
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </header>
 
-        {/* Mobile Navigation Dropdown */}
+        {/* Mobile Navigation Drawer Overlay */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden mt-3 max-w-6xl mx-auto rounded-3xl border border-[#D7DCE5] bg-white p-6 space-y-4 shadow-2xl pointer-events-auto">
-            <div className="flex flex-col space-y-3 font-display font-semibold text-base text-[#0A282D]">
-              <button
-                onClick={() => {
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                  setIsMobileMenuOpen(false)
-                }}
-                className="text-left py-2 border-b border-[#F2F3F7]"
-              >
-                <small className="text-xs font-mono text-[#7E8F95] mr-2">01</small>
-                Overview
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('ecosystem')
-                  setIsMobileMenuOpen(false)
-                }}
-                className="text-left py-2 border-b border-[#F2F3F7]"
-              >
-                <small className="text-xs font-mono text-[#7E8F95] mr-2">02</small>
-                Multi-Vendor Ecosystem
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('lifecycle')
-                  setIsMobileMenuOpen(false)
-                }}
-                className="text-left py-2 border-b border-[#F2F3F7]"
-              >
-                <small className="text-xs font-mono text-[#7E8F95] mr-2">03</small>
-                Audit Lifecycle
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('why-deterministic')
-                  setIsMobileMenuOpen(false)
-                }}
-                className="text-left py-2 border-b border-[#F2F3F7]"
-              >
-                <small className="text-xs font-mono text-[#7E8F95] mr-2">04</small>
-                Why Deterministic
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('sandbox')
-                  setIsMobileMenuOpen(false)
-                }}
-                className="text-left py-2 border-b border-[#F2F3F7]"
-              >
-                <small className="text-xs font-mono text-[#7E8F95] mr-2">05</small>
-                Interactive Demo
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('faq')
-                  setIsMobileMenuOpen(false)
-                }}
-                className="text-left py-2"
-              >
-                <small className="text-xs font-mono text-[#7E8F95] mr-2">06</small>
-                FAQ
-              </button>
-            </div>
+          <div className="lg:hidden fixed inset-0 z-50 bg-[#0A282D]/70 backdrop-blur-md flex flex-col justify-end pointer-events-auto p-4 sm:p-6 animate-fadeIn">
+            <div className="w-full max-w-lg mx-auto bg-white rounded-3xl border border-[#D7DCE5] p-6 shadow-2xl space-y-5 animate-scaleUp">
+              <div className="flex items-center justify-between pb-3 border-b border-[#D7DCE5]">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0A282D] text-white">
+                    <Shield size={16} className="text-[#3DB663]" />
+                  </div>
+                  <span className="font-display font-bold text-base text-[#0A282D]">NetSecure AI</span>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 rounded-full hover:bg-[#F2F3F7] text-[#0A282D]"
+                  aria-label="Close menu"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-            <div className="pt-4 border-t border-[#D7DCE5] flex flex-col gap-3">
-              <Link
-                to="/login"
-                className="text-center py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#0A282D] bg-[#F2F3F7] rounded-full border border-[#D7DCE5]"
-              >
-                Auditor Sign In
-              </Link>
-              <button
-                onClick={() => onNavigate('dashboard')}
-                className="btn btn--green w-full"
-              >
-                <span>Launch Console</span>
-                <span className="btn-ico">
-                  <ArrowRight size={13} className="stroke-[2.5]" />
-                </span>
-              </button>
+              <div className="flex flex-col space-y-1 font-display font-semibold text-sm text-[#0A282D]">
+                <button
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F2F3F7] transition-colors text-left"
+                >
+                  <span>Overview</span>
+                  <span className="text-[10px] font-mono text-[#7E8F95]">01</span>
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('ecosystem')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F2F3F7] transition-colors text-left"
+                >
+                  <span>Multi-Vendor Fleet</span>
+                  <span className="text-[10px] font-mono text-[#7E8F95]">02</span>
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('lifecycle')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F2F3F7] transition-colors text-left"
+                >
+                  <span>Audit Lifecycle</span>
+                  <span className="text-[10px] font-mono text-[#7E8F95]">03</span>
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('why-deterministic')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F2F3F7] transition-colors text-left"
+                >
+                  <span>Why Deterministic</span>
+                  <span className="text-[10px] font-mono text-[#7E8F95]">04</span>
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('sandbox')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F2F3F7] transition-colors text-left"
+                >
+                  <span>Interactive Sandbox</span>
+                  <span className="text-[10px] font-mono text-[#7E8F95]">05</span>
+                </button>
+                <button
+                  onClick={() => {
+                    scrollToSection('faq')
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-[#F2F3F7] transition-colors text-left"
+                >
+                  <span>Frequently Asked Questions</span>
+                  <span className="text-[10px] font-mono text-[#7E8F95]">06</span>
+                </button>
+              </div>
+
+              <div className="pt-3 border-t border-[#D7DCE5] flex flex-col gap-2.5">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    onStartAudit()
+                  }}
+                  className="btn btn--green w-full text-xs py-3"
+                >
+                  <span>Start Configuration Audit</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={13} className="stroke-[2.5]" />
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    onNavigate('dashboard')
+                  }}
+                  className="btn btn--soft w-full text-xs py-3"
+                >
+                  <span>Fleet Security Dashboard</span>
+                  <span className="btn-ico">
+                    <ArrowRight size={13} className="stroke-[2.5]" />
+                  </span>
+                </button>
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-center py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-[#0A282D] hover:text-[#3DB663] transition-colors"
+                >
+                  Auditor Sign In
+                </Link>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* 3. HERO EXPERIENCE (Potadot Benchmark with Full-Bleed Dot Canvas) */}
-      <section className="relative pt-6 pb-16 lg:pt-10 lg:pb-24 overflow-hidden bg-[#F2F3F7]" id="overview">
+      {/* 3. HERO EXPERIENCE (Fluid Typography & 3D Interactive Topology) */}
+      <section className="relative pt-4 sm:pt-8 pb-14 sm:pb-20 lg:pt-12 lg:pb-24 overflow-hidden bg-[#F2F3F7]" id="overview">
         {/* Full-Bleed Interactive Spring-Dot Canvas */}
         <canvas
           ref={heroDotsCanvasRef}
@@ -786,32 +911,32 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           aria-hidden="true"
         />
 
-        <div className="orb orb--ring w-[540px] h-[540px] -right-24 -top-24 pointer-events-none" />
+        <div className="orb orb--ring w-[380px] sm:w-[540px] h-[380px] sm:h-[540px] -right-24 -top-24 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Hero Editorial Copy */}
             <div className="lg:col-span-5 flex flex-col justify-center">
-              <div className="hero-anim-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-xs font-mono font-bold text-[#0A282D] w-fit mb-5 shadow-xs">
-                <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-pulse" />
-                <span>MULTI-VENDOR DETERMINISTIC COMPLIANCE</span>
+              <div className="hero-anim-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#D7DCE5] text-[11px] sm:text-xs font-mono font-bold text-[#0A282D] w-fit mb-4 sm:mb-5 shadow-xs">
+                <span className="h-2 w-2 rounded-full bg-[#3DB663] animate-pulse flex-shrink-0" />
+                <span className="truncate">MULTI-VENDOR DETERMINISTIC COMPLIANCE</span>
               </div>
 
-              <h1 className="hero-anim-title font-display text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.06]">
+              <h1 className="hero-anim-title font-display text-[2rem] xs:text-4xl sm:text-5xl lg:text-6xl text-[#0A282D] font-extrabold tracking-tight leading-[1.08]">
                 Enterprise network security,{' '}
                 <span className="text-[#3DB663] underline decoration-[#3DB663]/30 underline-offset-4">
                   verified with mathematical certainty.
                 </span>
               </h1>
 
-              <p className="hero-anim-desc mt-5 text-base sm:text-lg text-[#4A5B60] leading-relaxed font-normal">
+              <p className="hero-anim-desc mt-4 sm:mt-5 text-sm sm:text-base lg:text-lg text-[#4A5B60] leading-relaxed font-normal">
                 Deterministic regex compliance parsing across Cisco, Fortinet, Palo Alto, Juniper, Aruba, and Check Point configurations. Verified against CIS Benchmarks and NIST SP 800-53 before changes touch production.
               </p>
 
-              <div className="hero-anim-cta mt-8 flex flex-wrap items-center gap-3.5">
+              <div className="hero-anim-cta mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   onClick={onStartAudit}
-                  className="btn btn--green text-sm px-6 py-3"
+                  className="btn btn--green text-xs sm:text-sm px-5 sm:px-6 py-3"
                 >
                   <span>Start Configuration Audit</span>
                   <span className="btn-ico">
@@ -820,7 +945,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 </button>
                 <button
                   onClick={() => onNavigate('dashboard')}
-                  className="btn btn--soft text-sm px-6 py-3"
+                  className="btn btn--soft text-xs sm:text-sm px-5 sm:px-6 py-3"
                 >
                   <span>Live Dashboard</span>
                   <span className="btn-ico">
@@ -830,21 +955,21 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </div>
 
               {/* Potadot Signature Pill Tags */}
-              <div className="hero-anim-cta mt-8 pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2.5">
-                <span className="tag">
+              <div className="hero-anim-cta mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-[#D7DCE5] flex flex-wrap items-center gap-2 sm:gap-2.5">
+                <span className="tag text-[10px] sm:text-[11px]">
                   <i></i>CIS Benchmark L1 & L2
                 </span>
-                <span className="tag">
+                <span className="tag text-[10px] sm:text-[11px]">
                   <i></i>Zero Physical Device Modification
                 </span>
-                <span className="tag">
+                <span className="tag text-[10px] sm:text-[11px]">
                   <i></i>6 Native Vendor Parsers
                 </span>
               </div>
 
-              <div className="mt-6 flex items-center gap-2 text-xs font-mono text-[#7E8F95]">
+              <div className="mt-5 flex items-center gap-2 text-xs font-mono text-[#7E8F95]">
                 <div className="hero-hint">
-                  <b></b>Scroll to explore
+                  <b></b>Scroll to explore ecosystem
                 </div>
               </div>
             </div>
@@ -858,10 +983,10 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 4. EDITORIAL STATEMENT SECTION (Potadot pad style) */}
-      <section className="gsap-reveal py-20 lg:py-28 relative overflow-hidden bg-white border-y border-[#D7DCE5]">
-        <div className="orb orb--ring w-[440px] h-[440px] -left-32 top-10" />
+      <section className="gsap-reveal py-16 sm:py-20 lg:py-28 relative overflow-hidden bg-white border-y border-[#D7DCE5]">
+        <div className="orb orb--ring w-[380px] sm:w-[440px] h-[380px] sm:h-[440px] -left-32 top-10" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <span className="eyebrow mb-4">The Compliance Dilemma</span>
+          <span className="eyebrow mb-3 sm:mb-4">The Compliance Dilemma</span>
           <p className="statement">
             Still auditing multi-vendor routers, firewalls, and switches with{' '}
             <em>manual checklists</em>, fragmented spreadsheets, and slow guess-and-check CLI? NetSecure AI delivers the{' '}
@@ -869,7 +994,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             your network engineering and security teams can trust with zero doubt.
           </p>
 
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <button
               onClick={() => scrollToSection('ecosystem')}
               className="link-arrow"
@@ -882,45 +1007,45 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 5. MULTI-VENDOR FLEET (Potadot serve section with tabbed stages) */}
-      <section className="gsap-reveal py-20 lg:py-28" id="ecosystem">
+      <section className="gsap-reveal py-16 sm:py-20 lg:py-28" id="ecosystem">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left Column: Side Tabs */}
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-5 sm:space-y-6">
               <div>
-                <span className="eyebrow mb-3">Multi-Vendor Ecosystem</span>
-                <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+                <span className="eyebrow mb-2 sm:mb-3">Multi-Vendor Ecosystem</span>
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0A282D] tracking-tight">
                   Normalized security across your entire fleet.
                 </h2>
-                <p className="mt-3 text-sm text-[#4A5B60] leading-relaxed">
+                <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-[#4A5B60] leading-relaxed">
                   Different vendors use entirely different CLI grammars, syntax flags, and configuration paradigms. NetSecure AI parses each device natively and evaluates unified compliance.
                 </p>
               </div>
 
               {/* Tabs List */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2.5 sm:space-y-3 pt-2">
                 {serveTabs.map((tab, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveServeTab(idx)}
-                    className={`w-full text-left p-4 rounded-2xl border transition-all ${
+                    className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border transition-all ${
                       activeServeTab === idx
                         ? 'bg-white border-[#3DB663] shadow-md ring-1 ring-[#3DB663]/20'
                         : 'bg-white/60 hover:bg-white border-[#D7DCE5] text-[#4A5B60]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-bold text-[#7E8F95] uppercase">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-[#7E8F95] uppercase">
                         0{idx + 1} · {tab.tag}
                       </span>
                       {activeServeTab === idx && (
                         <span className="h-2 w-2 rounded-full bg-[#3DB663]" />
                       )}
                     </div>
-                    <div className="font-display text-base font-bold text-[#0A282D] mt-1">
+                    <div className="font-display text-sm sm:text-base font-bold text-[#0A282D] mt-1">
                       {tab.title}
                     </div>
-                    <div className="text-xs text-[#7E8F95] font-mono mt-0.5">
+                    <div className="text-[11px] sm:text-xs text-[#7E8F95] font-mono mt-0.5">
                       {tab.subtitle}
                     </div>
                   </button>
@@ -930,7 +1055,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               <div className="pt-2">
                 <button
                   onClick={() => onNavigate('dashboard')}
-                  className="btn btn--soft"
+                  className="btn btn--soft w-full sm:w-auto text-xs"
                 >
                   <span>View Fleet Compliance Posture</span>
                   <span className="btn-ico">
@@ -940,17 +1065,17 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </div>
             </div>
 
-            {/* Right Column: Living Simulated UI Stage (Potadot sa-cards & sa-track) */}
+            {/* Right Column: Living Simulated UI Stage */}
             <div
               ref={tabsContentRef}
-              className="lg:col-span-7 bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-8 shadow-sm relative overflow-hidden"
+              className="lg:col-span-7 bg-white rounded-3xl border border-[#D7DCE5] p-5 sm:p-8 shadow-sm relative overflow-hidden"
             >
-              <div className="flex items-center justify-between pb-5 border-b border-[#D7DCE5]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b border-[#D7DCE5]">
                 <div>
                   <div className="text-xs font-mono font-bold uppercase text-[#3DB663]">
                     {serveTabs[activeServeTab].tag}
                   </div>
-                  <h3 className="font-display text-xl font-bold text-[#0A282D] mt-0.5">
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#0A282D] mt-0.5">
                     {serveTabs[activeServeTab].title}
                   </h3>
                   <div className="text-xs text-[#7E8F95] font-mono">
@@ -962,8 +1087,8 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 </span>
               </div>
 
-              {/* Potadot Micro UI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
+              {/* Micro UI Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-5 sm:my-6">
                 <div className="ui-card">
                   <div className="ui-strong">Ingress Rules</div>
                   <div className="ui-mini">Strict Filtering</div>
@@ -982,17 +1107,17 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </div>
 
               {/* Native Configuration Preview Box */}
-              <div className="rounded-2xl bg-[#0A282D] p-4 text-[#A3B8BC] font-mono text-xs overflow-x-auto shadow-inner border border-[#1E4950]">
+              <div className="rounded-2xl bg-[#0A282D] p-3.5 sm:p-4 text-[#A3B8BC] font-mono text-[11px] sm:text-xs overflow-x-auto shadow-inner border border-[#1E4950]">
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 text-[10px] text-[#7E8F95] uppercase">
                   <span>Device Running Configuration</span>
                   <span className="text-[#3DB663]">Validated Regex Match</span>
                 </div>
-                <pre className="text-white leading-relaxed">
+                <pre className="text-white leading-relaxed whitespace-pre font-mono">
                   {serveTabs[activeServeTab].sampleCode}
                 </pre>
               </div>
 
-              {/* Potadot Signature Pipeline Stage Track */}
+              {/* Pipeline Stage Track */}
               <div className="sa-track">
                 <div className="sa-line">
                   <i style={{ width: `${(activeServeTab + 1) * 25}%` }} />
@@ -1015,7 +1140,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-[#D7DCE5] flex items-center justify-between text-xs font-mono text-[#7E8F95]">
+              <div className="mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-[#D7DCE5] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] sm:text-xs font-mono text-[#7E8F95]">
                 <span>Deterministic Check: PASS (100% Match)</span>
                 <span className="text-[#3DB663] font-bold">Zero Security Anomalies</span>
               </div>
@@ -1024,15 +1149,15 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
         </div>
       </section>
 
-      {/* 6. AUDIT LIFECYCLE (Potadot sx-sec accordion cards) */}
-      <section className="gsap-reveal py-20 lg:py-28 bg-white border-y border-[#D7DCE5]" id="lifecycle">
+      {/* 6. AUDIT LIFECYCLE (Accordion Cards) */}
+      <section className="gsap-reveal py-16 sm:py-20 lg:py-28 bg-white border-y border-[#D7DCE5]" id="lifecycle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mb-12">
-            <span className="eyebrow mb-3">Deterministic Pipeline</span>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+          <div className="max-w-2xl mb-10 sm:mb-12">
+            <span className="eyebrow mb-2 sm:mb-3">Deterministic Pipeline</span>
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0A282D] tracking-tight">
               The four stages of verifiable audit integrity.
             </h2>
-            <p className="mt-3 text-sm text-[#4A5B60] leading-relaxed">
+            <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-[#4A5B60] leading-relaxed">
               From raw configuration ingestion to verified staged CLI remediation, every step follows strict deterministic logic with complete auditability.
             </p>
           </div>
@@ -1047,11 +1172,19 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 <div
                   className="sx-tab"
                   onClick={() => setActiveSxItem(activeSxItem === idx ? -1 : idx)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setActiveSxItem(activeSxItem === idx ? -1 : idx)
+                    }
+                  }}
+                  aria-expanded={activeSxItem === idx}
                 >
                   <span className="sx-n">{item.num}</span>
-                  <span className="sx-name">{item.title}</span>
+                  <span className="sx-name text-base sm:text-xl">{item.title}</span>
                   <span
-                    className={`ml-auto w-8 h-8 rounded-full border border-[#D7DCE5] flex items-center justify-center transition-transform ${
+                    className={`ml-auto w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#D7DCE5] flex items-center justify-center transition-transform flex-shrink-0 ${
                       activeSxItem === idx ? 'rotate-180 bg-[#3DB663] text-white border-transparent' : 'bg-[#F2F3F7] text-[#0A282D]'
                     }`}
                   >
@@ -1062,20 +1195,20 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                 {activeSxItem === idx && (
                   <div className="sx-body animate-fadeIn">
                     <div className="sx-copy">
-                      <span className="text-xs font-mono font-bold uppercase text-[#3DB663]">
+                      <span className="text-[11px] sm:text-xs font-mono font-bold uppercase text-[#3DB663]">
                         {item.num} / 04 Pipeline Stage
                       </span>
-                      <h3 className="font-display text-2xl font-bold text-[#0A282D] mt-1">
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-[#0A282D] mt-1">
                         {item.title}
                       </h3>
-                      <p className="text-sm text-[#4A5B60] mt-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-[#4A5B60] mt-2 leading-relaxed">
                         {item.sub}
                       </p>
-                      <ul className="my-6 space-y-2.5">
+                      <ul className="my-5 sm:my-6 space-y-2.5">
                         {item.features.map((f, fIdx) => (
-                          <li key={fIdx} className="flex items-start gap-2.5 text-sm text-[#0A282D]">
-                            <span className="h-5 w-5 rounded-full bg-[#EDF8F1] text-[#3DB663] flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <Check size={12} className="stroke-[3]" />
+                          <li key={fIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#0A282D]">
+                            <span className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-[#EDF8F1] text-[#3DB663] flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Check size={11} className="stroke-[3]" />
                             </span>
                             <span>{f}</span>
                           </li>
@@ -1084,7 +1217,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
 
                       <button
                         onClick={onStartAudit}
-                        className="btn btn--green"
+                        className="btn btn--green w-full sm:w-auto text-xs"
                       >
                         <span>Execute Stage in Ingestion Console</span>
                         <span className="btn-ico">
@@ -1097,7 +1230,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                     <div className="sx-visual">
                       <div className="mk-win">
                         <div className="mk-top">
-                          <span>{item.mockup.filename}</span>
+                          <span className="truncate max-w-[200px]">{item.mockup.filename}</span>
                           <span className="px-2 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] text-[10px] font-bold border border-[#BFE7CB]">
                             {item.mockup.badge}
                           </span>
@@ -1106,7 +1239,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                           {item.mockup.tokens.map((t, tIdx) => (
                             <div key={tIdx}>
                               <small>{t.key}</small>
-                              <b>{t.val}</b>
+                              <b className="truncate">{t.val}</b>
                             </div>
                           ))}
                         </div>
@@ -1125,17 +1258,17 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 7. WHY DETERMINISTIC SECURITY (Potadot on-dark section with glowing rings) */}
-      <section className="gsap-reveal py-20 lg:py-28 on-dark" id="why-deterministic">
+      <section className="gsap-reveal py-16 sm:py-20 lg:py-28 on-dark" id="why-deterministic">
         <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
-        <div className="orb orb--dark-ring w-[500px] h-[500px] -right-32 top-10" />
+        <div className="orb orb--dark-ring w-[380px] sm:w-[500px] h-[380px] sm:h-[500px] -right-32 top-10" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-2xl mb-14">
-            <span className="eyebrow eyebrow-dark mb-3">Guaranteed Safety</span>
-            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+          <div className="max-w-2xl mb-10 sm:mb-14">
+            <span className="eyebrow eyebrow-dark mb-2 sm:mb-3">Guaranteed Safety</span>
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-5xl font-bold text-white tracking-tight">
               Security built on proof, not probabilistic guessing.
             </h2>
-            <p className="mt-3 text-sm text-[#A3B8BC] leading-relaxed">
+            <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-[#A3B8BC] leading-relaxed">
               We never guess compliance or run generative AI loops on physical infrastructure. Deterministic rules dictate facts; AI explains them.
             </p>
           </div>
@@ -1170,59 +1303,59 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
       </section>
 
       {/* 8. INTERACTIVE FINDINGS & REMEDIATION PLAYGROUND */}
-      <section className="gsap-reveal py-20 lg:py-28" id="sandbox">
+      <section className="gsap-reveal py-16 sm:py-20 lg:py-28" id="sandbox">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mb-12">
-            <span className="eyebrow mb-3">Live Interactive Demonstration</span>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+          <div className="max-w-2xl mb-10 sm:mb-12">
+            <span className="eyebrow mb-2 sm:mb-3">Live Interactive Demonstration</span>
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0A282D] tracking-tight">
               Test deterministic remediation in real time.
             </h2>
-            <p className="mt-3 text-sm text-[#4A5B60] leading-relaxed">
+            <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-[#4A5B60] leading-relaxed">
               Experience how NetSecure AI isolates a failed CIS control, generates native CLI remediation syntax, and confirms the fix in the staged working configuration.
             </p>
           </div>
 
-          <div className="bg-white rounded-3xl border border-[#D7DCE5] p-6 sm:p-10 shadow-sm">
+          <div className="bg-white rounded-3xl border border-[#D7DCE5] p-5 sm:p-8 lg:p-10 shadow-sm">
             {/* Header with Posture Meter */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#D7DCE5]">
               <div>
                 <span className="text-xs font-mono uppercase text-[#7E8F95] font-semibold">
                   Device: Cisco-Catalyst-9300-Core
                 </span>
-                <div className="font-display text-2xl font-bold text-[#0A282D] mt-0.5">
+                <div className="font-display text-xl sm:text-2xl font-bold text-[#0A282D] mt-0.5">
                   CIS Cisco IOS 15 Benchmark Audit
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="text-right font-mono">
-                  <div className="text-xs text-[#7E8F95] uppercase">Compliance Posture</div>
-                  <div className={`text-2xl font-bold ${sandboxRemediated ? 'text-[#3DB663]' : 'text-[#E11D48]'}`}>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <div className="font-mono text-left sm:text-right">
+                  <div className="text-[10px] sm:text-xs text-[#7E8F95] uppercase">Compliance Posture</div>
+                  <div className={`text-xl sm:text-2xl font-bold ${sandboxRemediated ? 'text-[#3DB663]' : 'text-[#E11D48]'}`}>
                     {sandboxRemediated ? '100% Compliant' : '75% Non-Compliant'}
                   </div>
                 </div>
                 <button
                   onClick={() => setSandboxRemediated(!sandboxRemediated)}
-                  className={`btn ${sandboxRemediated ? 'btn--soft' : 'btn--green'}`}
+                  className={`btn text-xs sm:text-sm py-2.5 px-4 ${sandboxRemediated ? 'btn--soft' : 'btn--green'}`}
                 >
-                  <RefreshCw size={14} className={sandboxRemediated ? '' : 'animate-spin'} />
+                  <RefreshCw size={13} className={sandboxRemediated ? '' : 'animate-spin'} />
                   <span>{sandboxRemediated ? 'Reset Demo State' : 'Apply Staged Remediation'}</span>
                 </button>
               </div>
             </div>
 
             {/* Findings Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 my-6 sm:my-8">
               {/* Control 1: Telnet Hardening */}
-              <div className="p-5 rounded-2xl border border-[#D7DCE5] bg-[#F2F3F7]/50 space-y-3 font-mono text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#0A282D]">CIS 1.1.1: Ensure Telnet is Disabled</span>
+              <div className="p-4 sm:p-5 rounded-2xl border border-[#D7DCE5] bg-[#F2F3F7]/50 space-y-3 font-mono text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-[#0A282D] truncate">CIS 1.1.1: Ensure Telnet is Disabled</span>
                   {sandboxRemediated ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB]">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB] flex-shrink-0 text-[10px]">
                       PASS
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#FEECEC] text-[#9F1239] font-bold border border-[#FCA5A5]">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FEECEC] text-[#9F1239] font-bold border border-[#FCA5A5] flex-shrink-0 text-[10px]">
                       FAIL
                     </span>
                   )}
@@ -1232,7 +1365,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                     ? 'Transport input is set strictly to SSH. Plaintext telnet daemon is disabled.'
                     : 'Cleartext Telnet credentials transmission detected across VTY lines 0 through 4.'}
                 </p>
-                <div className="p-3 rounded-xl bg-white border border-[#D7DCE5] text-[11px]">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#D7DCE5] text-[11px] overflow-x-auto">
                   <span className="text-[#7E8F95]">Config Line: </span>
                   <span className={sandboxRemediated ? 'text-[#3DB663] font-bold' : 'text-[#E11D48] font-bold line-through'}>
                     {sandboxRemediated ? 'transport input ssh' : 'transport input telnet ssh'}
@@ -1241,17 +1374,17 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
               </div>
 
               {/* Control 2: SSH Protocol Version 2 */}
-              <div className="p-5 rounded-2xl border border-[#D7DCE5] bg-[#F2F3F7]/50 space-y-3 font-mono text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#0A282D]">CIS 1.1.2: Enforce SSH Version 2</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB]">
+              <div className="p-4 sm:p-5 rounded-2xl border border-[#D7DCE5] bg-[#F2F3F7]/50 space-y-3 font-mono text-xs">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-[#0A282D] truncate">CIS 1.1.2: Enforce SSH Version 2</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#EDF8F1] text-[#1E6E37] font-bold border border-[#BFE7CB] flex-shrink-0 text-[10px]">
                     PASS
                   </span>
                 </div>
                 <p className="font-sans text-xs text-[#4A5B60]">
                   Legacy SSH v1 protocol disabled. 2048-bit RSA keys negotiated for cryptographic transport.
                 </p>
-                <div className="p-3 rounded-xl bg-white border border-[#D7DCE5] text-[11px]">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#D7DCE5] text-[11px] overflow-x-auto">
                   <span className="text-[#7E8F95]">Config Line: </span>
                   <span className="text-[#3DB663] font-bold">ip ssh version 2</span>
                 </div>
@@ -1259,8 +1392,8 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
             </div>
 
             {/* CLI Staged Remediation Box */}
-            <div className="rounded-2xl bg-[#0A282D] text-white p-6 font-mono text-xs border border-[#1E4950]">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+            <div className="rounded-2xl bg-[#0A282D] text-white p-4 sm:p-6 font-mono text-xs border border-[#1E4950]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-white/10 gap-2">
                 <div className="flex items-center gap-2">
                   <Terminal size={14} className="text-[#3DB663]" />
                   <span className="font-bold">Deterministic Staged Remediation Script</span>
@@ -1269,7 +1402,7 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
                   {sandboxRemediated ? 'Verified in Sandbox' : 'Staged for Review'}
                 </span>
               </div>
-              <pre className="text-[#3DB663] leading-relaxed">
+              <pre className="text-[#3DB663] leading-relaxed overflow-x-auto whitespace-pre font-mono">
 {`configure terminal
 line vty 0 4
  transport input ssh
@@ -1281,7 +1414,7 @@ write memory`}
         </div>
       </section>
 
-      {/* 9. MARQUEE BANNER (Potadot big-marquee) */}
+      {/* 9. MARQUEE BANNER */}
       <section className="big-marquee" aria-hidden="true">
         <div className="marquee-track">
           <span>Cisco IOS-XE</span>
@@ -1318,22 +1451,22 @@ write memory`}
         </div>
       </section>
 
-      {/* 10. FREQUENTLY ASKED QUESTIONS (Potadot faq) */}
-      <section className="gsap-reveal py-20 lg:py-28" id="faq">
+      {/* 10. FREQUENTLY ASKED QUESTIONS */}
+      <section className="gsap-reveal py-16 sm:py-20 lg:py-28" id="faq">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-5 space-y-4">
-              <span className="eyebrow mb-3">Straight Answers</span>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A282D] tracking-tight">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <div className="lg:col-span-5 space-y-3 sm:space-y-4">
+              <span className="eyebrow mb-2 sm:mb-3">Straight Answers</span>
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0A282D] tracking-tight">
                 Frequently asked technical questions.
               </h2>
-              <p className="text-sm text-[#4A5B60] leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#4A5B60] leading-relaxed">
                 Everything you need to know about our deterministic rules, multi-vendor parsers, and zero-touch security boundary.
               </p>
               <div className="pt-2">
                 <button
                   onClick={onStartAudit}
-                  className="btn btn--green"
+                  className="btn btn--green w-full sm:w-auto text-xs"
                 >
                   <span>Launch Ingestion Console</span>
                   <span className="btn-ico">
@@ -1347,8 +1480,8 @@ write memory`}
               {faqs.map((f, idx) => (
                 <details key={idx} open={idx === 0}>
                   <summary>
-                    <span>{f.q}</span>
-                    <span className="pm" aria-hidden="true" />
+                    <span className="pr-4">{f.q}</span>
+                    <span className="pm flex-shrink-0" aria-hidden="true" />
                   </summary>
                   <div className="ans">
                     <p>{f.a}</p>
@@ -1360,7 +1493,7 @@ write memory`}
         </div>
       </section>
 
-      {/* 11. HIGH-IMPACT DARK CALL TO ACTION CARD (Potadot cta) */}
+      {/* 11. HIGH-IMPACT CALL TO ACTION CARD */}
       <section className="gsap-reveal py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="cta">
@@ -1368,19 +1501,19 @@ write memory`}
             <div className="dark-dots absolute inset-0 opacity-40 pointer-events-none" />
 
             <div className="cta-row">
-              <div className="space-y-6">
+              <div className="space-y-5 sm:space-y-6">
                 <span className="eyebrow eyebrow-dark">Get Started Immediately</span>
                 <h2>
                   Have network configurations that need deterministic compliance?
                 </h2>
-                <p className="text-sm sm:text-base text-[#A3B8BC] leading-relaxed">
+                <p className="text-xs sm:text-sm sm:text-base text-[#A3B8BC] leading-relaxed max-w-2xl">
                   Upload raw device configuration files now to generate instant CIS & NIST audit evaluations, AI explanations, and verified CLI remediation scripts.
                 </p>
 
-                <div className="pt-2 flex flex-wrap items-center gap-4">
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
                   <button
                     onClick={onStartAudit}
-                    className="btn btn--green text-sm sm:text-base px-6 py-3"
+                    className="btn btn--green text-xs sm:text-sm px-6 py-3"
                   >
                     <span>Launch Configuration Audit</span>
                     <span className="btn-ico">
@@ -1389,7 +1522,7 @@ write memory`}
                   </button>
                   <Link
                     to="/login"
-                    className="btn btn--light text-sm sm:text-base px-6 py-3"
+                    className="btn btn--light text-xs sm:text-sm px-6 py-3 text-center"
                   >
                     <span>Auditor Sign In</span>
                     <span className="btn-ico">
@@ -1410,10 +1543,9 @@ write memory`}
         </div>
       </section>
 
-      {/* 12. ARCHITECTURAL SITE FOOTER (Potadot site-footer) */}
+      {/* 12. ARCHITECTURAL SITE FOOTER */}
       <footer className="site-footer">
         <div className="dark-dots absolute inset-0 opacity-25 pointer-events-none" />
-        {/* Background Watermark Mark SVG */}
         <svg
           className="foot-mark"
           viewBox="0 0 24 24"
@@ -1428,7 +1560,7 @@ write memory`}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="foot-grid">
             {/* Brand Column */}
-            <div className="foot-brand space-y-4">
+            <div className="foot-brand space-y-3 sm:space-y-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3DB663] text-white">
                   <Shield size={18} className="stroke-[2.4]" />
@@ -1450,11 +1582,11 @@ write memory`}
             <div>
               <h4>Platform</h4>
               <ul>
-                <li><button onClick={() => onNavigate('dashboard')} className="hover:text-white transition-colors">Fleet Dashboard</button></li>
-                <li><button onClick={onStartAudit} className="hover:text-white transition-colors">Configuration Audits</button></li>
-                <li><button onClick={() => onNavigate('results')} className="hover:text-white transition-colors">Audit Findings</button></li>
-                <li><button onClick={() => onNavigate('training')} className="hover:text-white transition-colors">Training Center</button></li>
-                <li><button onClick={() => onNavigate('reports')} className="hover:text-white transition-colors">PDF Reports Archive</button></li>
+                <li><button onClick={() => onNavigate('dashboard')} className="hover:text-white transition-colors text-left">Fleet Dashboard</button></li>
+                <li><button onClick={onStartAudit} className="hover:text-white transition-colors text-left">Configuration Audits</button></li>
+                <li><button onClick={() => onNavigate('results')} className="hover:text-white transition-colors text-left">Audit Findings</button></li>
+                <li><button onClick={() => onNavigate('training')} className="hover:text-white transition-colors text-left">Training Center</button></li>
+                <li><button onClick={() => onNavigate('reports')} className="hover:text-white transition-colors text-left">PDF Reports Archive</button></li>
               </ul>
             </div>
 
@@ -1471,7 +1603,7 @@ write memory`}
               </ul>
             </div>
 
-            {/* Column: Standards */}
+            {/* Column: Compliance */}
             <div>
               <h4>Compliance</h4>
               <ul>

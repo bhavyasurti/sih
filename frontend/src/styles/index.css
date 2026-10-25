@@ -983,3 +983,164 @@ body {
   will-change: transform, opacity;
 }
 
+/* ==========================================================================
+   MOBILE & VIEWPORT RESPONSIVENESS ENHANCEMENTS (320px - 1440px)
+   ========================================================================== */
+
+/* Prevent accidental horizontal overflow globally */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Smooth Touch Scrolling on mobile tables and code blocks */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile Breakpoint Adjustments (< 640px) */
+@media (max-width: 640px) {
+  /* Editorial statement scaling */
+  .statement {
+    font-size: clamp(1.35rem, 5.5vw, 1.85rem);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  /* Sa-track responsive 2x2 layout on mobile */
+  .sa-track {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding-top: 10px;
+    margin-top: 16px;
+  }
+
+  .sa-line {
+    display: none;
+  }
+
+  .sa-node {
+    flex-direction: row;
+    text-align: left;
+    background: #F8F9FB;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid #E8EAF0;
+  }
+
+  /* Mockup KPIs on mobile */
+  .mk-kpis {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Accordion padding for touch screens */
+  .sx-tab {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .sx-tab .sx-name {
+    font-size: 1.05rem;
+  }
+
+  .sx-body {
+    padding: 0 16px 20px 16px;
+    gap: 18px;
+  }
+
+  /* CTA card padding */
+  .cta {
+    padding: 28px 18px;
+    border-radius: 24px;
+  }
+
+  .cta h2 {
+    font-size: 1.65rem;
+    line-height: 1.2;
+  }
+
+  /* Rings dark section */
+  .ring-num {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  .ring-item h3 {
+    font-size: 1.15rem;
+  }
+
+  /* Footer mobile reflow */
+  .site-footer {
+    padding: 48px 0 28px 0;
+  }
+
+  .foot-grid {
+    gap: 28px;
+    margin-bottom: 36px;
+  }
+
+  .foot-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  /* Marquee sizing for small screens */
+  .big-marquee {
+    padding: 14px 0;
+  }
+
+  .big-marquee .marquee-track span {
+    font-size: 1.15rem;
+    padding: 0 14px;
+  }
+
+  /* Touch Target Safety (Minimum 44px touch targets) */
+  .btn {
+    min-height: 44px;
+  }
+
+  .sx-tab {
+    min-height: 52px;
+  }
+
+  .faq details summary {
+    font-size: 1.05rem;
+    padding: 4px 0;
+  }
+}
+
+/* Tablet Breakpoint Adjustments (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .sa-track {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .statement {
+    font-size: 2.2rem;
+  }
+
+  .foot-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
+

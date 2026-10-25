@@ -152,9 +152,13 @@ export function SecurityTopology3D({
     dir2.position.set(-5, -4, 3)
     scene.add(dir2)
 
+    // Master Pivot Group for responsive scaling
+    const pivot = new THREE.Group()
+    scene.add(pivot)
+
     // Central Fleet Core
     const coreGroup = new THREE.Group()
-    scene.add(coreGroup)
+    pivot.add(coreGroup)
 
     const coreMesh = new THREE.Mesh(
       new THREE.IcosahedronGeometry(1.0, 1),
@@ -205,7 +209,7 @@ export function SecurityTopology3D({
       )
       sphere.userData = { nodeData: n }
       nodeGroup.add(sphere)
-      scene.add(nodeGroup)
+      pivot.add(nodeGroup)
       nodeRaycastObjects.push(sphere)
 
       // Curve to core
@@ -219,7 +223,7 @@ export function SecurityTopology3D({
         new THREE.BufferGeometry().setFromPoints(points),
         new THREE.LineBasicMaterial({ color: n.color, transparent: true, opacity: 0.35 })
       )
-      scene.add(line)
+      pivot.add(line)
       connectionLines.push({ line, curve })
     })
 
@@ -242,16 +246,33 @@ export function SecurityTopology3D({
       setHoveredNode(null)
     }
 
-    container.addEventListener('mousemove', onPointerMove)
-    container.addEventListener('mouseleave', onPointerLeave)
+    container.addEventListener('mousemove', onPointerMove, { passive: true })
+    container.addEventListener('mouseleave', onPointerLeave, { passive: true })
 
-    const handleResize = () => {
-      if (!container) return
-      camera.aspect = container.clientWidth / container.clientHeight
+    const updateSize = (w: number, h: number) => {
+      if (w === 0 || h === 0) return
+      const aspect = w / h
+      camera.aspect = aspect
       camera.updateProjectionMatrix()
-      renderer.setSize(container.clientWidth, container.clientHeight)
+      renderer.setSize(w, h)
+
+      if (aspect < 1.0) {
+        const factor = Math.min(1.0, Math.max(0.65, aspect * 1.1))
+        pivot.scale.set(factor, factor, factor)
+        camera.position.z = 12.0 / factor * 0.95
+      } else {
+        pivot.scale.set(1, 1, 1)
+        camera.position.z = 12.0
+      }
     }
-    window.addEventListener('resize', handleResize)
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        updateSize(width, height)
+      }
+    })
+    resizeObserver.observe(container)
 
     let animId: number
     let time = 0
@@ -291,7 +312,7 @@ export function SecurityTopology3D({
 
     return () => {
       cancelAnimationFrame(animId)
-      window.removeEventListener('resize', handleResize)
+      resizeObserver.disconnect()
       container.removeEventListener('mousemove', onPointerMove)
       container.removeEventListener('mouseleave', onPointerLeave)
 
