@@ -561,9 +561,9 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
       mouse.x += (mouse.targetX - mouse.x) * 0.05
       mouse.y += (mouse.targetY - mouse.y) * 0.05
 
-      // Subtle scene camera parallax relative to responsive baseCam
-      camera.position.x = baseCam.x + mouse.x * 0.45
-      camera.position.y = baseCam.y + mouse.y * 0.35
+      // Camera remains stationary at baseCam to prevent pointer-driven shifting of the text
+      camera.position.x = baseCam.x
+      camera.position.y = baseCam.y
       camera.position.z = baseCam.z
       camera.lookAt(0, fullScreenBackground ? 0.3 : 0, 0)
 
@@ -575,65 +575,35 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
       const worldMouseX = mouse.x * 7.5
       const worldMouseY = mouse.y * 4.5
 
-      // A. Animate Text Particles
+      // A. Animate Text Particles (Anchored fixed in position and shape, regardless of cursor movement)
       const textPositions = textGeo.attributes.position.array as Float32Array
       const textColors = textGeo.attributes.color.array as Float32Array
+      const isGathering = gatherProgress < 1.0
 
       for (let i = 0; i < textParticleList.length; i++) {
         const p = textParticleList[i]
 
-        // Coherent wave displacement across text - NO random phase on spatial motion
-        // This ensures the typography remains sharp, crisp, and readable throughout!
-        const coherentY = Math.sin(elapsedTime * 1.5 + p.tx * 0.8) * 0.03
-        const coherentZ = Math.sin(elapsedTime * 1.8 - p.tx * 1.0) * 0.05
-
-        // Scanning light ripple passing through the letters
+        // Scanning light ripple passing through the letters (used for luminosity)
         const rippleDist = Math.abs(p.tx - sweepX)
         const rippleEffect = Math.exp(-(rippleDist * rippleDist) / 1.6) * 0.28
 
-        const targetX = THREE.MathUtils.lerp(p.originX, p.tx, gatherProgress)
-        const targetY = THREE.MathUtils.lerp(p.originY, p.ty + coherentY, gatherProgress)
-        const targetZ = THREE.MathUtils.lerp(p.originZ, p.tz + coherentZ + rippleEffect, gatherProgress)
-
-        // Mouse repulsion when gathered
-        if (gatherProgress > 0.6 && mouse.active) {
-          const dx = p.px - worldMouseX
-          const dy = p.py - worldMouseY
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          const repulsionRadius = 1.8
-
-          if (dist < repulsionRadius && dist > 0.01) {
-            const force = (1.0 - dist / repulsionRadius) * 0.14
-            p.vx += (dx / dist) * force
-            p.vy += (dy / dist) * force
-          }
-        }
-
-        if (gatherProgress < 1.0) {
-          // Direct smooth interpolation during opening
-          p.px = targetX
-          p.py = targetY
-          p.pz = targetZ
+        if (isGathering) {
+          // Smooth assembly during opening sequence
+          p.px = THREE.MathUtils.lerp(p.originX, p.tx, gatherProgress)
+          p.py = THREE.MathUtils.lerp(p.originY, p.ty, gatherProgress)
+          p.pz = THREE.MathUtils.lerp(p.originZ, p.tz, gatherProgress)
         } else {
-          // Spring return physics
-          p.vx += (targetX - p.px) * 0.085
-          p.vy += (targetY - p.py) * 0.085
-          p.vz += (targetZ - p.pz) * 0.085
-
-          p.vx *= 0.84
-          p.vy *= 0.84
-          p.vz *= 0.84
-
-          p.px += p.vx
-          p.py += p.vy
-          p.pz += p.vz
+          // Stationary anchored at sampled typography position
+          p.px = p.tx
+          p.py = p.ty
+          p.pz = p.tz
         }
 
         textPositions[i * 3] = p.px
         textPositions[i * 3 + 1] = p.py
         textPositions[i * 3 + 2] = p.pz
 
-        // Sparkle shimmer brightness (phase used only for luminous twinkle)
+        // Sparkle shimmer brightness (twinkle and light sweep, without moving particles)
         const shimmer = 0.88 + 0.35 * Math.sin(elapsedTime * 3.2 + p.phase)
         const glintMultiplier = p.isGlint ? 1.4 : 1.0
         textColors[i * 3] = Math.min((p.r * shimmer + rippleEffect * 0.5) * glintMultiplier, 1.0)
