@@ -27,6 +27,8 @@ interface TextParticleData {
   phase: number
   isAI: boolean
   isGlint: boolean
+  mass: number
+  rotSpeed: number
 }
 
 export function Hero3DVisual({ className = '', fullScreenBackground = false }: Hero3DVisualProps) {
@@ -223,6 +225,10 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
             const isGlint = Math.random() < 0.038
             const size = isGlint ? (0.22 + Math.random() * 0.08) : (0.095 + Math.random() * 0.04)
 
+            // Varied inertia and rotational curl for high-realism shatter physics
+            const mass = 0.75 + Math.random() * 0.55
+            const rotSpeed = (Math.random() > 0.5 ? 1 : -1) * (0.8 + Math.random() * 1.5)
+
             particles.push({
               tx: wx,
               ty: wy,
@@ -243,12 +249,49 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
               phase: Math.random() * Math.PI * 2,
               isAI,
               isGlint,
+              mass,
+              rotSpeed,
             })
           }
         }
       }
 
+      // Compute precise bounding box of sampled typography in local coordinate space
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i]
+        if (p.tx < minX) minX = p.tx
+        if (p.tx > maxX) maxX = p.tx
+        if (p.ty < minY) minY = p.ty
+        if (p.ty > maxY) maxY = p.ty
+      }
+      textBounds = {
+        minX,
+        maxX,
+        minY,
+        maxY,
+        centerX: (minX + maxX) / 2,
+        centerY: (minY + maxY) / 2,
+      }
+
       return particles
+    }
+
+    interface TextBounds {
+      minX: number
+      maxX: number
+      minY: number
+      maxY: number
+      centerX: number
+      centerY: number
+    }
+    let textBounds: TextBounds = {
+      minX: -4.4,
+      maxX: 4.4,
+      minY: 1.2,
+      maxY: 2.7,
+      centerX: 0,
+      centerY: 1.95,
     }
 
     let textParticleList = sampleTextParticles(initialWidth)
@@ -492,8 +535,71 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
     const ambientPoints = new THREE.Points(ambientGeo, ambientMat)
     scene.add(ambientPoints)
 
-    // 7. Interactive Mouse Tracking
+    // 7. Interactive Mouse Tracking & Shatter Trigger Physics
     const mouse = { x: 0, y: 0, targetX: 0, targetY: 0, active: false }
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    type ParticleAnimState = 'idle' | 'shattering' | 'flowing' | 'reforming'
+    let animState: ParticleAnimState = 'idle'
+    let stateTimer = 0
+    let canTriggerShatter = true
+    let isPointerOverText = false
+
+    const SHATTER_DURATION = 0.40 // 400ms explosive radial scatter
+    const FLOW_DURATION = 0.72    // 720ms organic wave drift
+    const REFORM_DURATION = 0.90  // 900ms spring-damped convergence
+    // Complete shatter-flow-reform cycle ~2.02 seconds
+
+    const raycaster = new THREE.Raycaster()
+    const textPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0)
+    const hitPoint = new THREE.Vector3()
+
+    const triggerShatter = (originLocalX: number, originLocalY: number) => {
+      if (animState !== 'idle' || gatherProgress < 0.85) return
+      if (prefersReducedMotion) return
+
+      animState = 'shattering'
+      stateTimer = 0
+      canTriggerShatter = false
+
+      for (let i = 0; i < textParticleList.length; i++) {
+        const p = textParticleList[i]
+
+        // Outward radial vector from pointer origin
+        const dx = p.tx - originLocalX
+        const dy = p.ty - originLocalY
+        const distFromHit = Math.sqrt(dx * dx + dy * dy) + 0.15
+
+        // Outward radial vector from text center
+        const cx = p.tx - textBounds.centerX
+        const cy = p.ty - textBounds.centerY
+        const distFromCenter = Math.sqrt(cx * cx + cy * cy) + 0.2
+
+        // Weighted blend: strongest push directly away from cursor with radial text expansion
+        let dirX = (dx / distFromHit) * 0.72 + (cx / distFromCenter) * 0.28
+        let dirY = (dy / distFromHit) * 0.72 + (cy / distFromCenter) * 0.28
+        const len = Math.sqrt(dirX * dirX + dirY * dirY) || 1
+        dirX /= len
+        dirY /= len
+
+        // Tangential curl velocity (vortex / curl rotational momentum)
+        const perpX = -dirY
+        const perpY = dirX
+
+        // Varied burst magnitude with mass inertia and proximity boost
+        const baseSpeed = 5.2 + Math.random() * 8.5
+        const proximityBoost = Math.max(0.6, 2.2 - distFromHit * 0.35)
+        const totalSpeed = (baseSpeed * proximityBoost) / p.mass
+
+        const rotForce = p.rotSpeed * (2.2 + Math.random() * 2.8)
+
+        p.vx = dirX * totalSpeed + perpX * rotForce + (Math.random() - 0.5) * 2.4
+        p.vy = dirY * totalSpeed + perpY * rotForce + (Math.random() - 0.5) * 2.4
+        // Z scattering: burst outward toward viewer and inward into the wave field
+        p.vz = (Math.random() - 0.48) * 9.2 + (p.isAI ? 1.6 : -1.6)
+      }
+    }
+
     const onMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect()
       const clientX = e.clientX - rect.left
@@ -521,9 +627,44 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
       }
     }
 
+    const onPointerDown = (e: any) => {
+      let clientX = e.clientX
+      let clientY = e.clientY
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX
+        clientY = e.touches[0].clientY
+      }
+      if (clientX === undefined || clientY === undefined) return
+
+      const rect = container.getBoundingClientRect()
+      const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1
+      const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1
+
+      raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera)
+      if (raycaster.ray.intersectPlane(textPlane, hitPoint)) {
+        const localX = (hitPoint.x - textPoints.position.x) / textPoints.scale.x
+        const localY = (hitPoint.y - textPoints.position.y) / textPoints.scale.y
+        const padX = 0.65
+        const padY = 0.45
+        if (
+          localX >= textBounds.minX - padX &&
+          localX <= textBounds.maxX + padX &&
+          localY >= textBounds.minY - padY &&
+          localY <= textBounds.maxY + padY
+        ) {
+          if (animState === 'idle' && gatherProgress >= 0.85) {
+            triggerShatter(localX, localY)
+          }
+        }
+      }
+    }
+
     window.addEventListener('mousemove', onMouseMove, { passive: true })
     window.addEventListener('mouseleave', onMouseLeave, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('pointerdown', onPointerDown, { passive: true })
+    window.addEventListener('mousedown', onPointerDown, { passive: true })
+    window.addEventListener('touchstart', onPointerDown, { passive: true })
 
     // 8. Opening Progression Logic
     let gatherProgress = hasSeenIntro ? 1.0 : 0.0
@@ -572,53 +713,211 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
       if (sweepX > 16) sweepX = -16
 
       // Approximate 3D cursor position
+      // Approximate 3D cursor position
       const worldMouseX = mouse.x * 7.5
       const worldMouseY = mouse.y * 4.5
 
-      // A. Animate Text Particles (Anchored fixed in position and shape, regardless of cursor movement)
+      // Check if pointer is hovering over "NetSecure AI" particle text area
+      let currentlyOver = false
+      let localHitX = 0
+      let localHitY = 0
+
+      if (mouse.active && gatherProgress >= 0.85) {
+        raycaster.setFromCamera(new THREE.Vector2(mouse.targetX, mouse.targetY), camera)
+        if (raycaster.ray.intersectPlane(textPlane, hitPoint)) {
+          localHitX = (hitPoint.x - textPoints.position.x) / textPoints.scale.x
+          localHitY = (hitPoint.y - textPoints.position.y) / textPoints.scale.y
+
+          // Interaction threshold boundary around the letters
+          const padX = 0.55
+          const padY = 0.40
+          if (
+            localHitX >= textBounds.minX - padX &&
+            localHitX <= textBounds.maxX + padX &&
+            localHitY >= textBounds.minY - padY &&
+            localHitY <= textBounds.maxY + padY
+          ) {
+            currentlyOver = true
+          }
+        }
+      }
+
+      // Pointer enter trigger logic with clear threshold and retrigger prevention
+      if (currentlyOver && !isPointerOverText) {
+        if (canTriggerShatter && animState === 'idle') {
+          triggerShatter(localHitX, localHitY)
+        }
+      } else if (!currentlyOver && isPointerOverText) {
+        if (animState === 'idle') {
+          canTriggerShatter = true
+        }
+      }
+      isPointerOverText = currentlyOver
+
+      if (!isPointerOverText && animState === 'idle') {
+        canTriggerShatter = true
+      }
+
+      // Cursor feedback
+      if (renderer?.domElement) {
+        if (currentlyOver && animState === 'idle') {
+          renderer.domElement.style.cursor = 'pointer'
+        } else {
+          renderer.domElement.style.cursor = 'default'
+        }
+      }
+
+      // A. Particle State Machine (Idle, Shattering, Flowing, Reforming)
       const textPositions = textGeo.attributes.position.array as Float32Array
       const textColors = textGeo.attributes.color.array as Float32Array
       const isGathering = gatherProgress < 1.0
 
-      for (let i = 0; i < textParticleList.length; i++) {
-        const p = textParticleList[i]
+      const dt = Math.min(delta, 0.05)
+      let burstGlow = 0
+      let flareAlpha = 1.0
 
-        // Scanning light ripple passing through the letters (used for luminosity)
-        const rippleDist = Math.abs(p.tx - sweepX)
-        const rippleEffect = Math.exp(-(rippleDist * rippleDist) / 1.6) * 0.28
+      if (animState === 'shattering') {
+        stateTimer += dt
+        const progress = Math.min(stateTimer / SHATTER_DURATION, 1.0)
+        burstGlow = (1 - progress) * 0.5
+        flareAlpha = Math.max(0, 1 - progress * 2.8)
 
-        if (isGathering) {
-          // Smooth assembly during opening sequence
-          p.px = THREE.MathUtils.lerp(p.originX, p.tx, gatherProgress)
-          p.py = THREE.MathUtils.lerp(p.originY, p.ty, gatherProgress)
-          p.pz = THREE.MathUtils.lerp(p.originZ, p.tz, gatherProgress)
-        } else {
-          // Stationary anchored at sampled typography position
-          p.px = p.tx
-          p.py = p.ty
-          p.pz = p.tz
+        // Explosive outward scatter with light damping
+        const damp = Math.pow(0.92, dt * 60)
+        for (let i = 0; i < textParticleList.length; i++) {
+          const p = textParticleList[i]
+          p.vx *= damp
+          p.vy *= damp
+          p.vz *= damp
+
+          p.px += p.vx * dt
+          p.py += p.vy * dt
+          p.pz += p.vz * dt
         }
 
+        if (stateTimer >= SHATTER_DURATION) {
+          animState = 'flowing'
+          stateTimer = 0
+        }
+      } else if (animState === 'flowing') {
+        stateTimer += dt
+        const progress = Math.min(stateTimer / FLOW_DURATION, 1.0)
+        burstGlow = Math.max(0, (1 - progress) * 0.15)
+        flareAlpha = 0
+
+        // Organic flowing through the wave field
+        const damp = Math.pow(0.945, dt * 60)
+        for (let i = 0; i < textParticleList.length; i++) {
+          const p = textParticleList[i]
+
+          const waveHarmonicX = Math.sin(p.py * 0.65 + elapsedTime * 1.4 + p.phase) * 1.5
+          const waveHarmonicY = Math.cos(p.px * 0.55 + elapsedTime * 1.2 + p.phase) * 1.2
+          const waveHarmonicZ = Math.sin((p.px + p.py) * 0.35 + elapsedTime * 0.8) * 0.9
+
+          p.vx = (p.vx + waveHarmonicX * dt * 2.8) * damp
+          p.vy = (p.vy + waveHarmonicY * dt * 2.8) * damp
+          p.vz = (p.vz + waveHarmonicZ * dt * 2.8) * damp
+
+          p.px += p.vx * dt
+          p.py += p.vy * dt
+          p.pz += p.vz * dt
+        }
+
+        if (stateTimer >= FLOW_DURATION) {
+          animState = 'reforming'
+          stateTimer = 0
+        }
+      } else if (animState === 'reforming') {
+        stateTimer += dt
+        const progress = Math.min(stateTimer / REFORM_DURATION, 1.0)
+        const ease = progress * progress * (3 - 2 * progress)
+        flareAlpha = THREE.MathUtils.clamp((progress - 0.45) / 0.55, 0.0, 1.0)
+
+        // Smooth spring attraction back to exact coordinates
+        const springK = 35.0 + ease * 45.0
+        const dampingC = 9.8 + ease * 5.2
+
+        for (let i = 0; i < textParticleList.length; i++) {
+          const p = textParticleList[i]
+          const toTargetX = p.tx - p.px
+          const toTargetY = p.ty - p.py
+          const toTargetZ = p.tz - p.pz
+
+          p.vx += (toTargetX * springK - p.vx * dampingC) * dt
+          p.vy += (toTargetY * springK - p.vy * dampingC) * dt
+          p.vz += (toTargetZ * springK - p.vz * dampingC) * dt
+
+          p.px += p.vx * dt
+          p.py += p.vy * dt
+          p.pz += p.vz * dt
+
+          if (progress > 0.85) {
+            const snap = (progress - 0.85) / 0.15
+            p.px = THREE.MathUtils.lerp(p.px, p.tx, snap * 0.45)
+            p.py = THREE.MathUtils.lerp(p.py, p.ty, snap * 0.45)
+            p.pz = THREE.MathUtils.lerp(p.pz, p.tz, snap * 0.45)
+          }
+        }
+
+        if (stateTimer >= REFORM_DURATION) {
+          for (let i = 0; i < textParticleList.length; i++) {
+            const p = textParticleList[i]
+            p.px = p.tx
+            p.py = p.ty
+            p.pz = p.tz
+            p.vx = 0
+            p.vy = 0
+            p.vz = 0
+          }
+          animState = 'idle'
+          stateTimer = 0
+          flareAlpha = 1.0
+          if (!isPointerOverText) {
+            canTriggerShatter = true
+          }
+        }
+      } else {
+        // IDLE state
+        flareAlpha = 1.0
+        for (let i = 0; i < textParticleList.length; i++) {
+          const p = textParticleList[i]
+          if (isGathering) {
+            p.px = THREE.MathUtils.lerp(p.originX, p.tx, gatherProgress)
+            p.py = THREE.MathUtils.lerp(p.originY, p.ty, gatherProgress)
+            p.pz = THREE.MathUtils.lerp(p.originZ, p.tz, gatherProgress)
+          } else {
+            p.px = p.tx
+            p.py = p.ty
+            p.pz = p.tz
+          }
+        }
+      }
+
+      for (let i = 0; i < textParticleList.length; i++) {
+        const p = textParticleList[i]
         textPositions[i * 3] = p.px
         textPositions[i * 3 + 1] = p.py
         textPositions[i * 3 + 2] = p.pz
 
-        // Sparkle shimmer brightness (twinkle and light sweep, without moving particles)
+        const rippleDist = Math.abs(p.tx - sweepX)
+        const rippleEffect = Math.exp(-(rippleDist * rippleDist) / 1.6) * 0.28
         const shimmer = 0.88 + 0.35 * Math.sin(elapsedTime * 3.2 + p.phase)
         const glintMultiplier = p.isGlint ? 1.4 : 1.0
-        textColors[i * 3] = Math.min((p.r * shimmer + rippleEffect * 0.5) * glintMultiplier, 1.0)
-        textColors[i * 3 + 1] = Math.min((p.g * shimmer + rippleEffect * 0.6) * glintMultiplier, 1.0)
-        textColors[i * 3 + 2] = Math.min((p.b * shimmer + rippleEffect * 0.5) * glintMultiplier, 1.0)
+
+        textColors[i * 3] = Math.min((p.r * shimmer + rippleEffect * 0.5 + burstGlow) * glintMultiplier, 1.0)
+        textColors[i * 3 + 1] = Math.min((p.g * shimmer + rippleEffect * 0.6 + burstGlow) * glintMultiplier, 1.0)
+        textColors[i * 3 + 2] = Math.min((p.b * shimmer + rippleEffect * 0.5 + burstGlow) * glintMultiplier, 1.0)
       }
       textGeo.attributes.position.needsUpdate = true
       textGeo.attributes.color.needsUpdate = true
 
       // A2. Animate Star Cross Flares on Letter Vertices
+      flareMat.opacity = 0.95 * flareAlpha
       const flareColArray = flareGeo.attributes.color.array as Float32Array
       for (let f = 0; f < flareCount; f++) {
         const fo = flareOffsets[f]
         const pulse = 0.4 + 0.6 * Math.sin(elapsedTime * fo.speed + fo.phase)
-        const intensity = pulse * pulse
+        const intensity = pulse * pulse * flareAlpha
         if (fo.isAI) {
           flareColArray[f * 3] = 0.15 * intensity
           flareColArray[f * 3 + 1] = 1.0 * intensity
@@ -762,6 +1061,9 @@ export function Hero3DVisual({ className = '', fullScreenBackground = false }: H
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('touchstart', onPointerDown)
       ro.disconnect()
       observer.disconnect()
 

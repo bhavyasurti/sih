@@ -918,9 +918,9 @@ export function LandingPage({ onNavigate, onStartAudit }: LandingPageProps) {
           </div>
 
           {/* Editorial Headline */}
-          <h1 className="hero-anim-title font-display text-2xl min-[420px]:text-3xl sm:text-4xl lg:text-[3.25rem] text-white font-extrabold tracking-tight leading-[1.15] max-w-3xl drop-shadow-md">
-            From Configurations <br className="hidden sm:inline" />
-            <span className="text-[#10B981]">to Compliance.</span>
+          <h1 className="hero-anim-title font-display text-[clamp(1.75rem,4.5vw,3.25rem)] text-white font-extrabold tracking-tight !leading-[1.2] max-w-3xl drop-shadow-md flex flex-col items-center">
+            <span className="block leading-[1.2]">From Configurations</span>
+            <span className="block text-[#10B981] leading-[1.2] mt-1 sm:mt-1.5">to Compliance.</span>
           </h1>
 
           {/* Supporting Copy */}
